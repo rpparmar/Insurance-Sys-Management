@@ -1,0 +1,90 @@
+﻿@{
+    ViewData["Title"] = "List Of Companies";
+    Layout = "_Layout";
+
+    // Render the URL and store it in a JavaScript variable
+    //string myActionUrl = Url.Action("CompanyListInnerContent", "Company");
+}
+
+<div class="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader">
+    <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
+        <!--begin::Info-->
+        <div class="d-flex align-items-center flex-wrap mr-1">
+            <!--begin::Page Heading-->
+            <div class="d-flex align-items-baseline mr-5">
+                <!--begin::Page Title-->
+                <h5 class="text-dark font-weight-bold my-2 mr-5">Manage Company</h5>
+                <!--end::Page Title-->
+                <!--begin::Breadcrumb-->
+                @*<ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
+                <li class="breadcrumb-item">
+                <a href="#" class="text-muted">
+                Masters
+                </a>
+                </li>
+                <li class="breadcrumb-item">
+                <a asp-controller="Company" asp-action="CompanyList" class="text-muted">
+                Company List
+                </a>
+                </li>
+                </ul>*@
+                <!--end::Breadcrumb-->
+            </div>
+            <!--end::Page Heading-->
+        </div>
+        <!--end::Info-->
+
+    </div>
+</div>
+<div class="container">
+    <div class="card card-custom">
+        <div class="card-header flex-wrap border-0 pt-6 pb-0">
+            <div class="card-title">
+            </div>
+            <div class="card-toolbar">
+                <label class="text-dark font-weight-bold mr-3 mt-2">Status:</label>
+                <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                    <label class="btn btn-primary active">
+                        <input class="switch_status" type="radio" name="status" data-val="0" autocomplete="off" checked> Active
+                    </label>
+                    <label class="btn btn-default mr-2">
+                        <input class="switch_status" type="radio" name="status" data-val="1" autocomplete="off"> In Active
+                    </label>
+                </div>
+                <!--begin::Button-->
+                <a asp-controller="Company" asp-action="AddEditCompany" class="btn btn-primary font-weight-bolder">
+                    <i class="fas fa-plus icon-sm"></i>
+                    Add Company
+                </a>
+                <!--end::Button-->
+            </div>
+        </div>
+        <div class="card-body">
+            <!--begin::Search Form-->
+            @*@await Html.PartialAsync("_searchBarForDatatablePartial")*@
+            <!--end::Search Form-->
+            <div id="CompanyList" class="custom-paging">
+                @await Html.PartialAsync("_CustomPaging")
+            </div>
+            @*<div class="datatable datatable-default datatable-primary datatable-loaded">
+                <div id="pagingFooter" class="datatable-pager">
+                </div>
+            </div>*@
+            <div class="datatable datatable-default datatable-primary datatable-loaded dvDisplay">
+                <div id="pagingFooter" class="datatable-pager custom-override">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Html.PartialAsync("_CustomPagingHiddenFields")
+
+@section Scripts{
+    <script type="text/javascript">
+        var divID = "CompanyList";
+        var actionURL = "@Html.Raw(Url.Action("CompanyListInnerContent", "Company"))";
+        var IsformView=false;
+    </script>
+    <script src="~/js/Masters/Company/_company.js"></script>
+}

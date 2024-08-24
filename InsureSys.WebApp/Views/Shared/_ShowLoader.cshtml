@@ -1,0 +1,58 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style type="text/css">
+        /* here you can put your own css to customize and override the theme */
+        .loading {
+            display: none;
+        }
+
+            .loading.show {
+                display: block;
+                position: fixed;
+                z-index: 100;
+                background-image: url('/loader.gif');
+                background-color: #666;
+                opacity: 0.5;
+                background-repeat: no-repeat;
+                background-position: center;
+                left: 0;
+                bottom: 0;
+                right: 0;
+                top: 0;
+            }
+
+        .loadinggif.show {
+            left: 50%;
+            top: 50%;
+            position: absolute;
+            z-index: 101;
+            width: 32px;
+            height: 32px;
+            margin-left: -16px;
+            margin-top: -16px;
+        }
+
+        .invoice .invoice-logo p {
+            padding: 5px 0;
+            font-size: 26px;
+            line-height: 28px;
+            text-align: right;
+        }
+
+        @@media print {
+            .noExport {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="loading">
+    </div>
+</body>
+</html>
