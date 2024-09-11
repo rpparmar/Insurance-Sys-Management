@@ -1,3 +1,4 @@
+using Insurancesys.web.Utility;
 using InsuranceSys.Application;
 using InsuranceSys.Infrastructure;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -16,10 +17,13 @@ namespace Insurancesys.web
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.  12
+            // Add services to the container - used to have cshtml changes runtime.
             builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
-            //var mvcBuilder = builder.Services.AddControllersWithViews();
-            //mvcBuilder.AddRazorRuntimeCompilation();
+            builder.Services.AddControllers();
+
+            // Add AutoMapper
+            builder.Services.AddAutoMapper(typeof(MappingProfile)); // Scans for profiles in the assembly
+
 
             // Build the configuration
             var configuration = new ConfigurationBuilder()
@@ -87,7 +91,7 @@ namespace Insurancesys.web
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
-
+            
             app.Run();
         }
     }

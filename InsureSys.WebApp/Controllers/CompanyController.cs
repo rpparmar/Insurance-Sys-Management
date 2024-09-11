@@ -1,9 +1,12 @@
-﻿using Insurancesys.web.Models;
+﻿using AutoMapper;
+using Insurancesys.web.Models;
 using InsuranceSys.Application;
+using InsuranceSys.Domain.DTO;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
+using System.Diagnostics.Metrics;
 using System.Text;
 
 namespace Insurancesys.web.Controllers
@@ -12,9 +15,11 @@ namespace Insurancesys.web.Controllers
     public class CompanyController : Controller
     {
         private readonly ICompanyService _companyService;
-        public CompanyController(ICompanyService companyService)
+        private readonly IMapper _mapper;
+        public CompanyController(ICompanyService companyService, IMapper mapper)
         {
             _companyService = companyService;
+            _mapper = mapper;
         }
         [Route("companies")]
         public IActionResult CompanyList()
@@ -23,12 +28,13 @@ namespace Insurancesys.web.Controllers
             return View("../Masters/Company/CompanyList");
         }
 
-        public async Task<IActionResult> CompanyListInnerContent(int page = 1, int pagesize = 10, string searchval = "")
+        public async Task<IActionResult> CompanyListInnerContent(string searchtxt = "", bool status = true, int page = 1, int pagesize = 10)
         {
             Dictionary<string, object> paramCollections = new Dictionary<string, object>();
             paramCollections.Add("page", page);
             paramCollections.Add("pagesize", pagesize);
-            paramCollections.Add("searchval", searchval);
+            paramCollections.Add("searchval", searchtxt);
+            paramCollections.Add("status", status);
             paramCollections.Add("Count", 0);
 
             StringBuilder strHTML = new StringBuilder();
@@ -56,11 +62,15 @@ namespace Insurancesys.web.Controllers
                             for (int i = 0; i < dtContent.Rows.Count; i++)
                             {
                                 strHTML.Append("<tr>");
-                                strHTML.Append("<td>" + Convert.ToString(dtContent.Rows[i]["nvarCompanyName"]) + "</td>");
+                                strHTML.Append("<td>" + Convert.ToString(dtContent.Rows[i]["CompanyName"]) + "</td>");
                                 strHTML.Append("</tr>");
                             }
                             strHTML.Append("</tbody>");
                             strHTML.Append("</table>");
+                        }
+                        else
+                        {
+                            strHTML.Append("<center>No data available in table</center>");
                         }
                     }
 
@@ -71,15 +81,79 @@ namespace Insurancesys.web.Controllers
 
         [HttpGet("companies/Add/{id?}")]
         [HttpGet("companies/Edit/{id?}")]
-        public IActionResult AddEditCompany(int id = 0)
+        public async Task<IActionResult> AddEditCompany(int id = 0)
         {
             CompanyViewModel model = new CompanyViewModel();
+            if (id > 0)
+            {
+                var companydto = await _companyService.GetCompanyById(id);
+                if (companydto != null)
+                {
+                    model = _mapper.Map<CompanyViewModel>(companydto);
+                    model.IsEditMode = true;
+                }
+                else
+                {
+                    TempData["RowsAffected"] = 0;
+                    TempData["Message"] = "No such record exist";
+                    return RedirectToAction("CompanyList");
+                }
+            }
+            else
+            {
+                model.IsEditMode = false;
+                model.IsActive = true;
+            }
             return View("../Masters/Company/AddEditCompany", model);
         }
         [HttpPost]
-        public IActionResult AddEditCompany(CompanyViewModel model, string saveAndExit = "")
+        public async Task<IActionResult> SaveCompany(CompanyViewModel model, string saveAndExit = "")
         {
-            return View("../Masters/Company/AddEditCompany", model);
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Where(x => x.Value.Errors.Count > 0).Select(x => new { x.Key, x.Value.Errors }).ToArray();
+                foreach (var item in errors)
+                {
+                    ModelState.AddModelError(item.Key, item.Errors.Select(s => s.ErrorMessage).ToString());
+                }
+                return View("../Masters/Company/AddEditCompany", model);
+            }
+            var company = _mapper.Map<CompanyDto>(model);
+
+            if (model.IsEditMode)
+            {
+                #region Update
+                var rowsaffected = await _companyService.UpdateCompany(company);
+                TempData["RowsAffected"] = rowsaffected;
+                if (rowsaffected > 0)
+                    TempData["Message"] = "Record updated successfully.";
+                else
+                    TempData["Message"] = "Record not updated,something went wrong";
+                #endregion
+            }
+            else
+            {
+                #region Insert
+                var rowsaffected = await _companyService.AddCompany(company);
+                TempData["RowsAffected"] = rowsaffected;
+                if (rowsaffected > 0)
+                    TempData["Message"] = "Record saved successfully.";
+                else
+                    TempData["Message"] = "Record not saved,something went wrong";
+                #endregion
+            }
+            if (!string.IsNullOrEmpty(saveAndExit))
+            {
+                return RedirectToAction("CompanyList");
+            }
+            else if (model.IsEditMode)
+            {
+                return RedirectToAction("AddEditCompany", new RouteValueDictionary(new { id = model.CompanyID }));
+            }
+            else
+            {
+                return RedirectToAction("AddEditCompany");
+            }
         }
         public ActionResult CompanyCount()
         {

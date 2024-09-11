@@ -12,7 +12,8 @@ namespace InsuranceSys.Infrastructure
     {
         Task<int> ExecuteNonQueryAsync(Dictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "");
         Task<DataSet> GetDataSetAsync(Dictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "");
-        Task<DataTable> GetDataTableAsync(Dictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "");
+        Task<T> GetObjectAsync<T>(Dictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "") where T : class,new();
+        //Task<DataTable> GetDataTableAsync(Dictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "");
         //Task<string> ExecuteScalarAsync();
         //Task<T> GetEntityAsync<T>();
         //Task<List<T>> GetListAsync<T>() where T : new();

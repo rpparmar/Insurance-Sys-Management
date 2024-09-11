@@ -1,6 +1,4 @@
-﻿@*@using Microsoft.AspNetCore.Localization;*@
-@{
-
+﻿@{
     int pagesize = Convert.ToInt32(ViewData["paging_size"]);
     int Totalcount = Convert.ToInt32(ViewData["totalrecords"]);
 
@@ -25,9 +23,6 @@
         pageNumbers[i] = i + 1;
     }
 }
-@*@{
-    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
-}*@
 
 <script type="text/javascript">
     var currentURL = "";
@@ -48,9 +43,9 @@
     var apikey = '';
     var _arrPageSizes = [10, 25, 50, 100, 0]; //0 value represents All
 
-    function getpaging(divID, url, page, searchText, chr_status, _FromDate, _ToDate, _apikey) {
+    function getpaging_old(divID, url, page, searchText, chr_status, _FromDate, _ToDate) {
         $(".loading").addClass('show');
-        totalrecords = parseInt(@ViewData["totalrecords"]);
+        totalrecords = parseInt('@ViewData["totalrecords"]');
         var pagenumber = parseInt(page);
         pagesize = parseInt($("#pagesize").val());
 
@@ -66,7 +61,8 @@
             statusval = $("#drpstatus").val();
         }
         else {
-            statusval = chr_status;
+            statusval = chr_status == '1' ? true : false;
+            console.log(statusval)
         }
         currentURL = url;
         currentDIVID = divID;
@@ -124,6 +120,7 @@
             //append status dropdown value while retrieving record
             if (statusval != undefined && statusval != null && statusval != '') {
                 actionUrl = actionUrl + '&status=' + statusval;
+                console.log(actionUrl)
             }
             //append FROM date while retrieving record
             if (_FromDate != undefined && _FromDate != null && _FromDate != '') {
@@ -139,13 +136,7 @@
             if (ToDate != '') {
                 actionUrl = actionUrl + '&ToDate=' + ToDate;
             }
-            //append APIKEY while retrieving record
-            if (_apikey != undefined && _apikey != null && _apikey != '') {
-                apikey = _apikey;
-            }
-            if (apikey != '') {
-                actionUrl = actionUrl + '&apikey=' + apikey;
-            }
+
         }
         //if (DIVID == "CustomerSalesDetails") {
         //    Filter.nvarCustNum = $('#hdn_drpMultiSelectCust').val();
@@ -158,6 +149,35 @@
         //else {
         ajaxcallWithoutObject(actionUrl, divID, pagenumber);
         //}
+    }
+
+    function getpaging(divID, url, page) {
+        $(".loading").addClass('show');
+        totalrecords = parseInt('@ViewData["totalrecords"]');
+        var pagenumber = parseInt(page);
+        pagesize = parseInt($("#pagesize").val());
+
+        currentURL = url;
+        currentDIVID = divID;
+        currentPage = page;
+        _URL = url;
+        DIVID = divID;
+
+        if (pagesize != null && pagesize != "") {
+            if ($("#cmbPageSize").val() != undefined) {
+                pagesize = $("#cmbPageSize").val();
+                pagesize = pagesize.replace("Pages", "");
+                noofpages = totalrecords / pagesize; //(parseInt($("#noofpages").val());
+                noofpages = ((totalrecords % pagesize) > 0) ? Math.floor(noofpages + 1) : (noofpages);
+            }
+        }
+        $("#hdnSelectedPage").val(page);
+        var actionUrl = _URL + '&page=' + pagenumber + '&pagesize=' + pagesize;
+        //remove default appended query string param which is done from ajax call (for making count call proper working)
+        _URL = RemoveQueryStringFromURI(_URL);
+
+        ajaxcallWithoutObject(actionUrl, divID, pagenumber);
+
     }
 
     function ajaxcallWithObject(Filter, _URL, divID, pagenumber) {
@@ -195,27 +215,25 @@
         $(".loading").removeClass('show');
         $('#' + divID).html('');
         $('#' + divID).html(data);
-        if ($('#' + divID).html(data)[0].innerText == "No records found") {
+        var cnt = parseInt($('#' + divID).find('tbody > tr').length); //parseInt($('#tblResponsive td').closest("tr").length);
+        if (parseInt(cnt) == 0) {
             if ($('.dvDisplay')[0])
                 $('.dvDisplay').css('display', 'none');
-            $('#btnDeleteLog').addClass('d-none');
+            //$('#btnDeleteLog').addClass('d-none');
         }
         else {
             if ($('.dvDisplay')[0])
                 $('.dvDisplay').css('display', '');
-            $('#btnDeleteLog').removeClass('d-none');
+            //$('#btnDeleteLog').removeClass('d-none');
         }
         KTDatatableHtml.init();
-        var cnt = 0;
+        
         ////this will be applicable for client list and store list
         if ($(".totalcount").length > 0) {
             cnt = $('#' + divID).find('.list-default').length;
         }
         else if ($(".table-responsive").length > 0) {
             cnt = parseInt($('#' + divID).find('tbody > tr').length) - 1;
-        }
-        else {
-            cnt = parseInt($('#' + divID).find('tbody > tr').length); //parseInt($('#tblResponsive td').closest("tr").length);
         }
         if (parseInt(cnt) == 0) {
             $("#hdnShowing1st").val(0);

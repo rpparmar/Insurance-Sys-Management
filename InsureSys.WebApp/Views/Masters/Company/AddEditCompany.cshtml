@@ -7,7 +7,7 @@
         ViewData["Title"] = "Edit Company";
 }
 <!--begin::Form-->
-<form id="frmCompanyMaster" asp-action="AddEditCompany" asp-controller="Company" method="post">
+<form id="frmCompanyMaster" asp-action="SaveCompany" asp-controller="Company" method="post">
     <div class="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader">
         <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
             <!--begin::Info-->
@@ -39,23 +39,20 @@
                                 </div>
                                 @Html.HiddenFor(x => x.IsEditMode)
                                 @Html.HiddenFor(x => x.CompanyID)
-                                @Html.HiddenFor(x => x.IsActive, new { id = "hdnIsActive" })
+                                @*@Html.HiddenFor(x => x.IsActive, new { id = "hdnIsActive" })*@
                                 <div class="card-toolbar">
                                     <a asp-controller="Company" asp-action="CompanyList" class="btn btn-danger font-weight-bolder mr-2">
                                         <i class="flaticon2-left-arrow-1 icon-sm-nm"></i>Back
                                     </a>
                                     @{
-                                        if (ViewBag.NoRecordExist == null)
-                                        {
-                                            <button type="submit" asp-action="AddEditCompany" class="btn btn-primary font-weight-bolder mr-2">
-                                                <i class="flaticon-interface-5"></i>
-                                                <span class="nav-text">@(Model.IsEditMode == false ? "Save & Add New" : "Update & continue")</span>
-                                            </button>
-                                            <button type="submit" form="frmCompanyMaster" name="saveAndExit" value="saveAndExit " class="btn btn-success font-weight-bolder mr-2">
-                                                <i class="flaticon-logout"></i>
-                                                <span class="nav-text">@(Model.IsEditMode == false ? "Save & Exit" : "Update & Exit")</span>
-                                            </button>
-                                        }
+                                        <button type="submit" asp-action="AddEditCompany" class="btn btn-primary font-weight-bolder mr-2">
+                                            <i class="flaticon-interface-5"></i>
+                                            <span class="nav-text">@(!Model.IsEditMode ? "Save & Add New" : "Update & continue")</span>
+                                        </button>
+                                        <button type="submit" form="frmCompanyMaster" name="saveAndExit" value="saveAndExit " class="btn btn-success font-weight-bolder mr-2">
+                                            <i class="flaticon-logout"></i>
+                                            <span class="nav-text">@(!Model.IsEditMode ? "Save & Exit" : "Update & Exit")</span>
+                                        </button>
                                     }
                                 </div>
                             </div>
@@ -81,15 +78,7 @@
                                             <div class="col-8">
                                                 <span class='switch switch-icon'>
                                                     <label>
-                                                        @if (Model.IsActive)
-                                                        {
-                                                            <input type='checkbox' id="chkIsActive" checked="checked">
-                                                        }
-                                                        else
-                                                        {
-                                                            <input type='checkbox' id="chkIsActive">
-                                                        }
-
+                                                        <input type='checkbox' id="chkIsActive" asp-for="IsActive">
                                                         <span></span>
                                                     </label>
                                                 </span>
@@ -107,6 +96,6 @@
     </div>
 </form>
 <!--end::Form-->
-@section Scripts{
-    
+@section Scripts {
+
 }
