@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
@@ -10,9 +11,10 @@ namespace InsuranceSys.Infrastructure
 {
     public interface IAppDBContext
     {
-        Task<int> ExecuteNonQueryAsync(Dictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "");
-        Task<DataSet> GetDataSetAsync(Dictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "");
-        Task<T> GetObjectAsync<T>(Dictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "") where T : class,new();
+        Task<int> ExecuteNonQueryAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "");
+        Task<DataSet> GetDataSetAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "");
+        Task<T> GetObjectAsync<T>(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "") where T : class,new();
+        
         //Task<DataTable> GetDataTableAsync(Dictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "");
         //Task<string> ExecuteScalarAsync();
         //Task<T> GetEntityAsync<T>();

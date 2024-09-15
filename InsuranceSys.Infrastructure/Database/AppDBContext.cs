@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics.Metrics;
@@ -19,7 +20,7 @@ namespace InsuranceSys.Infrastructure
             _connectionString = conn;
         }
 
-        public async Task<int> ExecuteNonQueryAsync(Dictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "")
+        public async Task<int> ExecuteNonQueryAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "")
         {
             using (SqlConnection connection = new SqlConnection(string.IsNullOrEmpty(dynamicConnstring) ? _connectionString : dynamicConnstring))
             {
@@ -35,7 +36,7 @@ namespace InsuranceSys.Infrastructure
                 }
             }
         }
-        public Task<DataSet> GetDataSetAsync(Dictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "")
+        public Task<DataSet> GetDataSetAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "")
         {
             DataSet ds = new DataSet();
             using (SqlConnection connection = new SqlConnection(string.IsNullOrEmpty(dynamicConnstring) ? _connectionString : dynamicConnstring))
@@ -56,7 +57,7 @@ namespace InsuranceSys.Infrastructure
                 }
             }
         }
-        public async Task<T> GetObjectAsync<T>(Dictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "") where T : class, new()
+        public async Task<T> GetObjectAsync<T>(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "") where T : class, new()
         {
             using (SqlConnection connection = new SqlConnection(string.IsNullOrEmpty(dynamicConnstring) ? _connectionString : dynamicConnstring))
             {

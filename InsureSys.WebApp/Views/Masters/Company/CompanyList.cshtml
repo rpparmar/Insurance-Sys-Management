@@ -1,9 +1,7 @@
 ﻿@{
     ViewData["Title"] = "List Of Companies";
+    ViewData["paging_size"] = 10; // set by generic way
     Layout = "_Layout";
-
-    // Render the URL and store it in a JavaScript variable
-    //string myActionUrl = Url.Action("CompanyListInnerContent", "Company");
 }
 
 <div class="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader">
@@ -15,20 +13,6 @@
                 <!--begin::Page Title-->
                 <h5 class="text-dark font-weight-bold my-2 mr-5">Manage Company</h5>
                 <!--end::Page Title-->
-                <!--begin::Breadcrumb-->
-                @*<ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
-                <li class="breadcrumb-item">
-                <a href="#" class="text-muted">
-                Masters
-                </a>
-                </li>
-                <li class="breadcrumb-item">
-                <a asp-controller="Company" asp-action="CompanyList" class="text-muted">
-                Company List
-                </a>
-                </li>
-                </ul>*@
-                <!--end::Breadcrumb-->
             </div>
             <!--end::Page Heading-->
         </div>
@@ -61,15 +45,26 @@
         </div>
         <div class="card-body">
             <!--begin::Search Form-->
-            @*@await Html.PartialAsync("_searchBarForDatatablePartial")*@
+            <div class="mb-7">
+                <div class="row align-items-center">
+                    <div class="col-md-12 col-xl-12">
+                        <div class="row align-items-center">
+                            <div class="col-md-3 my-2 my-md-0">
+                                <div class="input-icon">
+                                    <input type="text" class="form-control" placeholder="Search..." id="txt_search_query">
+                                    <span>
+                                        <i class="flaticon2-search-1 text-muted"></i>
+                                    </span>
+                                </div>
+                            </div>
+                    </div>
+                    </div>
+                </div>
+            </div>
             <!--end::Search Form-->
             <div id="CompanyList" class="custom-paging">
                 @await Html.PartialAsync("_CustomPaging")
             </div>
-            @*<div class="datatable datatable-default datatable-primary datatable-loaded">
-                <div id="pagingFooter" class="datatable-pager">
-                </div>
-            </div>*@
             <div class="datatable datatable-default datatable-primary datatable-loaded dvDisplay">
                 <div id="pagingFooter" class="datatable-pager custom-override">
                 </div>
@@ -80,13 +75,15 @@
 
 @await Html.PartialAsync("_CustomPagingHiddenFields")
 
-@section Scripts{
+@section Scripts {
     <script type="text/javascript">
-        var divID = "CompanyList";
-        var actionURL = "@Html.Raw(Url.Action("CompanyListInnerContent", "Company"))";
-        var IsformView=false;
-        var tostarMsg = "@TempData["Message"]";
-        var rowsaffected = "@TempData["RowsAffected"]";
+        var globalvar = {
+            divID : "CompanyList",
+            actionURL : "@Html.Raw(Url.Action("CompanyListInnerContent", "Company"))",
+            IsformView : false,
+            tostarMsg : "@TempData["Message"]",
+            rowsaffected : "@TempData["RowsAffected"]"
+        }
     </script>
-    <script src="~/js/Masters/Company/_company.js"></script>
+    <script src="~/js/Masters/Company/_company.min.js"></script>
 }

@@ -1,15 +1,22 @@
 ﻿$(function () {
-    if (!IsformView) {
-        if (parseInt(rowsaffected) > 0) 
-            toastr.success(tostarMsg);
-        else if (parseInt(rowsaffected) == 0)
-            toastr.error(tostarMsg);
+    if (!globalvar.IsformView) {
         LoadGridData();
     }
     else {
-        //script to be written for Add/Update form
+        //additional script to be written for Add/Update form if required
     }
+    if (parseInt(globalvar.rowsaffected) > 0)
+        toastr.success(globalvar.tostarMsg);
+    else if (parseInt(globalvar.rowsaffected) == 0)
+        toastr.error(globalvar.tostarMsg);
 });
+
+function LoadGridData() {
+    let searchText = encodeURIComponent($("#txt_search_query").val());
+    let chr_status = $(".switch_status:checked").attr('data-val') == "1";
+    let _url = globalvar.actionURL + '/?searchtxt=' + searchText + '&status=' + chr_status;
+    getpaging(globalvar.divID, _url, 1);
+}
 $('.switch_status').on('change', function (event) {
     let activerdb = $(this);
     activerdb.closest('label').toggleClass('btn-default btn-primary');
@@ -18,9 +25,40 @@ $('.switch_status').on('change', function (event) {
     LoadGridData();
 });
 
-function LoadGridData() {
-    let searchText = encodeURIComponent('NA');
-    let chr_status = $(".switch_status:checked").attr('data-val') == "1" ? true : false;
-    let _url = actionURL + '/?searchtxt=' + searchText + '&status=' + chr_status;
-    getpaging(divID, _url, 1);
+
+/* Add Prompt Alert Comfirmation when Click To Active Or InActive Toggle. */
+function StatusChangeConfirmation(ID) {
+    let Title = "";
+    if ($('#chkstatus_' + ID).is(':checked')) {Title = "Are you sure want to active this reord?";}
+    else { Title = "Are you sure want to inactive this record?"; }// set by generic way
+    Swal.fire({
+        title: Title,
+        text: '',
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes"
+    }).then(function (result) {
+        let IsActive = $('#chkstatus_' + ID).is(':checked') == "1";
+        if (result.value) {
+            $.ajax({
+                type: "Get",
+                url: "/Company/UpdateStatus/?id=" + ID + "&&status=" + IsActive + "",
+                async: false,
+                dataType: "json",
+                contentType: "application/json",
+                success: function (result) {
+                    toastr.success("Status changed successfully!"); // set by generic way
+                    LoadGridData();
+                },
+                error: function (XMLHttpRequest, textStatus, errorThrown) {}
+            });
+        }
+        else if (IsActive) { $('#chkstatus_' + ID).prop('checked', false); }
+        else {$('#chkstatus_' + ID).prop('checked', true);}
+    });
 }
+$(document).on('keypress', '#txt_search_query', function (e) {
+    if (e.which == 13) {
+        LoadGridData();
+    }
+});

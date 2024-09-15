@@ -39,17 +39,16 @@
                                 </div>
                                 @Html.HiddenFor(x => x.IsEditMode)
                                 @Html.HiddenFor(x => x.CompanyID)
-                                @*@Html.HiddenFor(x => x.IsActive, new { id = "hdnIsActive" })*@
                                 <div class="card-toolbar">
                                     <a asp-controller="Company" asp-action="CompanyList" class="btn btn-danger font-weight-bolder mr-2">
                                         <i class="flaticon2-left-arrow-1 icon-sm-nm"></i>Back
                                     </a>
                                     @{
-                                        <button type="submit" asp-action="AddEditCompany" class="btn btn-primary font-weight-bolder mr-2">
+                                        <button type="submit" form="frmCompanyMaster" name="saveAndExit" value="false" class="btn btn-primary font-weight-bolder mr-2">
                                             <i class="flaticon-interface-5"></i>
                                             <span class="nav-text">@(!Model.IsEditMode ? "Save & Add New" : "Update & continue")</span>
                                         </button>
-                                        <button type="submit" form="frmCompanyMaster" name="saveAndExit" value="saveAndExit " class="btn btn-success font-weight-bolder mr-2">
+                                        <button type="submit" form="frmCompanyMaster" name="saveAndExit" value="true" class="btn btn-success font-weight-bolder mr-2">
                                             <i class="flaticon-logout"></i>
                                             <span class="nav-text">@(!Model.IsEditMode ? "Save & Exit" : "Update & Exit")</span>
                                         </button>
@@ -97,5 +96,12 @@
 </form>
 <!--end::Form-->
 @section Scripts {
-
+    <script type="text/javascript">
+        var globalvar = {
+            IsformView: true,
+            tostarMsg: "@TempData["Message"]",
+            rowsaffected: "@TempData["RowsAffected"]"
+        }
+    </script>
+    <script src="~/js/Masters/Company/_company.js"></script>
 }

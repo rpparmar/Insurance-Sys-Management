@@ -1,6 +1,7 @@
 ﻿using InsuranceSys.Domain.DTO;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data;
 using System.Linq;
 using System.Text;
@@ -15,7 +16,7 @@ namespace InsuranceSys.Application
         {
             this._companyRepository = companyRepository;
         }
-        public async Task<DataSet> GetAllCompanies(Dictionary<string, object> paramCollections)
+        public async Task<DataSet> GetAllCompanies(ImmutableDictionary<string, object> paramCollections)
         {
             return await _companyRepository.GetAllAsync(paramCollections);
         }
@@ -35,5 +36,10 @@ namespace InsuranceSys.Application
         {
             return await _companyRepository.DeleteAsync(CompanyID);
         }
+        public async Task<int> UpdateStatus(int CompanyID, bool status)
+        {
+            return await _companyRepository.UpdateStatusAsync(CompanyID, status);
+        }
+
     }
 }

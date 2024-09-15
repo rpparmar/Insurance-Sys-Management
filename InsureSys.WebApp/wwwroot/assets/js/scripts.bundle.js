@@ -6179,7 +6179,9 @@ if (typeof module !== 'undefined' && typeof module.exports !== 'undefined') {
              */
             setupDOM: function (table) {
                 // set table classes
-                $(table).find('> thead').addClass(pfx + 'datatable-head rounded').css('background-color', '#eef0f8');
+                //$(table).find('> thead').addClass(pfx + 'datatable-head rounded').css('background-color', '#eef0f8');
+                $(table).find('> thead').addClass(pfx + 'datatable-head rounded').css('background-color', '#6c757d');
+                $(table).find('> thead > tr > th > span').css('color', '#FFFFFF');
                 $(table).find('> tbody').addClass(pfx + 'datatable-body');
                 $(table).find('> tfoot').addClass(pfx + 'datatable-foot');
                 $(table).find('tr').addClass(pfx + 'datatable-row');

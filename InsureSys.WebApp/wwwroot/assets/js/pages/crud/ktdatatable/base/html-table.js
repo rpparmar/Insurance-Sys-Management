@@ -1,13 +1,13 @@
 "use strict";
 // Class definition
 
-var KTDatatableHtml = function () {
+let KTDatatableHtml = function () {
     // Private functions
 
     //  BindDynamicTable initializer
-    var BindDynamicTable = function () {
+    let BindDynamicTable = function () {
 
-        var datatable = $('#kt_datatable').KTDatatable({
+        let datatable = $('#kt_datatable').KTDatatable({
             data: {
                 saveState: { cookie: false },
             },
@@ -44,7 +44,7 @@ var KTDatatableHtml = function () {
                     autoHide: false,
                     // callback function support for column rendering
                     template: function (row) {
-                        var status = {
+                        let status = {
                             Active: {
                                 'title': 'Active',
                                 'class': ' label-light-warning'
@@ -76,9 +76,5 @@ var KTDatatableHtml = function () {
         },
     };
 }();
-
-//jQuery(document).ready(function () {
-//    KTDatatableHtmlTableDemo.init();
-//});
 
 
