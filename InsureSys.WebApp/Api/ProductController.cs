@@ -12,16 +12,16 @@ namespace Insurancesys.web.Api
     [ApiController]
     public class ProductController : ControllerBase
     {
-        private readonly IProductService _productService;
-        public ProductController(IProductService productService)
-        {
-            _productService = productService;
-        }
+        //private readonly IProductService _productService;
+        //public ProductController(IProductService productService)
+        //{
+        //    _productService = productService;
+        //}
 
-        [HttpGet]
-        public ActionResult<IList<Product>> Get()
-        {
-            return Ok(this._productService.GetAllProducts());
-        }
+        //[HttpGet]
+        //public ActionResult<IList<Product>> Get()
+        //{
+        //    return Ok(this._productService.GetAllProducts());
+        //}
     }
 }

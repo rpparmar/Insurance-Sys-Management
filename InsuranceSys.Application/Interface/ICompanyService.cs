@@ -17,5 +17,6 @@ namespace InsuranceSys.Application
         Task<int> UpdateCompany(CompanyDto model);
         Task<int> DeleteCompany(int CompanyID);
         Task<int> UpdateStatus(int CompanyID, bool status);
+        Task<string?> FindByName(string CompanyName);
     }
 }

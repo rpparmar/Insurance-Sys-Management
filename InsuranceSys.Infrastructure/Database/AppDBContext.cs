@@ -79,37 +79,23 @@ namespace InsuranceSys.Infrastructure
                 }
             }
         }
-        //public async Task<DataTable> GetDataTableAsync(Dictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "")
-        //{
-        //    DataTable dt = new DataTable();
-        //    using (SqlConnection connection = new SqlConnection(string.IsNullOrEmpty(dynamicConnstring) ? _connectionString : dynamicConnstring))
-        //    {
-        //        await connection.OpenAsync();
-        //        using (SqlCommand cmd = new SqlCommand(cmdText, connection))
-        //        {
-        //            cmd.CommandType = cmdType;
-        //            foreach (var param in paramCollection)
-        //            {
-        //                cmd.Parameters.AddWithValue(param.Key, param.Value);
-        //            }
-        //            using (var da = new SqlDataAdapter(cmd))
-        //            {
-        //                try
-        //                {
-        //                    da.Fill(dt);
-        //                    return dt;
-        //                }
-        //                catch (Exception ex)
-        //                {
-        //                    //Write log
-        //                }
-        //            }
-
-        //        }
-        //    }
-        //    return dt;
-        //}
-
+        public async Task<string?>ExecuteScalarAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "")
+        {
+            using (SqlConnection connection = new SqlConnection(string.IsNullOrEmpty(dynamicConnstring) ? _connectionString : dynamicConnstring))
+            {
+                await connection.OpenAsync();
+                using (SqlCommand cmd = new SqlCommand(cmdText, connection))
+                {
+                    cmd.CommandType = cmdType;
+                    foreach (var param in paramCollection)
+                    {
+                        cmd.Parameters.AddWithValue(param.Key, param.Value);
+                    }
+                    return Convert.ToString(await cmd.ExecuteScalarAsync());
+                }
+            }
+        }
+        
     }
 
 }

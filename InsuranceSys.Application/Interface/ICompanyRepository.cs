@@ -17,5 +17,6 @@ namespace InsuranceSys.Application
         Task<int> UpdateAsync(CompanyDto company);
         Task<int> DeleteAsync(int CompanyID);
         Task<int> UpdateStatusAsync(int CompanyID, bool status);
+        Task<string?> FindByNameAsync(string CompanyName);
     }
 }

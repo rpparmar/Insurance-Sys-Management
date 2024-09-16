@@ -11,15 +11,24 @@ using System.Text;
 
 namespace Insurancesys.web
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container - used to have cshtml changes runtime.
-            builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation();
+            
+            builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation(); // Optional - Add services to the container - used to have cshtml changes runtime.
             builder.Services.AddControllers();
+
+            // Add session services
+            builder.Services.AddDistributedMemoryCache(); // Registers a default in-memory cache implementation.
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout.
+                options.Cookie.HttpOnly = true; // Make the session cookie HTTP-only for security.
+                options.Cookie.IsEssential = true; // Ensure the session cookie is essential.
+            });
 
             // Add AutoMapper
             builder.Services.AddAutoMapper(typeof(MappingProfile)); // Scans for profiles in the assembly
@@ -32,10 +41,9 @@ namespace Insurancesys.web
                 .Build();
 
 
-            builder.Services.AddScoped<IAppDBContext, AppDBContext>(provider =>
+            builder.Services.AddSingleton<IAppDBContext, AppDBContext>(provider =>
     new AppDBContext(configuration.GetConnectionString("MasterConnection") ?? string.Empty));
-            builder.Services.AddScoped<IProductRepository, ProductRepository>();
-            builder.Services.AddScoped<IProductService, ProductService>();
+            
             builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
             builder.Services.AddScoped<ICompanyService, CompanyService>();
 
@@ -80,7 +88,7 @@ namespace Insurancesys.web
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
-
+            app.UseSession();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 

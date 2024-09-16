@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace Insurancesys.web.Models
 {
@@ -6,6 +7,7 @@ namespace Insurancesys.web.Models
     {        
         public int CompanyID { get; set; }
         [Required(ErrorMessage = "Company name is required")]
+        [Remote(action: "IsCompanyExist", controller: "Company")]
         public string CompanyName { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }

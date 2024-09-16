@@ -40,6 +40,10 @@ namespace InsuranceSys.Application
         {
             return await _companyRepository.UpdateStatusAsync(CompanyID, status);
         }
-
+        public async Task<string?> FindByName(string CompanyName)
+        {
+            return await _companyRepository.FindByNameAsync(CompanyName);
+        }
+        
     }
 }

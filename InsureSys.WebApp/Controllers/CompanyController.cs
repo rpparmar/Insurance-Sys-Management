@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace Insurancesys.web.Controllers
 {
@@ -118,17 +119,20 @@ namespace Insurancesys.web.Controllers
                     if (companydto != null)
                     {
                         model = _mapper.Map<CompanyViewModel>(companydto);
+                        HttpContext.Session.SetString("Original_CompanyName", model.CompanyName);
                         model.IsEditMode = true;
                     }
                     else
                     {
                         SetTempDataForNoRecord();
+                        HttpContext.Session.SetString("Original_CompanyName", "");
                         return RedirectToAction("CompanyList");
                     }
                 }
                 else
                 {
                     SetTempDataForNoRecord();
+                    HttpContext.Session.SetString("Original_CompanyName", "");
                     return RedirectToAction("CompanyList");
                 }
             }
@@ -136,6 +140,7 @@ namespace Insurancesys.web.Controllers
             {
                 model.IsEditMode = false;
                 model.IsActive = true;
+                HttpContext.Session.SetString("Original_CompanyName", "");
             }
             return View("../Masters/Company/AddEditCompany", model);
         }
@@ -208,6 +213,18 @@ namespace Insurancesys.web.Controllers
         public async Task<JsonResult> UpdateStatus(int id, bool status)
         {
             return new JsonResult(Convert.ToBoolean(await _companyService.UpdateStatus(id, status)));
+        }
+        [AcceptVerbs("Get", "Post")]
+        public async Task<IActionResult> IsCompanyExist(string CompanyName = "")
+        {
+            string Original_CompanyName = HttpContext.Session.GetString("Original_CompanyName") ?? "";
+            bool IsEditMode = !string.IsNullOrEmpty(Original_CompanyName);
+            int.TryParse(await _companyService.FindByName(CompanyName), out int matchCount);
+            if (IsEditMode && !string.Equals(Original_CompanyName, CompanyName) && matchCount > 0)
+                return Json($"Company name '{CompanyName}' is already in use.");
+            else if (!IsEditMode && matchCount > 0)
+                return Json($"Company name '{CompanyName}' is already in use.");
+            return Json(true);
         }
         private void SetTempDataForNoRecord()
         {

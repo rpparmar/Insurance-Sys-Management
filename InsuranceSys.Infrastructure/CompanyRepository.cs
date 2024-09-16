@@ -56,5 +56,12 @@ namespace InsuranceSys.Infrastructure
             .Add("@IsActive", status);
             return await _dbcontext.ExecuteNonQueryAsync(_params, CommandType.StoredProcedure, "CompanyMaster_UpdateRecordStatus");
         }
+        public async Task<string?> FindByNameAsync(string CompanyName)
+        {
+            var _params = ImmutableDictionary<string, object>.Empty
+            .Add("@CompanyName", CompanyName);
+            return await _dbcontext.ExecuteScalarAsync(_params, CommandType.StoredProcedure, "CompanyMaster_CheckExist");
+            
+        }
     }
 }
