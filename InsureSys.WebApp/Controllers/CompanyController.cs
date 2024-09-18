@@ -26,7 +26,7 @@ namespace Insurancesys.web.Controllers
             _companyService = companyService;
             _mapper = mapper;
         }
-        [Route("companies")]
+        [Route("Companies")]
         public IActionResult CompanyList()
         {
             return View("../Masters/Company/CompanyList");
@@ -61,16 +61,16 @@ namespace Insurancesys.web.Controllers
                                     <thead class='datatable-head'>
                                         <tr class='datatable-row'>
                                             <th class='datatable-cell'>Company Name</th>
-                                            <th class='datatable-cell'>Status</th>
+                                            <th class='datatable-cell'>Active/InActive</th>
                                             <th class='datatable-cell'>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody class='datatable-body custom-scroll'>");
-                                        foreach (DataRow row in dtContent.Rows)
-                                        {
-                                            int companyId = Convert.ToInt16(row["CompanyID"]);
-                                            string companyName = Convert.ToString(row["CompanyName"]) ?? string.Empty;
-                                            bool isActive = Convert.ToBoolean(row["IsActive"]);
+                            foreach (DataRow row in dtContent.Rows)
+                            {
+                                int companyId = Convert.ToInt16(row["CompanyID"]);
+                                string companyName = Convert.ToString(row["CompanyName"]) ?? string.Empty;
+                                bool isActive = Convert.ToBoolean(row["IsActive"]);
 
                                 string deleteConfirmationEvent = $"DeleteConfirmation('{companyId}', 'Company', 'Company')";
                                 string statusChangeEvent = $"StatusChangeConfirmation('{companyId}')";
@@ -86,11 +86,11 @@ namespace Insurancesys.web.Controllers
                                                     </span>
                                                 </td>
                                                 <td>
-                                                    <a class='btn btn-sm btn-icon btn-lg-light btn-text-primary btn-hover-light-primary mr-3' href='/companies/Edit/{companyId}'><i class='flaticon-edit'></i></a>
+                                                    <a class='btn btn-sm btn-icon btn-lg-light btn-text-primary btn-hover-light-primary mr-3' href='/Companies/Edit/{companyId}'><i class='flaticon-edit'></i></a>
                                                     <a id='del_{companyId}' class='btn btn-sm btn-icon btn-lg-light btn-text-danger btn-hover-light-danger' onclick=""{deleteConfirmationEvent}""><i class='flaticon-delete'></i></a>
                                                 </td>
                                             </tr>");
-                                        }
+                            }
                             strHTML.Append("</tbody></table>");
                         }
                         else
@@ -101,11 +101,11 @@ namespace Insurancesys.web.Controllers
             return Content(strHTML.ToString());
         }
 
-        [HttpGet("companies/Add/{id?}")]
-        [HttpGet("companies/Edit/{id?}")]
+        [HttpGet("Companies/Add/{id?}")]
+        [HttpGet("Companies/Edit/{id?}")]
         public async Task<IActionResult> AddEditCompany(string id = "")
         {
-            CompanyViewModel model = new CompanyViewModel();
+            CompanyViewModel model = new();
             if (!string.IsNullOrEmpty(id))
             {
                 if (int.TryParse(id, out int _id) && _id > 0)

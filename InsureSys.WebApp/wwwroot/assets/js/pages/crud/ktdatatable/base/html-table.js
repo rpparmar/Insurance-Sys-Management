@@ -28,7 +28,6 @@ let KTDatatableHtml = function () {
                     field: 'Active/InActive',
                     title: 'Active/InActive',
                     autoHide: false,
-                    width: 60,
                     textAlign: 'center'
                 },
                 {

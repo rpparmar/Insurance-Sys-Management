@@ -8,6 +8,7 @@ namespace Insurancesys.web.Models
         public int CompanyID { get; set; }
         [Required(ErrorMessage = "Company name is required")]
         [Remote(action: "IsCompanyExist", controller: "Company")]
+        [StringLength(100)]
         public string CompanyName { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
