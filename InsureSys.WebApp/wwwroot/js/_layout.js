@@ -1,13 +1,10 @@
 ﻿$(function () {});
-
 jQuery(window).on('beforeunload', function () {
     $('.loading').addClass('show');
 });
-
 jQuery(window).on('load', function () {
-    var $parent_div = $('li.menu-item-active').closest('div.menu-submenu');
+    let $parent_div = $('li.menu-item-active').closest('div.menu-submenu');
     $parent_div.show();
-
-    var $most_parent_li = $parent_div.closest('li');
+    let $most_parent_li = $parent_div.closest('li');
     $most_parent_li.addClass('menu-item-here menu-item-open');
 });
