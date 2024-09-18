@@ -20,7 +20,6 @@
                                 icon: "success",
                                 title: "" + strMessage + " Deleted Successfully!",
                                 showConfirmButton: false,
-                                //timer: 2000
                             });
                             setTimeout(function () {
                                 window.location.reload();
