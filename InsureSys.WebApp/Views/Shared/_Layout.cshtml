@@ -313,15 +313,28 @@
     </div>
     <!--end::Scrolltop-->
     @functions {
+        // string SetActiveClassOnLink2(string controller, string action = "")
+        // {
+        //     string[] multipleActions = action.Split(",").ToArray();
+        //     var currentController = Convert.ToString(ViewContext.RouteData.Values["controller"]);
+        //     var currentAction = Convert.ToString(ViewContext.RouteData.Values["action"]);
+        //     var li_class = "menu-item";
+        //     if (currentController == controller && multipleActions.Any(x => x == currentAction))
+        //         li_class = "menu-item-active";
+        //     return li_class;
+        // }
         string SetActiveClassOnLink(string controller, string action = "")
         {
-            string[] multipleActions = action.Split(",").ToArray();
             var currentController = Convert.ToString(ViewContext.RouteData.Values["controller"]);
             var currentAction = Convert.ToString(ViewContext.RouteData.Values["action"]);
-            var li_class = "menu-item";
-            if (currentController == controller && multipleActions.Any(x => x == currentAction))
-                li_class = "menu-item-active";
-            return li_class;
+
+            // Use StringComparison.OrdinalIgnoreCase for case-insensitive comparison
+            if (string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.IsNullOrEmpty(action) || action.Split(',').Contains(currentAction, StringComparer.OrdinalIgnoreCase))
+                    return "menu-item-active";
+            }
+            return "menu-item";
         }
     }
     @await Html.PartialAsync("_LayoutFooterScriptsPartial")
