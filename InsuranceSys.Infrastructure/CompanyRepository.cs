@@ -47,7 +47,9 @@ namespace InsuranceSys.Infrastructure
         }
         public async Task<int> DeleteAsync(int CompanyID)
         {
-            return 0;
+            var _params = ImmutableDictionary<string, object>.Empty
+            .Add("@CompanyID", CompanyID);
+            return await _dbcontext.ExecuteNonQueryAsync(_params, CommandType.StoredProcedure, "CompanyMaster_Delete");
         }
         public async Task<int> UpdateStatusAsync(int CompanyID, bool status)
         {

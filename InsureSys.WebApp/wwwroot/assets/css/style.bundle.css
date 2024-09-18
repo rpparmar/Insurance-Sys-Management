@@ -60752,10 +60752,16 @@ body {
 @media (max-width: 425px) {
   .offcanvas-mobile {
     width: 90% !important; } }
-
-table thead tr th, table tr:nth-child(even) td {
-    background: rgb(238, 240, 248);
-}
-table.table-head-custom.dataTable thead tr th {
-    color: #212121 !important;
-}
+  #kt_datatable .datatable-body {
+      display: block; 
+      max-height: 550px; 
+      overflow-x: hidden; 
+      overflow-y: auto; 
+      scrollbar-width: none; 
+      -ms-overflow-style: none; 
+  }
+  
+  #kt_datatable .datatable-body::-webkit-scrollbar {
+      width: 0px; 
+      background: transparent; 
+  }

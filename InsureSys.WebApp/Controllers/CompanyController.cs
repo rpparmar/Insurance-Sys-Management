@@ -56,51 +56,46 @@ namespace Insurancesys.web.Controllers
                     {
                         if (dtContent != null && dtContent.Rows.Count > 0)
                         {
-                            strHTML.Append("<table class='datatable-bordered datatable-head-custom datatable-table' id='kt_datatable'>");
-                            strHTML.Append("<thead class='datatable-head'>");
-                            strHTML.Append("<tr class='datatable-row'>");
-                            strHTML.Append("<th class='datatable-cell'>Company Name</th>");
-                            strHTML.Append("<th class='datatable-cell'>Status</th>");
-                            strHTML.Append("<th class='datatable-cell'>Action</th>");
-                            strHTML.Append("</tr>");
-                            strHTML.Append("</thead>");
-                            strHTML.Append("<tbody class='datatable-body'>");
-                            for (int i = 0; i < dtContent.Rows.Count; i++)
-                            {
-                                int CompanyID = Convert.ToInt16(dtContent.Rows[i]["CompanyID"]);
-                                string DeleteConfirmationEvent = "DeleteConfirmation('" + CompanyID + "','User','BackOffice','DeleteUser')";
-                                string StatusChangeConfirmationEvent = "StatusChangeConfirmation('" + CompanyID + "')";
+                            strHTML.Append(@"
+                                <table class='datatable-bordered datatable-head-custom datatable-table' id='kt_datatable'>
+                                    <thead class='datatable-head'>
+                                        <tr class='datatable-row'>
+                                            <th class='datatable-cell'>Company Name</th>
+                                            <th class='datatable-cell'>Status</th>
+                                            <th class='datatable-cell'>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class='datatable-body custom-scroll'>");
+                                        foreach (DataRow row in dtContent.Rows)
+                                        {
+                                            int companyId = Convert.ToInt16(row["CompanyID"]);
+                                            string companyName = Convert.ToString(row["CompanyName"]) ?? string.Empty;
+                                            bool isActive = Convert.ToBoolean(row["IsActive"]);
 
-                                strHTML.Append("<tr>");
-                                strHTML.Append("<td>" + Convert.ToString(dtContent.Rows[i]["CompanyName"]) + "</td>");
-                                strHTML.Append("<td>");
-                                if (Convert.ToBoolean(dtContent.Rows[i]["IsActive"]))
-                                {
-                                    strHTML.Append("<span class='switch switch-icon'><label><input onclick=" + StatusChangeConfirmationEvent + " type='checkbox' id='chkstatus_" + CompanyID + "' checked><span></span></label></span>");
-                                }
-                                else
-                                {
-                                    strHTML.Append("<span class='switch switch-icon'><label><input onclick=" + StatusChangeConfirmationEvent + " type='checkbox' id='chkstatus_" + CompanyID + "'><span></span></label></span>");
-                                }
-                                strHTML.Append("</td>");
-                                strHTML.Append("<td>");
-                                strHTML.Append("<a class='btn btn-sm btn-icon btn-lg-light btn-text-primary btn-hover-light-primary mr-3' href= '/companies/Edit/" + CompanyID + "'><i class='flaticon-edit'></i></a>");
-                                //if (item.Product_In_Key > 0 || item.Product_In_license > 0)
-                                //    strHTML.Append("<a class='btn btn-sm btn-icon' style='cursor: auto;'></a>");
-                                //else
-                                //strHTML.Append("<a id = 'del_" + item.int_glcode + "' class='btn btn-sm btn-icon btn-lg-light btn-text-danger btn-hover-light-danger' onclick=" + DeleteConfirmationEvent + "><i class='flaticon-delete'></i></a>");
-                                strHTML.Append("</td>");
-                                strHTML.Append("</tr>");
-                            }
-                            strHTML.Append("</tbody>");
-                            strHTML.Append("</table>");
+                                string deleteConfirmationEvent = $"DeleteConfirmation('{companyId}', 'Company', 'Company')";
+                                string statusChangeEvent = $"StatusChangeConfirmation('{companyId}')";
+                                strHTML.Append($@"
+                                            <tr>
+                                                <td>{companyName}</td>
+                                                <td>
+                                                    <span class='switch switch-icon'>
+                                                        <label>
+                                                            <input onclick=""{statusChangeEvent}"" type='checkbox' id='chkstatus_{companyId}' {(isActive ? "checked" : "")}>
+                                                            <span></span>
+                                                        </label>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <a class='btn btn-sm btn-icon btn-lg-light btn-text-primary btn-hover-light-primary mr-3' href='/companies/Edit/{companyId}'><i class='flaticon-edit'></i></a>
+                                                    <a id='del_{companyId}' class='btn btn-sm btn-icon btn-lg-light btn-text-danger btn-hover-light-danger' onclick=""{deleteConfirmationEvent}""><i class='flaticon-delete'></i></a>
+                                                </td>
+                                            </tr>");
+                                        }
+                            strHTML.Append("</tbody></table>");
                         }
                         else
-                        {
                             strHTML.Append("<center>No records found</center>");
-                        }
                     }
-
                 }
             }
             return Content(strHTML.ToString());
@@ -230,6 +225,13 @@ namespace Insurancesys.web.Controllers
         {
             TempData["RowsAffected"] = 0;
             TempData["Message"] = "No such record exists"; // set by generic way
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Delete(int id)
+        {
+            bool status = Convert.ToBoolean(await _companyService.DeleteCompany(id));
+            return new JsonResult(status);
         }
     }
 }
