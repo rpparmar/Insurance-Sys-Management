@@ -1,6 +1,7 @@
-﻿@{
+﻿@using InsuranceSys.Domain
+@{
     ViewData["Title"] = "Manage Company";
-    ViewData["paging_size"] = 10; // set by generic way
+    ViewData["paging_size"] = Constants.Common.DefaultPageSize;
     Layout = "_Layout";
 }
 <div class="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader">
@@ -81,7 +82,17 @@
             actionURL : "@Html.Raw(Url.Action("CompanyListInnerContent", "Company"))",
             IsformView : false,
             tostarMsg : "@TempData["Message"]",
-            rowsaffected : "@TempData["RowsAffected"]"
+            rowsaffected : "@TempData["RowsAffected"]",
+        }
+        var globalconst = {
+            activateRecord: "@Constants.ScriptMessages.MsgActivateRecords",
+            deactivateRecord: "@Constants.ScriptMessages.MsgDeActivateRecords",
+            statusChangeMsg: "@Constants.ScriptMessages.MsgStatusChangeSuccess",
+            deleteConfirmMsg: "@string.Format(Constants.ScriptMessages.MsgDeleteConfirmation,"company")",
+            deleteConscentMsg: "@Constants.ScriptMessages.MsgDeleteConscent",
+            deleteSuccessMsg: "@Constants.ScriptMessages.MsgDeleteSuccess",
+            cancelBtnTitle: "@Constants.ScriptMessages.CancelBtnTitle",
+            cancelBtnInnerText: "@Constants.ScriptMessages.CancelBtnInnerText",
         }
     </script>
     <script src="~/js/Masters/Company/_company.min.js"></script>

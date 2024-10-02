@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Insurancesys.web.Models;
 using InsuranceSys.Application;
+using InsuranceSys.Domain;
 using InsuranceSys.Domain.DTO;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -159,9 +160,9 @@ namespace Insurancesys.web.Controllers
                 var rowsaffected = await _companyService.UpdateCompany(company);
                 TempData["RowsAffected"] = rowsaffected;
                 if (rowsaffected > 0)
-                    TempData["Message"] = "Record updated successfully."; // set by generic way
+                    TempData["Message"] = Constants.SuccessMessages.MsgUpdateSuccess;
                 else
-                    TempData["Message"] = "Record not updated,something went wrong"; // set by generic way
+                    TempData["Message"] = Constants.ErrorMessages.MsgUpdateFailure;
                 #endregion
             }
             else
@@ -170,9 +171,9 @@ namespace Insurancesys.web.Controllers
                 var rowsaffected = await _companyService.AddCompany(company);
                 TempData["RowsAffected"] = rowsaffected;
                 if (rowsaffected > 0)
-                    TempData["Message"] = "Record saved successfully."; // set by generic way
+                    TempData["Message"] = Constants.SuccessMessages.MsgInsertSuccess;
                 else
-                    TempData["Message"] = "Record not saved,something went wrong"; // set by generic way
+                    TempData["Message"] = Constants.ErrorMessages.MsgInsertFailure;
                 #endregion
             }
             if (saveAndExit)
@@ -224,7 +225,7 @@ namespace Insurancesys.web.Controllers
         private void SetTempDataForNoRecord()
         {
             TempData["RowsAffected"] = 0;
-            TempData["Message"] = "No such record exists"; // set by generic way
+            TempData["Message"] = Constants.AlertMessages.MsgNoRecords;
         }
 
         [HttpPost]

@@ -29,8 +29,8 @@ $('.switch_status').on('change', function (event) {
 /* Add Prompt Alert Comfirmation when Click To Active Or InActive Toggle. */
 function StatusChangeConfirmation(ID) {
     let Title = "";
-    if ($('#chkstatus_' + ID).is(':checked')) {Title = "Are you sure want to active this reord?";}
-    else { Title = "Are you sure want to inactive this record?"; }// set by generic way
+    if ($('#chkstatus_' + ID).is(':checked')) { Title = globalconst.activateRecord;}
+    else { Title = globalconst.deactivateRecord; }
     Swal.fire({
         title: Title,
         text: '',
@@ -47,7 +47,7 @@ function StatusChangeConfirmation(ID) {
                 dataType: "json",
                 contentType: "application/json",
                 success: function (result) {
-                    toastr.success("Status changed successfully!"); // set by generic way
+                    toastr.success(globalconst.statusChangeMsg);
                     LoadGridData();
                 },
                 error: function (XMLHttpRequest, textStatus, errorThrown) {}

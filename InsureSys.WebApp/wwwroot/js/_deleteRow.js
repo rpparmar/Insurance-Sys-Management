@@ -1,11 +1,11 @@
 ﻿function DeleteConfirmation(ID, controllerName, strMessage) {
     Swal.fire({
-        title: "Are you sure want to delete this " + strMessage + " permanently ?",
-        text: "You won't be able to revert this!",
+        title: globalconst.deleteConfirmMsg,
+        text: globalconst.deleteConscentMsg,
         icon: "warning",
         showCancelButton: true,
-        cancelButtonText: "Cancel",
-        confirmButtonText: "Yes, delete it!"
+        cancelButtonText: globalconst.cancelBtnTitle,
+        confirmButtonText: globalconst.cancelBtnInnerText
     }).then(
         function (result) {
             if (result.value) {
@@ -18,7 +18,7 @@
                             Swal.fire({
                                 position: "top-right",
                                 icon: "success",
-                                title: "" + strMessage + " Deleted Successfully!",
+                                title: "" + strMessage + " " + globalconst.deleteSuccessMsg,
                                 showConfirmButton: false,
                             });
                             setTimeout(function () {
