@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Insurancesys.web.Models;
 using InsuranceSys.Domain.DTO;
-using System.Diagnostics.Metrics;
 
 namespace Insurancesys.web.Utility
 {
@@ -9,9 +8,13 @@ namespace Insurancesys.web.Utility
     {
         public MappingProfile()
         {
-            // ViewModel to DTO
+            #region ViewModel to DTO
             CreateMap<CompanyViewModel, CompanyDto>();
-            CreateMap<CompanyDto, CompanyViewModel>();
+            #endregion
+
+            #region DTO to ViewModel
+            CreateMap<CompanyDto, CompanyViewModel>(); 
+            #endregion
         }
     }
 }

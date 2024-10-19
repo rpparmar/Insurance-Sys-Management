@@ -1,8 +1,10 @@
 using Insurancesys.web.Utility;
 using InsuranceSys.Application;
 using InsuranceSys.Infrastructure;
+using InsuranceSys.Infrastructure.EF;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
@@ -17,7 +19,7 @@ namespace Insurancesys.web
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            
+
             builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation(); // Optional - Add services to the container - used to have cshtml changes runtime.
             builder.Services.AddControllers();
 
@@ -40,15 +42,21 @@ namespace Insurancesys.web
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
+            builder.Services.AddScoped<IAppDBContext, AppDBContext>(provider =>
+            {
+                var connectionString = configuration.GetConnectionString("MasterConnection") ?? string.Empty;
+                return new AppDBContext(connectionString);
+            });
 
-            builder.Services.AddSingleton<IAppDBContext, AppDBContext>(provider =>
-    new AppDBContext(configuration.GetConnectionString("MasterConnection") ?? string.Empty));
-            
+            builder.Services.AddDbContext<EfdbContext>(options =>
+            options.UseSqlServer(configuration.GetConnectionString("MasterConnection") ?? string.Empty));
+
+
             builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
             builder.Services.AddScoped<ICompanyService, CompanyService>();
 
-            #region Cookie Authentication for Unauthorized Access
 
+            #region JWT Authentication for Unauthorized Access
             // Configure JWT authentication
             builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
@@ -62,7 +70,8 @@ namespace Insurancesys.web
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your_secret_key_here"))
                 };
             });
-
+            #endregion
+            #region Cookie Authentication for Unauthorized Access
             // Configure cookie authentication
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
@@ -99,7 +108,7 @@ namespace Insurancesys.web
             app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
-            
+
             app.Run();
         }
     }

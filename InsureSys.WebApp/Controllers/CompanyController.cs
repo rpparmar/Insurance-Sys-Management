@@ -102,8 +102,8 @@ namespace Insurancesys.web.Controllers
             return Content(strHTML.ToString());
         }
 
-        [HttpGet("Companies/Add/{id?}")]
-        [HttpGet("Companies/Edit/{id?}")]
+        [HttpGet("Companies/Edit/{id}")]
+        [HttpGet("Companies/Add")]
         public async Task<IActionResult> AddEditCompany(string id = "")
         {
             CompanyViewModel model = new();
