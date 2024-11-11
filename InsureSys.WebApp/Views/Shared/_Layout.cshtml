@@ -139,14 +139,14 @@
                                                 <span class="menu-text">Manage Company</span>
                                             </a>
                                         </li>
-                                        @*<li class="menu-item @SetActiveClassOnLink("Company", "CompanyList")" aria-haspopup="true">
-                                        <a asp-controller="Company" asp-action="AddEditCompany" class="menu-link">
-                                        <span class="svg-icon menu-icon">
-                                        <span class="fas fa-list"></span>
-                                        </span>
-                                        <span class="menu-text">Add Company</span>
-                                        </a>
-                                        </li>*@
+                                        <li class="menu-item @SetActiveClassOnLink("Country", "CountryList,AddEditCountry")" aria-haspopup="true">
+                                            <a asp-controller="Country" asp-action="CountryList" class="menu-link">
+                                                <span class="svg-icon menu-icon">
+                                                    <span class="fas fa-list"></span>
+                                                </span>
+                                                <span class="menu-text">Manage Country</span>
+                                            </a>
+                                        </li>
                                     </ul>
                                 </div>
                                 <!-- End : Sub category-->

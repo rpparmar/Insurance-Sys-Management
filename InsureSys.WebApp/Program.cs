@@ -1,7 +1,6 @@
-using Insurancesys.web.Utility;
 using InsuranceSys.Application;
 using InsuranceSys.Infrastructure;
-using InsuranceSys.Infrastructure.EF;
+using InsuranceSys.Infrastructure.Database;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
 using System.Text;
+using InsuranceSys.Infrastructure.Utility;
+using Insurancesys.web.Utility;
+using InsuranceSys.Application.Interface;
 
 namespace Insurancesys.web
 {
@@ -33,7 +35,8 @@ namespace Insurancesys.web
             });
 
             // Add AutoMapper
-            builder.Services.AddAutoMapper(typeof(MappingProfile)); // Scans for profiles in the assembly
+            builder.Services.AddAutoMapper(typeof(ViewModelDtoMapping)); // Scans for profiles in the assembly
+            builder.Services.AddAutoMapper(typeof(EntityDtoMapping)); // Scans for profiles in the assembly
 
 
             // Build the configuration
@@ -51,10 +54,7 @@ namespace Insurancesys.web
             builder.Services.AddDbContext<EfdbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("MasterConnection") ?? string.Empty));
 
-
-            builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
-            builder.Services.AddScoped<ICompanyService, CompanyService>();
-
+            RegisterDependency(builder);
 
             #region JWT Authentication for Unauthorized Access
             // Configure JWT authentication
@@ -110,6 +110,14 @@ namespace Insurancesys.web
                 pattern: "{controller=Home}/{action=Index}/{id?}");
 
             app.Run();
+        }
+
+        private static void RegisterDependency(WebApplicationBuilder builder)
+        {
+            builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
+            builder.Services.AddScoped<ICompanyService, CompanyService>();
+            builder.Services.AddScoped<ICountryRepository, CountryRepository>();
+            builder.Services.AddScoped<ICountryService, CountryService>();
         }
     }
 }
