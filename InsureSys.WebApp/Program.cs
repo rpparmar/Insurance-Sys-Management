@@ -114,6 +114,7 @@ namespace Insurancesys.web
 
         private static void RegisterDependency(WebApplicationBuilder builder)
         {
+            builder.Services.AddSingleton<DbContextFactory>(); //used this for allowing dynamic context/connectionstring with EF
             builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
             builder.Services.AddScoped<ICompanyService, CompanyService>();
             builder.Services.AddScoped<ICountryRepository, CountryRepository>();

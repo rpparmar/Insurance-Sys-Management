@@ -5,6 +5,8 @@ using InsuranceSys.Infrastructure.Database;
 using InsuranceSys.Infrastructure.EFEntities;
 using InsuranceSys.Infrastructure.Helper;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -20,13 +22,23 @@ namespace InsuranceSys.Infrastructure
     {
         private readonly EfdbContext _context;
         private readonly IMapper _mapper;
-        public CountryRepository(EfdbContext context, IMapper mapper)
+        //private readonly DbContextFactory _dbContextFactory;
+        //private readonly IConfiguration _config;
+        public CountryRepository(EfdbContext context, IMapper mapper
+            //, DbContextFactory dbContextFactory
+            //, IConfiguration config
+            )
         {
             _context = context;
             _mapper = mapper;
+            //_dbContextFactory = dbContextFactory;
+            //_config = config;
         }
         public async Task<(IEnumerable<CountryDto> countries, int TotalCount)> GetAllAsync(ImmutableDictionary<string, object> paramCollections)
         {
+            //var connectionString = _config.GetConnectionString("MasterConnection") ?? string.Empty;
+            //using var dynamicContext = _dbContextFactory.CreateDbContext(connectionString);
+
             // Safely retrieve parameters from the dictionary
             var searchTerm = GetValues.GetValueOrDefault<string>(paramCollections, "searchval");
             var status = GetValues.GetValueOrDefault<bool>(paramCollections, "status");
