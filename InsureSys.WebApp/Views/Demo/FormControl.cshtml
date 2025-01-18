@@ -1,0 +1,1358 @@
+﻿@{
+    ViewData["Title"] = "Form Controls";
+}
+<form id="frmControl" class="form fv-plugins-bootstrap fv-plugins-framework">
+    <div class="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader">
+        <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
+            <!--begin::Info-->
+            <div class="d-flex align-items-center flex-wrap mr-1">
+                <!--begin::Page Heading-->
+                <div class="d-flex align-items-baseline mr-5">
+                    <!--begin::Page Title-->
+                    <h6 class="text-dark font-weight-bold my-2 mr-5">@ViewData["Title"]</h6>
+                    <!--end::Page Title-->
+                </div>
+                <!--end::Page Heading-->
+            </div>
+            <!--end::Info-->
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-custom card-sticky" id="kt_page_sticky_card">
+                    <div class="card-header">
+                    </div>
+                    <div class="row h-100 justify-content-center align-items-center">
+                        <div class="card-body col-md-12">
+                            <div class="accordion accordion-solid accordion-toggle-arrow" id="accordionExample6">
+                                <div class="card" style="display: block;">
+                                    <div class="card-header card-head" id="headingOne6">
+                                        <div class="card-title" data-toggle="collapse" data-target="#collapseOne6" aria-expanded="false">
+                                            <i class="flaticon2-layers-1"></i>
+                                            Text Boxes
+                                        </div>
+                                    </div>
+                                    <div id="collapseOne6" class="collapse show" data-parent="#accordionExample6" style="align-self:center">
+                                        <div class="card-body">
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">
+                                                        Text
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <input class="form-control" type="text" value="Artisanal kale" id="example-text-input" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">
+                                                        Search
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <input class="form-control" type="search" value="How do I shoot web" id="example-search-input" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">
+                                                        Email
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <input class="form-control" type="email" value="bootstrap@example.com" id="example-email-input" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">
+                                                        URL
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <input class="form-control" type="url" value="https://getbootstrap.com" id="example-url-input" />
+                                                </div>
+                                            </div>
+                                            <!--begin::password-->
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">
+                                                        Password
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password" />
+                                                </div>
+                                            </div>
+                                            <!--end::password-->
+                                            <!--begin::static disabled text-->
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">
+                                                        Static
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <p class="form-control-plaintext text-muted">email@example.com</p>
+                                                </div>
+                                            </div>
+                                            <!--end::static disabled text-->
+                                            <!--begin::text area-->
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">
+                                                        Example textarea
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <textarea class="form-control" id="exampleTextarea" rows="3"></textarea>
+                                                </div>
+                                            </div>
+                                            <!--end::text area-->
+                                            <!--begin::disabled text -->
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">
+                                                        Disabled Input
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <input type="email" class="form-control" disabled="disabled" placeholder="Disabled input" />
+                                                </div>
+                                            </div>
+                                            <!--end::disabled text -->
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Disabled textarea</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <textarea class="form-control" disabled="disabled" rows="3"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Readonly Input</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <input type="email" class="form-control" readonly placeholder="Readonly input" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Readonly textarea</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <textarea class="form-control" readonly rows="3"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Number</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <input class="form-control" type="number" value="42" id="example-number-input" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Large Input</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <input type="email" class="form-control form-control-lg" placeholder="Large input" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Max Length Basic</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <input type='text' class="form-control" id="kt_maxlength_1" maxlength="3" placeholder="" type="text" />
+                                                    <span class="form-text text-muted">The badge will show up by default when the remaining chars are 3 or less</span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Max Length With Custom Text</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <input type='text' class="form-control" id="kt_maxlength_4" maxlength="8" placeholder="" type="text" />
+                                                    <span class="form-text text-muted">Display custom text on input focus</span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Max Length With TextArea</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <textarea class="form-control" id="kt_maxlength_5" maxlength="8" placeholder="" rows="6"></textarea>
+                                                    <span class="form-text text-muted">Bootstrap maxlength supports textarea as well as inputs</span>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Default Auto Suggetion on Text</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <div class="typeahead">
+                                                        <input class="form-control" id="kt_typeahead_1" type="text" dir="<?php echo isset( $_REQUEST['rtl'] ) && $_REQUEST['rtl'] ? 'rtl' : 'ltr' ?>" placeholder="States of USA" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Prefetch Suggetion on Text</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <div class="typeahead">
+                                                        <input class="form-control" id="kt_typeahead_3" type="text" dir="<?php echo isset( $_REQUEST['rtl'] ) && $_REQUEST['rtl'] ? 'rtl' : 'ltr' ?>" placeholder="Countries" />
+                                                    </div>
+                                                    <div class="form-text text-muted">Prefetched data is fetched and processed on initialization</div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Remote Auto Suggetion on Text</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <div class="typeahead">
+                                                        <input class="form-control" id="kt_typeahead_2" type="text" dir="<?php echo isset( $_REQUEST['rtl'] ) && $_REQUEST['rtl'] ? 'rtl' : 'ltr' ?>" placeholder="States of USA" />
+                                                    </div>
+                                                    <div class="form-text text-muted">
+                                                        Bloodhound offers advanced functionalities such as prefetching and backfilling with remote data.
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card" style="display: block;">
+                                    <div class="card-header card-head" id="headingTwo6">
+                                        <div class="card-title" data-toggle="collapse" data-target="#collapseTwo6" aria-expanded="false">
+                                            <i class="flaticon2-layers-1"></i>
+                                            Drop downs
+                                        </div>
+                                    </div>
+                                    <div id="collapseTwo6" class="collapse show" data-parent="#accordionExample6" style="align-self:center">
+                                        <div class="card-body">
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Default select</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control selectpicker">
+                                                        <option>1</option>
+                                                        <option>2</option>
+                                                        <option>3</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Disabled select</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control" disabled="disabled">
+                                                        <option>1</option>
+                                                        <option>2</option>
+                                                        <option>3</option>
+                                                        <option>4</option>
+                                                        <option>5</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Select with disabled options</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control selectpicker">
+                                                        <option data-subtext="French's">Mustard</option>
+                                                        <option data-subtext="Heinz" disabled>Ketchup</option>
+                                                        <option data-subtext="Sweet">Relish</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Custom Select</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="custom-select form-control">
+                                                        <option selected>Open this select menu</option>
+                                                        <option value="1">One</option>
+                                                        <option value="2">Two</option>
+                                                        <option value="3">Three</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">No Select with placeholder</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control select2" id="kt_select2_4" name="param">
+                                                        <option label="Label"></option>
+                                                        <optgroup label="Alaskan/Hawaiian Time Zone">
+                                                            <option value="AK">Alaska</option>
+                                                            <option value="HI">Hawaii</option>
+                                                        </optgroup>
+                                                        <optgroup label="Pacific Time Zone">
+                                                            <option value="CA">California</option>
+                                                            <option value="NV">Nevada</option>
+                                                            <option value="OR">Oregon</option>
+                                                            <option value="WA">Washington</option>
+                                                        </optgroup>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Categorized select</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control">
+                                                        <optgroup label="Category 1">
+                                                            <option value="1">Choice 1</option>
+                                                            <option value="2">Choice 2</option>
+                                                            <option value="3">Choice 3</option>
+                                                            <option value="4">Choice 4</option>
+                                                        </optgroup>
+                                                        <optgroup label="Category 2">
+                                                            <option value="5">Choice 5</option>
+                                                            <option value="6">Choice 6</option>
+                                                            <option value="7">Choice 7</option>
+                                                            <option value="8">Choice 8</option>
+                                                        </optgroup>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Categorized select 2</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control selectpicker">
+                                                        <optgroup label="Picnic" data-max-options="2">
+                                                            <option>Mustard</option>
+                                                            <option>Ketchup</option>
+                                                            <option>Relish</option>
+                                                        </optgroup>
+                                                        <optgroup label="Camping" data-max-options="2">
+                                                            <option>Tent</option>
+                                                            <option>Flashlight</option>
+                                                            <option>Toilet Paper</option>
+                                                        </optgroup>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Multiple select</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control selectpicker" multiple>
+                                                        <option>Mustard</option>
+                                                        <option>Ketchup</option>
+                                                        <option>Relish</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Searchable Select</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control selectpicker" data-size="7" data-live-search="true">
+                                                        <option value="">Select</option>
+                                                        <option value="AF">Afghanistan</option>
+                                                        <option value="AX">Åland Islands</option>
+                                                        <option value="AL">Albania</option>
+                                                        <option value="DZ">Algeria</option>
+                                                        <option value="AS">American Samoa</option>
+                                                        <option value="AD">Andorra</option>
+                                                        <option value="AO">Angola</option>
+                                                        <option value="AI">Anguilla</option>
+                                                        <option value="AQ">Antarctica</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Searchable Select 2</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control select2" id="kt_select2_1" name="param">
+                                                        <option value="AK">Alaska</option>
+                                                        <option value="HI">Hawaii</option>
+                                                        <option value="CA">California</option>
+                                                        <option value="NV">Nevada</option>
+                                                        <option value="OR">Oregon</option>
+                                                        <option value="WA">Washington</option>
+                                                        <option value="AZ">Arizona</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Categorized Searchable Select 2</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control select2" id="kt_select2_2" name="param">
+                                                        <optgroup label="Alaskan/Hawaiian Time Zone">
+                                                            <option value="AK">Alaska</option>
+                                                            <option value="HI">Hawaii</option>
+                                                        </optgroup>
+                                                        <optgroup label="Pacific Time Zone">
+                                                            <option value="CA">California</option>
+                                                            <option value="NV" selected>Nevada</option>
+                                                            <option value="OR">Oregon</option>
+                                                            <option value="WA">Washington</option>
+                                                        </optgroup>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Limited Select</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control selectpicker" multiple data-max-options="2" data-width="200">
+                                                        <option>Mustard</option>
+                                                        <option>Ketchup</option>
+                                                        <option>Relish</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Categorized limited Select</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control selectpicker" multiple data-width="200">
+                                                        <optgroup label="Condiments" data-max-options="2">
+                                                            <option>Mustard</option>
+                                                            <option>Ketchup</option>
+                                                            <option>Relish</option>
+                                                        </optgroup>
+                                                        <optgroup label="Breads" data-max-options="2">
+                                                            <option>Plain</option>
+                                                            <option>Steamed</option>
+                                                            <option>Toasted</option>
+                                                        </optgroup>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Select with multiple width</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control selectpicker" data-width="" title="Auto">
+                                                        <option>Mustard</option>
+                                                        <option>Ketchup</option>
+                                                        <option>Relish</option>
+                                                    </select>
+                                                    <div class="mt-2"></div>
+                                                    <select class="form-control selectpicker" data-width="200px" title="Fixed: 200px">
+                                                        <option>Mustard</option>
+                                                        <option>Ketchup</option>
+                                                        <option>Relish</option>
+                                                    </select>
+                                                    <div class="mt-2"></div>
+                                                    <select class="form-control selectpicker" data-width="75%" title="Fixed: 75%">
+                                                        <option>Mustard</option>
+                                                        <option>Ketchup</option>
+                                                        <option>Relish</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Select options with icon</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control selectpicker">
+                                                        <option data-icon="la la-bullhorn font-size-lg bs-icon">Mustard</option>
+                                                        <option data-icon="la la-bookmark  font-size-lg bs-icon">Ketchup</option>
+                                                        <option data-icon="la la-calendar-check-o  font-size-lg bs-icon">Relish</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Select option with subtext</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control selectpicker">
+                                                        <option data-subtext="French's">Mustard</option>
+                                                        <option data-subtext="Heinz">Ketchup</option>
+                                                        <option data-subtext="Sweet">Relish</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Select option with subtext & manual header</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control selectpicker" data-header="Select an option">
+                                                        <option data-subtext="French's">Mustard</option>
+                                                        <option data-subtext="Heinz">Ketchup</option>
+                                                        <option data-subtext="Sweet">Relish</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">Select option with subtext & devider</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control selectpicker">
+                                                        <option data-subtext="French's">Mustard</option>
+                                                        <option data-subtext="Heinz">Ketchup</option>
+                                                        <option data-divider="true" label="Label"></option>
+                                                        <option data-subtext="Sweet">Relish</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">
+                                                        Select/deselect all options
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control selectpicker" multiple data-actions-box="true">
+                                                        <option>Mustard</option>
+                                                        <option>Ketchup</option>
+                                                        <option>Relish</option>
+                                                        <option>Mayonnaise</option>
+                                                        <option>Barbecue Sauce</option>
+                                                        <option>Salad Dressing</option>
+                                                        <option>Tabasco</option>
+                                                        <option>Salsa</option>
+                                                        <option>Mustard</option>
+                                                        <option>Ketchup</option>
+                                                        <option>Relish</option>
+                                                        <option>Mayonnaise</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                    <label class="col-form-label">
+                                                        Tagify Multi select
+                                                    </label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                    <select class="form-control select2" id="kt_select2_3" name="param" multiple="multiple">
+                                                        <optgroup label="Alaskan/Hawaiian Time Zone">
+                                                            <option value="AK" selected>Alaska</option>
+                                                            <option value="HI">Hawaii</option>
+                                                        </optgroup>
+                                                        <optgroup label="Pacific Time Zone">
+                                                            <option value="CA">California</option>
+                                                            <option value="NV" selected>Nevada</option>
+                                                            <option value="OR">Oregon</option>
+                                                            <option value="WA">Washington</option>
+                                                        </optgroup>
+                                                        <optgroup label="Mountain Time Zone">
+                                                            <option value="AZ">Arizona</option>
+                                                            <option value="CO">Colorado</option>
+                                                            <option value="ID">Idaho</option>
+                                                            <option value="MT" selected>Montana</option>
+                                                            <option value="NE">Nebraska</option>
+                                                            <option value="NM">New Mexico</option>
+                                                            <option value="ND">North Dakota</option>
+                                                            <option value="UT">Utah</option>
+                                                            <option value="WY">Wyoming</option>
+                                                        </optgroup>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card" style="display: block;">
+                                        <div class="card-header card-head" id="headingThree6">
+                                            <div class="card-title" data-toggle="collapse" data-target="#collapseThree6" aria-expanded="false">
+                                                <i class="flaticon2-layers-1"></i>
+                                                Date/Time control
+                                            </div>
+                                        </div>
+                                        <div id="collapseThree6" class="collapse show" data-parent="#accordionExample6" style="align-self:center">
+                                            <div class="card-body">
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Date and time</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input class="form-control" type="datetime-local" value="2011-08-19T13:45:00" id="example-datetime-local-input" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Date</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input class="form-control" type="date" value="2011-08-19" id="example-date-input" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Month</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input class="form-control" type="month" value="2011-08" id="example-month-input" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Week</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input class="form-control" type="week" value="2011-W33" id="example-week-input" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Time</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input class="form-control" type="time" value="13:45:00" id="example-time-input" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Date with clear and today helper buttons</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="input-group date">
+                                                            <input type="text" class="form-control" readonly value="05/20/2017" id="kt_datepicker_3" />
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text">
+                                                                    <i class="la la-calendar"></i>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Date Top Left</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="input-group date mb-2">
+                                                            <input type="text" class="form-control" placeholder="Top left" id="kt_datepicker_4_1" />
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text">
+                                                                    <i class="la la-bullhorn"></i>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Date Top Right</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="input-group date mb-2">
+                                                            <input type="text" class="form-control" placeholder="Top right" id="kt_datepicker_4_2" />
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text">
+                                                                    <i class="la la-bullhorn"></i>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Date Bottom left</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="input-group date mb-2">
+                                                            <input type="text" class="form-control" placeholder="Bottom left" id="kt_datepicker_4_3" />
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text">
+                                                                    <i class="la la-bullhorn"></i>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Date Bottom right</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="input-group date mb-2">
+                                                            <input type="text" class="form-control" placeholder="Bottom right" id="kt_datepicker_4_4" />
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text">
+                                                                    <i class="la la-bullhorn"></i>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Date Only</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="input-group date">
+                                                            <input type="text" class="form-control" placeholder="Select date" id="kt_datetimepicker_6" />
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text">
+                                                                    <i class="la la-calendar glyphicon-th"></i>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Date Time Default</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="input-group date">
+                                                            <input type="text" class="form-control" readonly placeholder="Select date & time" id="kt_datetimepicker_2" />
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text"><i class="la la-calendar-check-o glyphicon-th"></i></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Date Time Enable Helper Buttons</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="input-group date">
+                                                            <input type="text" class="form-control" readonly value="1899-11-29 00:30" id="kt_datetimepicker_3" />
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text">
+                                                                    <i class="la la-calendar glyphicon-th"></i>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Time Only</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="input-group date">
+                                                            <input type="text" class="form-control" placeholder="Select time" id="kt_datetimepicker_7" />
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text">
+                                                                    <i class="la la-calendar glyphicon-th"></i>
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Range Picker</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="input-daterange input-group" id="kt_datepicker_5">
+                                                            <input type="text" class="form-control" name="start" />
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text"><i class="la la-ellipsis-h"></i></span>
+                                                            </div>
+                                                            <input type="text" class="form-control" name="end" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Default Minimum Setup</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input type='text' class="form-control" id="kt_daterangepicker_1" readonly placeholder="Select time" type="text" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Default Minimum Setup</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input type='text' class="form-control" id="kt_daterangepicker_1" readonly placeholder="Select time" type="text" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Input Group Setup</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class='input-group' id='kt_daterangepicker_2'>
+                                                            <input type='text' class="form-control" readonly placeholder="Select date range" />
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text"><i class="la la-calendar-check-o"></i></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Date Range with time picker</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class='input-group' id='kt_daterangepicker_4'>
+                                                            <input type='text' class="form-control" readonly placeholder="Select date & time range" />
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text"><i class="la la-calendar-check-o"></i></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Predefined Date Range</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class='input-group' id='kt_daterangepicker_6'>
+                                                            <input type='text' class="form-control" readonly placeholder="Select date range" />
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text"><i class="la la-calendar-check-o"></i></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="card" style="display: block;">
+                                        <div class="card-header card-head" id="headingFour6">
+                                            <div class="card-title" data-toggle="collapse" data-target="#collapseFour6" aria-expanded="false">
+                                                <i class="flaticon2-layers-1"></i>
+                                                File Upload control
+                                            </div>
+                                        </div>
+                                        <div id="collapseFour6" class="collapse show" data-parent="#accordionExample6" style="align-self:center">
+                                            <div class="card-body">
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">File Browser</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="custom-file">
+                                                            <input type="file" class="custom-file-input" id="customFile" />
+                                                            <label class="custom-file-label" for="customFile">Choose file</label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card" style="display: block;">
+                                        <div class="card-header card-head" id="headingFive6">
+                                            <div class="card-title" data-toggle="collapse" data-target="#collapseFive6" aria-expanded="false">
+                                                <i class="flaticon2-layers-1"></i>
+                                                Checkboxes
+                                            </div>
+                                        </div>
+                                        <div id="collapseFive6" class="collapse show" data-parent="#accordionExample6" style="align-self:center">
+                                            <div class="card-body">
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Default Checkboxes</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="checkbox-list">
+                                                            <label class="checkbox">
+                                                                <input type="checkbox" /> Default
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox checkbox-disabled">
+                                                                <input type="checkbox" disabled="disabled" checked="checked" /> Disabled
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox">
+                                                                <input type="checkbox" checked="checked" /> Checked
+                                                                <span></span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Inline Checkboxes</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="checkbox-inline">
+                                                            <label class="checkbox">
+                                                                <input type="checkbox" /> Option 1
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox">
+                                                                <input type="checkbox" /> Option 2
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox">
+                                                                <input type="checkbox" /> Option 3
+                                                                <span></span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Single Checkbox</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="checkbox-single">
+                                                            <label class="checkbox">
+                                                                <input type="checkbox" checked="checked" /> Option
+                                                                <span></span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Color Option</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="checkbox-inline">
+                                                            <label class="checkbox checkbox-primary">
+                                                                <input type="checkbox" checked="checked" /> Primary
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox checkbox-success">
+                                                                <input type="checkbox" checked="checked" /> Success
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox checkbox-danger">
+                                                                <input type="checkbox" checked="checked" /> Danger
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox checkbox-warning">
+                                                                <input type="checkbox" checked="checked" /> Warning
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox checkbox-info">
+                                                                <input type="checkbox" checked="checked" /> Info
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox checkbox-dark">
+                                                                <input type="checkbox" checked="checked" /> Dark
+                                                                <span></span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Default Style</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="checkbox-inline">
+                                                            <label class="checkbox checkbox-success">
+                                                                <input type="checkbox" /> Option 1
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox checkbox-success">
+                                                                <input type="checkbox" checked="checked" /> Option 2
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox checkbox-primary">
+                                                                <input type="checkbox" checked="checked" /> Option 3
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox checkbox-warning checkbox-disabled">
+                                                                <input type="checkbox" disabled> Disabled
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox checkbox-danger checkbox-disabled">
+                                                                <input type="checkbox" disabled="disabled" checked="checked" /> Disabled & checked
+                                                                <span></span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Circle Style</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="checkbox-inline">
+                                                            <label class="checkbox checkbox-circle checkbox-success">
+                                                                <input type="checkbox" /> Option 1
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox checkbox-circle checkbox-success">
+                                                                <input type="checkbox" checked="checked" /> Option 2
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox checkbox-circle checkbox-primary">
+                                                                <input type="checkbox" checked="checked" /> Option 3
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox checkbox-circle checkbox-warning checkbox-disabled">
+                                                                <input type="checkbox" disabled> Disabled
+                                                                <span></span>
+                                                            </label>
+                                                            <label class="checkbox checkbox-circle checkbox-danger checkbox-disabled">
+                                                                <input type="checkbox" disabled="disabled" checked="checked" /> Disabled & checked
+                                                                <span></span>
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card" style="display: block;">
+                                        <div class="card-header card-head" id="headingSix6">
+                                            <div class="card-title" data-toggle="collapse" data-target="#collapseSix6" aria-expanded="false">
+                                                <i class="flaticon2-layers-1"></i>
+                                                Switches
+                                            </div>
+                                        </div>
+                                        <div id="collapseSix6" class="collapse show" data-parent="#accordionExample6" style="align-self:center">
+                                            <div class="card-body">
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Default Switch</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <span class="switch switch-sm">
+                                                            <label>
+                                                                <input type="checkbox" checked="checked" name="select" />
+                                                                <span></span>
+                                                            </label>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Icon Switch</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <span class="switch switch-icon">
+                                                            <label>
+                                                                <input type="checkbox" checked="checked" name="select" />
+                                                                <span></span>
+                                                            </label>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Outline Success</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <span class="switch switch-outline switch-icon switch-success">
+                                                            <label>
+                                                                <input type="checkbox" checked="checked" name="select" />
+                                                                <span></span>
+                                                            </label>
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Switch 2 Default</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input data-switch="true" type="checkbox" checked="checked" />
+                                                        <input data-switch="true" type="checkbox" />
+                                                        <input data-switch="true" type="checkbox" checked="checked" disabled="disabled" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Switch 2 With colors</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input data-switch="true" type="checkbox" checked="checked" data-on-color="success" data-off-color="warning" />
+                                                        <input data-switch="true" type="checkbox" checked="checked" data-on-color="primary" />
+                                                        <input data-switch="true" type="checkbox" checked="checked" data-on-color="danger" />
+                                                        <input data-switch="true" type="checkbox" checked="checked" data-on-color="info" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Switch 2 Custom Text</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input data-switch="true" type="checkbox" checked="checked" data-on-text="True" data-handle-width="50" data-off-text="False" data-on-color="success" />
+                                                        <input data-switch="true" type="checkbox" checked="checked" data-on-text="1" data-handle-width="30" data-off-text="0" data-on-color="info" />
+                                                        <input data-switch="true" type="checkbox" checked="checked" data-on-text="Enabled" data-handle-width="70" data-off-text="Disabled" data-on-color="primary" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Switch 2 Sizing</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input data-switch="true" data-size="small" type="checkbox" checked="checked" />
+                                                        <input data-switch="true" type="checkbox" checked="checked" />
+                                                        <input data-switch="true" data-size="large" type="checkbox" checked="checked" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card" style="display: block;">
+                                        <div class="card-header card-head" id="headingSeven6">
+                                            <div class="card-title" data-toggle="collapse" data-target="#collapseSeven6" aria-expanded="false">
+                                                <i class="flaticon2-layers-1"></i>
+                                                Radio
+                                            </div>
+                                        </div>
+                                        <div id="collapseSeven6" class="collapse show" data-parent="#accordionExample6" style="align-self:center">
+                                            <div class="card-body">
+                                                <div class="form-group row m-0">
+                                                    <label class="col-lg-2 col-form-label">Default:</label>
+                                                    <div class="col-lg-10">
+                                                        <div class="row">
+                                                            <div class="col-lg-6">
+                                                                <label class="option option-plain">
+                                                                    <span class="option-control">
+                                                                        <span class="radio radio-brand">
+                                                                            <input type="radio" name="m_option_1" value="1" />
+                                                                            <span></span>
+                                                                        </span>
+                                                                    </span>
+                                                                    <span class="option-label">
+                                                                        <span class="option-head">
+                                                                            <span class="option-title">
+                                                                                Premium Partner
+                                                                            </span>
+                                                                        </span>
+                                                                        <span class="option-body">
+                                                                            30 days free trial and lifetime free updates
+                                                                        </span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                            <div class="col-lg-6">
+                                                                <label class="option option-plain">
+                                                                    <span class="option-control">
+                                                                        <span class="radio radio-brand">
+                                                                            <input type="radio" name="m_option_1" value="1" checked="checked" />
+                                                                            <span></span>
+                                                                        </span>
+                                                                    </span>
+                                                                    <span class="option-label">
+                                                                        <span class="option-head">
+                                                                            <span class="option-title">
+                                                                                Free Membership
+                                                                            </span>
+                                                                        </span>
+                                                                        <span class="option-body">
+                                                                            24/7 support and Lifetime access
+                                                                        </span>
+                                                                    </span>
+                                                                </label>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card" style="display: block;">
+                                        <div class="card-header card-head" id="headingEigth6">
+                                            <div class="card-title" data-toggle="collapse" data-target="#collapseEigth6" aria-expanded="false">
+                                                <i class="flaticon2-layers-1"></i>
+                                                Tagify/Tags
+                                            </div>
+                                        </div>
+                                        <div id="collapseEigth6" class="collapse show" data-parent="#accordionExample6" style="align-self:center">
+                                            <div class="card-body">
+                                                @* <div class="form-group row">
+                                                <div class="col-md-5 col-xs-12 text-md-right">
+                                                <label class="col-form-label">Basic example</label>
+                                                </div>
+                                                <div class="col-md-4 col-xs-12">
+                                                <input id="kt_tagify_1" class="form-control tagify" name='tags' placeholder='type...' value='css, html, javascript' data-blacklist='.NET,PHP' />
+
+                                                <div class="mt-3">
+                                                <a href="javascript:;" id="kt_tagify_1_remove" class="btn btn-sm btn-light-primary font-weight-bold">Remove tags</a>
+                                                </div>
+
+                                                <div class="mt-3 text-muted">
+                                                In this example, the field is pre-occupied with 4 tags. The last tag (CSS) has the same value as the first tag, and will be removed,
+                                                because the duplicates setting is set to true.
+                                                </div>
+                                                </div>
+                                                </div> *@
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card" style="display: block;">
+                                        <div class="card-header card-head" id="headingNine6">
+                                            <div class="card-title" data-toggle="collapse" data-target="#collapseNine6" aria-expanded="false">
+                                                <i class="flaticon2-layers-1"></i>
+                                                Touch Spin Increas/Decrease Numeric Values
+                                            </div>
+                                        </div>
+                                        <div id="collapseNine6" class="collapse show" data-parent="#accordionExample6" style="align-self:center">
+                                            <div class="card-body">
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Minimum Setup</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input id="kt_touchspin_1" type="text" class="form-control" value="55" name="demo0" placeholder="Select time" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">With Prefix</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input id="kt_touchspin_2" type="text" class="form-control" value="0" name="demo0" placeholder="Select time" />
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">With Postfix</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input id="kt_touchspin_3" type="text" class="form-control" value="0" name="demo0" placeholder="Select time" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card" style="display: block;">
+                                        <div class="card-header card-head" id="headingTen6">
+                                            <div class="card-title" data-toggle="collapse" data-target="#collapseTen6" aria-expanded="false">
+                                                <i class="flaticon2-layers-1"></i>
+                                                No UI Slider
+                                            </div>
+                                        </div>
+                                        <div id="headingTen6" class="collapse show" data-parent="#accordionExample6" style="align-self:center">
+                                            <div class="card-body">
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">Minimum Setup</label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="row align-items-center">
+                                                            <div class="col-4">
+                                                                <input type="text" class="form-control" id="kt_nouislider_1_input" placeholder="Quantity" />
+                                                            </div>
+                                                            <div class="col-8">
+                                                                <div id="kt_nouislider_1" class="nouislider-drag-danger"></div>
+                                                            </div>
+                                                        </div>
+                                                        <span class="form-text text-muted mt-6">Input control is attached to slider</span>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">
+                                                            Currency Formatting
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="row align-items-center">
+                                                            <div class="col-4">
+                                                                <input type="text" class="form-control" id="kt_nouislider_2_input" placeholder="Currency" />
+                                                            </div>
+                                                            <div class="col-8">
+                                                                <div id="kt_nouislider_2" class="nouislider nouislider-handle-danger"></div>
+                                                            </div>
+                                                        </div>
+                                                        <span class="form-text text-muted mt-6">To format the slider output, noUiSlider offers a  format option.</span>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">
+                                                            Slider With Tooltip
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="row align-items-center">
+                                                            <div class="col-2">
+                                                                <input type="text" class="form-control" id="kt_nouislider_3_input" placeholder="Quantity" />
+                                                            </div>
+                                                            <div class="col-2">
+                                                                <input type="text" class="form-control" id="kt_nouislider_3.1_input" placeholder="Quantity" />
+                                                            </div>
+                                                            <div class="col-8">
+                                                                <div id="kt_nouislider_3" class="nouislider"></div>
+                                                            </div>
+                                                        </div>
+                                                        <span class="form-text text-muted mt-6">Slider with tooltips to show slider values.</span>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">
+                                                            Slider State Colors
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="row align-items-center">
+                                                            <div class="col-2">
+                                                                <select class="form-control" id="kt_nouislider_input_select"></select>
+                                                            </div>
+                                                            <div class="col-2">
+                                                                <input type="number" class="form-control" id="kt_nouislider_input_number" placeholder="Quantity" />
+                                                            </div>
+                                                            <div class="col-8">
+                                                                <div id="kt_nouislider_4" class="nouislider nouislider-handle-primary nouislider-connect-warning"></div>
+                                                            </div>
+                                                        </div>
+                                                        <span class="form-text text-muted mt-6">Use state classes to change the slider's connect path and handle colors.</span>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">
+                                                            Soft Limits
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <div class="row align-items-center">
+                                                            <div class="col-4">
+                                                                <input type="text" class="form-control" id="kt_nouislider_5_input" placeholder="Quantity" />
+                                                            </div>
+                                                            <div class="col-8">
+                                                                <div id="kt_nouislider_5"></div>
+                                                            </div>
+                                                        </div>
+                                                        <span class="form-text text-muted mt-8">Disables the edges of slider where handler bounces back when released</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+@section Scripts {
+    <script src="~/assets/js/pages/crud/forms/widgets/typeahead.min.js"></script>
+    <script src="~/assets/js/pages/crud/forms/widgets/bootstrap-select.min.js"></script>
+    <script src="~/assets/js/pages/crud/forms/widgets/select2.min.js"></script>
+    <script src="~/assets/js/pages/crud/forms/widgets/bootstrap-multipleselectsplitter.min.js"></script>
+    <script src="~/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/assets/js/bootstrap-datetimepicker.min.js"></script>
+    <script src="~/assets/js/bootstrap-daterangepicker.min.js"></script>
+    <script src="~/assets/js/pages/crud/forms/widgets/bootstrap-switch.min.js"></script>
+    @* <script src="~/assets/js/pages/crud/forms/widgets/tagify.min.js"></script> *@
+    <script src="~/assets/js/pages/crud/forms/widgets/bootstrap-touchspin.min.js"></script>
+    <script src="~/assets/js/pages/crud/forms/widgets/bootstrap-maxlength.min.js"></script>
+    <script src="~/assets/js/pages/crud/forms/widgets/nouislider.min.js"></script>
+}

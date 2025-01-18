@@ -1,0 +1,263 @@
+﻿@model Insurancesys.web.Models.LeadViewModel
+@{
+    Layout = "_Layout";
+    if (Model.IsEditMode == false)
+        ViewData["Title"] = "New Lead";
+    else
+        ViewData["Title"] = "Edit Lead";
+}
+<style>
+    .required:after {
+        content: "*";
+        color: red;
+    }
+</style>
+
+<!--begin::Subheader-->
+<div class="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader">
+    <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
+        <!--begin::Info-->
+        <div class="d-flex align-items-center flex-wrap mr-1">
+            <!--begin::Page Heading-->
+            <div class="d-flex align-items-baseline mr-5">
+                <!--begin::Page Title-->
+                <h5 class="text-dark font-weight-bold my-2 mr-5">@ViewData["Title"]</h5>
+                <!--end::Page Title-->
+                <!--begin::Breadcrumb-->
+                <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
+                    <li class="breadcrumb-item">
+                        <a href="" class="text-muted">Sales</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="" class="text-muted">My Lead</a>
+                    </li>
+                </ul>
+                <!--end::Breadcrumb-->
+            </div>
+            <!--end::Page Heading-->
+        </div>
+        <!--end::Info-->
+    </div>
+</div>
+<!--end::Subheader-->
+<div class="container-fluid">
+    <form id="frmLead" class="form fv-plugins-bootstrap fv-plugins-framework" asp-action="SaveLead" asp-controller="Lead" method="post">
+        <div class="row">
+            <div class="col-md-12">
+                <!--begin::Card-->
+                <div class="card card-custom card-sticky" id="kt_page_sticky_card">
+                    @*@Html.HiddenFor(x => x.IsEditMode)*@
+                    <div class="card-header">
+                        <div class="card-title">
+                            @*<h3 class="card-label">
+                            Title
+                            <i class="mr-2"></i>
+                            <small class="">some content</small>
+                            </h3>*@
+                        </div>
+                        <div class="card-toolbar">
+                            <a asp-controller="Lead" asp-action="ListOfLeads" class="btn btn-light-primary font-weight-bolder mr-2">
+                                <i class="ki ki-long-arrow-back icon-sm"></i>Back
+                            </a>
+                            <button type="submit" form="frmLead" name="saveAndContinue" value="saveAndContinue" class="btn btn-primary font-weight-bolder mr-2">
+                                <i class="flaticon-interface-5"></i>
+                                <span class="nav-text">@(!Model.IsEditMode ? "Save & Add New" : "Update & continue")</span>
+                            </button>
+                            <button type="submit" form="frmLead" name="saveAndExit" value="saveAndExit" class="btn btn-warning font-weight-bolder mr-2">
+                                <i class="flaticon-logout"></i>
+                                <span class="nav-text">@(!Model.IsEditMode ? "Save & Exit" : "Update & Exit")</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="row justify-content-center align-items-center">
+                            <!--begin::Form-->
+                            <div class="col-md-12">
+                                <div class="accordion accordion-solid accordion-toggle-arrow" id="accordionExample6">
+                                    <div class="card" style="display: block;">
+                                        <div class="card-header card-head" id="headingOne6">
+                                            <div class="card-title" data-toggle="collapse" data-target="#collapseOne6" aria-expanded="false">
+                                                <i class="flaticon2-layers-1"></i>
+                                                Basic Information
+                                            </div>
+                                        </div>
+                                        <div id="collapseOne6" class="collapse show" data-parent="#accordionExample6" style="align-self:center">
+                                            <div class="card-body">
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label required">
+                                                            First Name
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        @*<input class="form-control" type="text" asp-for="FirstName" placeholder="Enter first name">*@
+                                                        <input class="form-control" asp-for="FirstName" placeholder="Enter first name" type="text" />
+                                                        @*<span asp-validation-for="FirstName" class="text-danger"></span>*@
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">
+                                                            Last Name
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input class="form-control" type="text" asp-for="LastName" placeholder="Enter last name">
+                                                        @*<span asp-validation-for="LastName" class="text-danger"></span>*@
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label required">
+                                                            Phone Number
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input class="form-control" type="text" asp-for="PhoneNumber" placeholder="Enter phone number">
+                                                        @*<span asp-validation-for="PhoneNumber" class="text-danger"></span>*@
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label">
+                                                            Email
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <input class="form-control" type="text" asp-for="Email" placeholder="Enter email">
+                                                    </div>
+                                                </div>
+                                                @*<div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label required">
+                                                            Type of insurance
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <select class="form-control selectpicker" id="drpTypeOfInsurance" data-size="7" data-live-search="true" asp-for="PolicyTypeID" asp-items="@Model.lstInsuranceType">
+                                                            <option value="">Select</option>
+                                                        </select>
+                                                        <span asp-validation-for="PolicyTypeID" class="text-danger"></span>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row">
+                                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                                        <label class="col-form-label required">
+                                                            Assignee
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4 col-xs-12">
+                                                        <select class="form-control selectpicker" id="drpAssignee" data-size="7" data-live-search="true" asp-for="AssignedTo" asp-items="@Model.lstUsers">
+                                                            <option value="">Select</option>
+                                                        </select>
+                                                        <span asp-validation-for="AssignedTo" class="text-danger"></span>
+                                                    </div>
+                                                </div>*@
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @*<div class="card" style="display: block;">
+                                    <div class="card-header card-head" id="headingTwo6">
+                                    <div class="card-title collapsed" data-toggle="collapse" data-target="#collapseTwo6" aria-expanded="false">
+                                    <i class="icon-sm-sm-2x text-dark-50 flaticon-user-settings"></i>
+                                    Personal/Business Information
+                                    </div>
+                                    </div>
+                                    <div id="collapseTwo6" class="collapse" data-parent="#accordionExample6" style="align-self:center">
+                                    <div class="card-body">
+                                    <div class="form-group row">
+                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                    <label class="col-form-label">
+                                    Company
+                                    </label>
+                                    </div>
+                                    <div class="col-md-4 col-xs-12">
+                                    <select class="form-control selectpicker" data-size="7" data-live-search="true" asp-for="CompanyID" asp-items="@Model.lstCompanies">
+                                    <option value="">Select</option>
+                                    </select>
+                                    </div>
+                                    </div>
+                                    <div class="form-group row">
+                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                    <label class="col-form-label">
+                                    Lead Status
+                                    </label>
+                                    </div>
+                                    <div class="col-md-4 col-xs-12">
+                                    <select class="form-control selectpicker" data-size="7" data-live-search="true" asp-for="LeadStatus" asp-items="@Model.lstLeadStatus">
+                                    <option value="">Select</option>
+                                    </select>
+                                    </div>
+                                    </div>
+                                    <div class="form-group row">
+                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                    <label class="col-form-label">
+                                    Source Of Lead
+                                    </label>
+                                    </div>
+                                    <div class="col-md-4 col-xs-12">
+                                    <input class="form-control" type="text" asp-for="LeadSource" placeholder="Enter source of lead">
+                                    </div>
+                                    </div>
+                                    <div class="form-group row">
+                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                    <label class="col-form-label">
+                                    Next Follow up Date
+                                    </label>
+                                    </div>
+                                    <div class="col-md-4 col-xs-12">
+                                    <div class="input-group date">
+                                    <input type="text" class="form-control" readonly placeholder="Select date & time" id="kt_datetimepicker_2" />
+                                    <div class="input-group-append">
+                                    <span class="input-group-text"><i class="la la-calendar-check-o glyphicon-th"></i></span>
+                                    </div>
+                                    </div>
+                                    </div>
+                                    </div>
+                                    <div class="form-group row">
+                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                    <label class="col-form-label">
+                                    Address
+                                    </label>
+                                    </div>
+                                    <div class="col-md-4 col-xs-12">
+                                    <textarea class="form-control" asp-for="Address" rows="2" placeholder="Enter address"></textarea>
+                                    </div>
+                                    </div>
+                                    <div class="form-group row">
+                                    <div class="col-md-5 col-xs-12 text-md-right">
+                                    <label class="col-form-label">
+                                    Notes
+                                    </label>
+                                    </div>
+                                    <div class="col-md-4 col-xs-12">
+                                    <textarea class="form-control" asp-for="Notes" rows="2" placeholder="Enter notes"></textarea>
+                                    </div>
+                                    </div>
+                                    </div>
+                                    </div>
+                                    </div>*@
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <!--end::Card-->
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @*<script src="~/assets/js/pages/crud/forms/widgets/bootstrap-maxlength.js"></script>*@
+    <script>
+        // // input group demo
+        // $('#kt_datetimepicker_2').datetimepicker({
+        //     todayHighlight: true,
+        //     autoclose: true,
+        //     pickerPosition: 'top-left',
+        //     format: 'yyyy/mm/dd hh:ii'
+        // });
+    </script>
+}

@@ -1,24 +1,36 @@
 [
   {
-    "outputFileName": "wwwroot/js/Masters/Company/_company.min.js",
-    "inputFiles": [
-      "wwwroot/js/Masters/Company/_company.js"
-    ],
-    "minify": {
-      "enabled": true,
-      "renameLocals": true, 
-      "removeComments": true
-    }
-  },
-  {
     "outputFileName": "wwwroot/js/_deleteRow.min.js",
     "inputFiles": [
       "wwwroot/js/_deleteRow.js"
     ],
     "minify": {
       "enabled": true,
-      "renameLocals": true, 
-      "removeComments": true 
+      "renameLocals": true,
+      "removeComments": true
+    }
+  },
+  {
+    "outputFileName": "wwwroot/js/Masters/Company/_company.min.js",
+    "inputFiles": [
+      "wwwroot/js/Masters/Company/_company.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true,
+      "removeComments": true
+    }
+  },
+  {
+    "outputFileName": "wwwroot/js/Masters/Country/_country.min.js",
+    "inputFiles": [
+      "wwwroot/js/Masters/Country/_country.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "renameLocals": true,
+      "removeComments": true
     }
   }
+
 ]

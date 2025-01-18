@@ -14,6 +14,7 @@ namespace InsuranceSys.Infrastructure.Database
         public EfdbContext(DbContextOptions<EfdbContext> options) : base(options) { }
         public DbSet<CountryMaster> Countries { get; set; }
         public DbSet<StateMaster> States { get; set; }
+        public DbSet<LeadEFEntity> EFLeads { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<CountryMaster>().ToTable("CountryMaster");
@@ -24,6 +25,7 @@ namespace InsuranceSys.Infrastructure.Database
                 .HasMany(c => c.States)
                 .WithOne(s => s.Country)
                 .HasForeignKey(s => s.CountryID);
+            modelBuilder.Entity<LeadEFEntity>().ToTable("LeadManagement");
 
         }
     }

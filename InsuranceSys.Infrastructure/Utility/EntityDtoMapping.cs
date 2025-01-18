@@ -15,6 +15,7 @@ namespace InsuranceSys.Infrastructure.Utility
         {
             CreateMap<CountryMaster, CountryDto>().ReverseMap();
             CreateMap<StateMaster, StateDto>().ReverseMap();
+            CreateMap<LeadEFEntity, LeadDto>().ReverseMap();
         }        
     }
 }

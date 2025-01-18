@@ -44,6 +44,7 @@
     <Compile Include="Constants.cs" />
     <Compile Include="DTO\CompanyDto.cs" />
     <Compile Include="DTO\CountryDto.cs" />
+    <Compile Include="DTO\LeadDto.cs" />
     <Compile Include="DTO\StateDto.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
