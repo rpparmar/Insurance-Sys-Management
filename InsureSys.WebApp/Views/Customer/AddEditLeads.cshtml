@@ -1,17 +1,15 @@
-﻿@model Insurancesys.web.Models.LeadViewModel
+﻿@using Insurancesys.web.Helper
+@model Insurancesys.web.Models.LeadViewModel
+@section Styles {    
+    <link href="~/css/common.css" rel="stylesheet" type="text/css" />
+}
 @{
     Layout = "_Layout";
-    if (Model.IsEditMode == false)
+    if (!Model.IsEditMode)
         ViewData["Title"] = "New Lead";
     else
         ViewData["Title"] = "Edit Lead";
 }
-<style>
-    .required:after {
-        content: "*";
-        color: red;
-    }
-</style>
 
 <!--begin::Subheader-->
 <div class="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader">
@@ -46,24 +44,19 @@
             <div class="col-md-12">
                 <!--begin::Card-->
                 <div class="card card-custom card-sticky" id="kt_page_sticky_card">
-                    @*@Html.HiddenFor(x => x.IsEditMode)*@
+                    @Html.HiddenFor(x => x.IsEditMode)
                     <div class="card-header">
-                        <div class="card-title">
-                            @*<h3 class="card-label">
-                            Title
-                            <i class="mr-2"></i>
-                            <small class="">some content</small>
-                            </h3>*@
+                        <div class="card-title">                            
                         </div>
                         <div class="card-toolbar">
                             <a asp-controller="Lead" asp-action="ListOfLeads" class="btn btn-light-primary font-weight-bolder mr-2">
                                 <i class="ki ki-long-arrow-back icon-sm"></i>Back
                             </a>
-                            <button type="submit" form="frmLead" name="saveAndContinue" value="saveAndContinue" class="btn btn-primary font-weight-bolder mr-2">
+                            <button type="submit" form="frmLead" name="saveAndExit" value="false" class="btn btn-primary font-weight-bolder mr-2">
                                 <i class="flaticon-interface-5"></i>
                                 <span class="nav-text">@(!Model.IsEditMode ? "Save & Add New" : "Update & continue")</span>
                             </button>
-                            <button type="submit" form="frmLead" name="saveAndExit" value="saveAndExit" class="btn btn-warning font-weight-bolder mr-2">
+                            <button type="submit" form="frmLead" name="saveAndExit" value="true" class="btn btn-warning font-weight-bolder mr-2">
                                 <i class="flaticon-logout"></i>
                                 <span class="nav-text">@(!Model.IsEditMode ? "Save & Exit" : "Update & Exit")</span>
                             </button>
@@ -82,161 +75,35 @@
                                             </div>
                                         </div>
                                         <div id="collapseOne6" class="collapse show" data-parent="#accordionExample6" style="align-self:center">
-                                            <div class="card-body">
-                                                <div class="form-group row">
-                                                    <div class="col-md-5 col-xs-12 text-md-right">
-                                                        <label class="col-form-label required">
-                                                            First Name
-                                                        </label>
-                                                    </div>
-                                                    <div class="col-md-4 col-xs-12">
-                                                        @*<input class="form-control" type="text" asp-for="FirstName" placeholder="Enter first name">*@
-                                                        <input class="form-control" asp-for="FirstName" placeholder="Enter first name" type="text" />
-                                                        @*<span asp-validation-for="FirstName" class="text-danger"></span>*@
-                                                    </div>
-                                                </div>
-                                                <div class="form-group row">
-                                                    <div class="col-md-5 col-xs-12 text-md-right">
-                                                        <label class="col-form-label">
-                                                            Last Name
-                                                        </label>
-                                                    </div>
-                                                    <div class="col-md-4 col-xs-12">
-                                                        <input class="form-control" type="text" asp-for="LastName" placeholder="Enter last name">
-                                                        @*<span asp-validation-for="LastName" class="text-danger"></span>*@
-                                                    </div>
-                                                </div>
-                                                <div class="form-group row">
-                                                    <div class="col-md-5 col-xs-12 text-md-right">
-                                                        <label class="col-form-label required">
-                                                            Phone Number
-                                                        </label>
-                                                    </div>
-                                                    <div class="col-md-4 col-xs-12">
-                                                        <input class="form-control" type="text" asp-for="PhoneNumber" placeholder="Enter phone number">
-                                                        @*<span asp-validation-for="PhoneNumber" class="text-danger"></span>*@
-                                                    </div>
-                                                </div>
-                                                <div class="form-group row">
-                                                    <div class="col-md-5 col-xs-12 text-md-right">
-                                                        <label class="col-form-label">
-                                                            Email
-                                                        </label>
-                                                    </div>
-                                                    <div class="col-md-4 col-xs-12">
-                                                        <input class="form-control" type="text" asp-for="Email" placeholder="Enter email">
-                                                    </div>
-                                                </div>
-                                                @*<div class="form-group row">
-                                                    <div class="col-md-5 col-xs-12 text-md-right">
-                                                        <label class="col-form-label required">
-                                                            Type of insurance
-                                                        </label>
-                                                    </div>
-                                                    <div class="col-md-4 col-xs-12">
-                                                        <select class="form-control selectpicker" id="drpTypeOfInsurance" data-size="7" data-live-search="true" asp-for="PolicyTypeID" asp-items="@Model.lstInsuranceType">
-                                                            <option value="">Select</option>
-                                                        </select>
-                                                        <span asp-validation-for="PolicyTypeID" class="text-danger"></span>
-                                                    </div>
-                                                </div>
-                                                <div class="form-group row">
-                                                    <div class="col-md-5 col-xs-12 text-md-right">
-                                                        <label class="col-form-label required">
-                                                            Assignee
-                                                        </label>
-                                                    </div>
-                                                    <div class="col-md-4 col-xs-12">
-                                                        <select class="form-control selectpicker" id="drpAssignee" data-size="7" data-live-search="true" asp-for="AssignedTo" asp-items="@Model.lstUsers">
-                                                            <option value="">Select</option>
-                                                        </select>
-                                                        <span asp-validation-for="AssignedTo" class="text-danger"></span>
-                                                    </div>
-                                                </div>*@
+                                            <div class="card-body">                                                
+                                                @Html.AccordianBaseTextBox("First Name", nameof(Model.FirstName), true, "Enter first name", 20)
+                                                @Html.AccordianBaseTextBox("Last Name", nameof(Model.LastName), false, "Enter last name", 20)
+                                                @Html.AccordianBaseTextBox("Phone Number", nameof(Model.PhoneNumber), true, "Enter phone number", 20)
+                                                @Html.AccordianBaseTextBox("Email", nameof(Model.Email), false, "Enter email", 100, isRegExpression: true)
+                                                @Html.AccordianBaseDropdown("Type of insurance", nameof(Model.PolicyTypeID), Model.lstInsuranceType, isRequired: true, isRegExpression:false)
+                                                @Html.AccordianBaseDropdown("Assignee", nameof(Model.AssignedTo), Model.lstUsers, isRequired: true, isRegExpression: false)
+                                                
                                             </div>
                                         </div>
                                     </div>
-                                    @*<div class="card" style="display: block;">
-                                    <div class="card-header card-head" id="headingTwo6">
-                                    <div class="card-title collapsed" data-toggle="collapse" data-target="#collapseTwo6" aria-expanded="false">
-                                    <i class="icon-sm-sm-2x text-dark-50 flaticon-user-settings"></i>
-                                    Personal/Business Information
+                                    <div class="card" style="display: block;">
+                                        <div class="card-header card-head" id="headingTwo6">
+                                            <div class="card-title collapsed" data-toggle="collapse" data-target="#collapseTwo6" aria-expanded="false">
+                                                <i class="icon-sm-sm-2x text-dark-50 flaticon-user-settings"></i>
+                                                Personal/Business Information
+                                            </div>
+                                        </div>
+                                        <div id="collapseTwo6" class="collapse" data-parent="#accordionExample6" style="align-self:center">
+                                            <div class="card-body">
+                                                @Html.AccordianBaseDropdown("Company", nameof(Model.CompanyID), Model.lstCompanies, isRequired: false, isRegExpression: false)
+                                                @Html.AccordianBaseDropdown("Lead Status", nameof(Model.LeadStatus), Model.lstLeadStatus, isRequired: false, isRegExpression: false)                                                
+                                                @Html.AccordianBaseTextBox("Source Of Lead", nameof(Model.LeadSource), true, "Enter source of lead", 50)                                                
+                                                @Html.AccordianBaseDateTimePicker("Next Follow up Date", nameof(Model.NextFollowUpDate), pickerId: "kt_datetimepicker_3")                                                
+                                                @Html.AccordianBaseTextArea("Address", nameof(Model.Address), rows: 2, maxLength: 255, placeholder: "Enter address", isRequired: false)
+                                                @Html.AccordianBaseTextArea("Notes", nameof(Model.Notes), rows: 2, maxLength: 255, placeholder: "Enter notes", isRequired: false)
+                                            </div>
+                                        </div>
                                     </div>
-                                    </div>
-                                    <div id="collapseTwo6" class="collapse" data-parent="#accordionExample6" style="align-self:center">
-                                    <div class="card-body">
-                                    <div class="form-group row">
-                                    <div class="col-md-5 col-xs-12 text-md-right">
-                                    <label class="col-form-label">
-                                    Company
-                                    </label>
-                                    </div>
-                                    <div class="col-md-4 col-xs-12">
-                                    <select class="form-control selectpicker" data-size="7" data-live-search="true" asp-for="CompanyID" asp-items="@Model.lstCompanies">
-                                    <option value="">Select</option>
-                                    </select>
-                                    </div>
-                                    </div>
-                                    <div class="form-group row">
-                                    <div class="col-md-5 col-xs-12 text-md-right">
-                                    <label class="col-form-label">
-                                    Lead Status
-                                    </label>
-                                    </div>
-                                    <div class="col-md-4 col-xs-12">
-                                    <select class="form-control selectpicker" data-size="7" data-live-search="true" asp-for="LeadStatus" asp-items="@Model.lstLeadStatus">
-                                    <option value="">Select</option>
-                                    </select>
-                                    </div>
-                                    </div>
-                                    <div class="form-group row">
-                                    <div class="col-md-5 col-xs-12 text-md-right">
-                                    <label class="col-form-label">
-                                    Source Of Lead
-                                    </label>
-                                    </div>
-                                    <div class="col-md-4 col-xs-12">
-                                    <input class="form-control" type="text" asp-for="LeadSource" placeholder="Enter source of lead">
-                                    </div>
-                                    </div>
-                                    <div class="form-group row">
-                                    <div class="col-md-5 col-xs-12 text-md-right">
-                                    <label class="col-form-label">
-                                    Next Follow up Date
-                                    </label>
-                                    </div>
-                                    <div class="col-md-4 col-xs-12">
-                                    <div class="input-group date">
-                                    <input type="text" class="form-control" readonly placeholder="Select date & time" id="kt_datetimepicker_2" />
-                                    <div class="input-group-append">
-                                    <span class="input-group-text"><i class="la la-calendar-check-o glyphicon-th"></i></span>
-                                    </div>
-                                    </div>
-                                    </div>
-                                    </div>
-                                    <div class="form-group row">
-                                    <div class="col-md-5 col-xs-12 text-md-right">
-                                    <label class="col-form-label">
-                                    Address
-                                    </label>
-                                    </div>
-                                    <div class="col-md-4 col-xs-12">
-                                    <textarea class="form-control" asp-for="Address" rows="2" placeholder="Enter address"></textarea>
-                                    </div>
-                                    </div>
-                                    <div class="form-group row">
-                                    <div class="col-md-5 col-xs-12 text-md-right">
-                                    <label class="col-form-label">
-                                    Notes
-                                    </label>
-                                    </div>
-                                    <div class="col-md-4 col-xs-12">
-                                    <textarea class="form-control" asp-for="Notes" rows="2" placeholder="Enter notes"></textarea>
-                                    </div>
-                                    </div>
-                                    </div>
-                                    </div>
-                                    </div>*@
                                 </div>
                             </div>
 
@@ -250,14 +117,13 @@
 </div>
 
 @section Scripts {
-    @*<script src="~/assets/js/pages/crud/forms/widgets/bootstrap-maxlength.js"></script>*@
-    <script>
-        // // input group demo
-        // $('#kt_datetimepicker_2').datetimepicker({
-        //     todayHighlight: true,
-        //     autoclose: true,
-        //     pickerPosition: 'top-left',
-        //     format: 'yyyy/mm/dd hh:ii'
-        // });
+    <script src="~/assets/js/bootstrap-datetimepicker.min.js"></script>
+    <script type="text/javascript">
+        var globalvar = {
+            IsformView: true,
+            tostarMsg: "@TempData["Message"]",
+            rowsaffected: "@TempData["RowsAffected"]"
+        }
     </script>
+    <script src="~/js/pages/lead/_lead.min.js"></script>    
 }

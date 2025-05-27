@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Azure.Core;
 using InsuranceSys.Application.Interface;
 using InsuranceSys.Domain.DTO;
 using InsuranceSys.Infrastructure.Database;
@@ -7,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -32,8 +35,12 @@ namespace InsuranceSys.Infrastructure
             //_dbContextFactory = dbContextFactory;
             //_config = config;
         }
-
-        public async Task<LeadDto> GetByIdAsync(int LeadID)
+		public async Task<DataSet> GetAllAsync(ImmutableDictionary<string, object> paramCollections)
+		{
+			DataSet ds = await _dbcontext.GetDataSetAsync(paramCollections, CommandType.StoredProcedure, "Lead_GetAll");
+			return ds;
+		}
+		public async Task<LeadDto> GetByIdAsync(int LeadID)
         {
             var _leadEfEntity = await _efdbcontext.EFLeads
                             .FirstOrDefaultAsync(c => c.LeadID == LeadID);

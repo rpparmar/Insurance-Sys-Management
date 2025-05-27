@@ -17,17 +17,19 @@ namespace InsuranceSys.Infrastructure.EFEntities
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
         public string Address { get; set; }
-        public DateTime InquiryDate { get; set; }
+        public DateTime? InquiryDate { get; set; }
         
         #endregion
-        public int CompanyID { get; set; }
-        public int PolicyTypeID { get; set; }
-        public int Status { get; set; }
         public string LeadSource { get; set; }
-        public int AssignedTo { get; set; }
-        public DateTime NextFollowUpDate { get; set; }
+        public DateTime? NextFollowUpDate { get; set; }
         public string Notes { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
+        #region Dropdown
+        public string CompanyID { get; set; }
+        public string PolicyTypeID { get; set; }
+        public string LeadStatus { get; set; }
+        public string AssignedTo { get; set; }
+        #endregion
     }
 }

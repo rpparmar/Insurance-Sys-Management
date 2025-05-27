@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,9 +11,8 @@ namespace InsuranceSys.Application.Interface
 {
     public interface ILeadService
     {
-        //Task<(IEnumerable<CountryDto> countries, int TotalCount)> GetAllCountries(ImmutableDictionary<string, object> paramCollections);
-        Task<LeadDto> GetLeadByIdAsync(int LeadID);
-        //Task<int> GetCountryByName(string CountryName);
+		Task<DataSet> GetAllLeads(ImmutableDictionary<string, object> paramCollections);
+		Task<LeadDto> GetLeadByIdAsync(int LeadID);
         Task<int> AddLead(LeadDto countryDto);
         Task<int> UpdateLead(LeadDto countryDto);
         Task<int> DeleteLead(int LeadID);

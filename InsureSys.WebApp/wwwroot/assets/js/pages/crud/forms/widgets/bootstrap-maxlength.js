@@ -1,16 +1,16 @@
 // Class definition
 
-var KTBootstrapMaxlength = function () {
+let KTBootstrapMaxlength = function () {
 
     // Private functions
-    var demos = function () {
+    let demos = function () {
         // minimum setup
         $('#kt_maxlength_1').maxlength({
             warningClass: "label label-warning label-rounded label-inline",
             limitReachedClass: "label label-success label-rounded label-inline"
         });
         // minimum setup on element class
-        $('.minimum-length-setup').maxlength({
+        $('.maximum-length-setup').maxlength({
             warningClass: "label label-warning label-rounded label-inline",
             limitReachedClass: "label label-success label-rounded label-inline"
         });

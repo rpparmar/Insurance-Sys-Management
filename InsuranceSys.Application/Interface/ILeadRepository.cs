@@ -11,8 +11,8 @@ namespace InsuranceSys.Application.Interface
 {
     public interface ILeadRepository
     {
-        //Task<DataSet> GetAllAsync(ImmutableDictionary<string, object> paramCollections);
-        Task<LeadDto> GetByIdAsync(int LeadID);
+		Task<DataSet> GetAllAsync(ImmutableDictionary<string, object> paramCollections);
+		Task<LeadDto> GetByIdAsync(int LeadID);
         Task<int> AddAsync(LeadDto lead);
         Task<int> UpdateAsync(LeadDto lead);
         Task<int> DeleteAsync(int LeadID);

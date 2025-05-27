@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewBag.Title</title>
     @await Html.PartialAsync("_LayoutHeadScriptsPartial")
+    @RenderSection("Styles", required: false)
     <style>
         .navi.navi-spacer-x-0 .navi-item .navi-link {
             padding-bottom: 0;
@@ -170,7 +171,7 @@
                                     <i class="menu-arrow"></i>
                                     <ul class="menu-subnav">
                                         <li class="menu-item @SetActiveClassOnLink("Lead", "ListOfLeads,AddEditLeads")" aria-haspopup="true">
-                                            <a asp-controller="Lead" asp-action="AddEditLeads" class="menu-link">
+                                            <a asp-controller="Lead" asp-action="ListOfLeads" class="menu-link">
                                                 <span class="svg-icon menu-icon">
                                                     <span class="fas fa-list"></span>
                                                 </span>
@@ -241,7 +242,7 @@
                                 <!--begin::Dropdown-->
                                 <div class="dropdown-menu p-0 m-0 dropdown-menu-right dropdown-menu-anim-up dropdown-menu-lg">
                                     <!--begin:Header-->
-                                    <div class="d-flex flex-column flex-center py-10 bgi-size-cover bgi-no-repeat rounded-top" style="background-image: url(assets/media/misc/bg-1.jpg)">
+                                    <div class="d-flex flex-column flex-center py-10 bgi-size-cover bgi-no-repeat rounded-top" style="background-image: url(../assets/media/misc/bg-1.jpg)">
                                         <h4 class="text-white font-weight-bold">Quick Actions</h4>
                                         <span class="btn btn-success btn-sm font-weight-bold font-size-sm mt-2">23 tasks pending</span>
                                     </div>
@@ -379,7 +380,7 @@
             <!--begin::Header-->
             <div class="d-flex align-items-center mt-5">
                 <div class="symbol symbol-100 mr-5">
-                    <div class="symbol-label" style="background-image:url('assets/media/users/default.jpg')"></div>
+                    <div class="symbol-label" style="background-image:url('../assets/media/users/default.jpg')"></div>
                     <i class="symbol-badge bg-success"></i>
                 </div>
                 <div class="d-flex flex-column">
@@ -660,6 +661,6 @@
     <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     @RenderSection("Scripts", required: false)
     <script src="~/js/_layout.min.js"></script>
-
+    
 </body>
 </html>

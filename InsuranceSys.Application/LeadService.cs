@@ -3,6 +3,7 @@ using InsuranceSys.Domain.DTO;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,11 +17,11 @@ namespace InsuranceSys.Application
         {
             _leadRepository = leadRepository;
         }
-        //public async Task<(IEnumerable<CountryDto> countries, int TotalCount)> GetAllCountries(ImmutableDictionary<string, object> paramCollections)
-        //{
-        //    return await _countryRepository.GetAllAsync(paramCollections);
-        //}
-        public async Task<LeadDto> GetLeadByIdAsync(int leadID)
+		public async Task<DataSet> GetAllLeads(ImmutableDictionary<string, object> paramCollections)
+		{
+			return await _leadRepository.GetAllAsync(paramCollections);
+		}
+		public async Task<LeadDto> GetLeadByIdAsync(int leadID)
         {
             return await _leadRepository.GetByIdAsync(leadID);
         }
