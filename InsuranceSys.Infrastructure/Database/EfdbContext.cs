@@ -1,5 +1,5 @@
 ﻿using InsuranceSys.Domain;
-using InsuranceSys.Infrastructure.EFEntities;
+using InsuranceSys.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -11,21 +11,15 @@ namespace InsuranceSys.Infrastructure.Database
 {
     public class EfdbContext : DbContext
     {
-        public EfdbContext(DbContextOptions<EfdbContext> options) : base(options) { }
-        public DbSet<CountryMaster> Countries { get; set; }
-        public DbSet<StateMaster> States { get; set; }
-        public DbSet<LeadEFEntity> EFLeads { get; set; }
+        public EfdbContext(DbContextOptions<EfdbContext> options) : base(options) { }        
+        public DbSet<LeadEntity> EFLeads { get; set; }
+        public DbSet<UsersEntity> EFUsers { get; set; }
+        public DbSet<CompanyEntity> EFCompanies { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            modelBuilder.Entity<CountryMaster>().ToTable("CountryMaster");
-            //modelBuilder.Entity<CountryMaster>()
-            //.HasKey(c => c.CountryID); // Set primary key here
-            modelBuilder.Entity<StateMaster>().ToTable("StateMaster");
-            modelBuilder.Entity<CountryMaster>()
-                .HasMany(c => c.States)
-                .WithOne(s => s.Country)
-                .HasForeignKey(s => s.CountryID);
-            modelBuilder.Entity<LeadEFEntity>().ToTable("LeadManagement");
+        {            
+            modelBuilder.Entity<LeadEntity>().ToTable("LeadManagement");
+            modelBuilder.Entity<UsersEntity>().ToTable("UsersInfo");
+            modelBuilder.Entity<CompanyEntity>().ToTable("CompanyMaster");
 
         }
     }

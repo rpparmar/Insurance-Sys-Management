@@ -1,4 +1,4 @@
-﻿using InsuranceSys.Domain.DTO;
+﻿using InsuranceSys.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,11 +11,11 @@ namespace InsuranceSys.Application.Interface
 {
     public interface ILeadService
     {
-		Task<DataSet> GetAllLeads(ImmutableDictionary<string, object> paramCollections);
-		Task<LeadDto> GetLeadByIdAsync(int LeadID);
-        Task<int> AddLead(LeadDto countryDto);
-        Task<int> UpdateLead(LeadDto countryDto);
-        Task<int> DeleteLead(int LeadID);
-        Task<int> UpdateStatus(int LeadID, bool status);
-    }
+		Task<DataSet> GetAllAsync(ImmutableDictionary<string, object> paramCollections);
+		Task<LeadEntity?> GetByIdAsync(int LeadID);
+		Task<int> AddAsync(LeadEntity lead);
+		Task<int> UpdateAsync(LeadEntity lead);
+		Task<int> DeleteAsync(int LeadID);
+		Task<int> UpdateStatusAsync(int LeadID, bool status);
+	}
 }

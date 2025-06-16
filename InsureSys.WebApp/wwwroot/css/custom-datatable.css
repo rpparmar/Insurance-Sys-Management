@@ -31,17 +31,10 @@
     opacity: 0.6; /* Optional: reduce opacity */
     transition: filter 0.3s ease, opacity 0.3s ease; /* Smooth transitions */
 }
-/*table.dataTable th,
-table.dataTable td {
-    white-space: nowrap;
-    text-align: left;
-    vertical-align: middle;
+/* at spinner remove border & its background */
+div.dataTables_wrapper
+div.dataTables_processing {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
-
-.dataTables_wrapper .dataTables_scrollHeadInner {
-    width: 100% !important;
-}
-
-.dataTables_scrollHead thead th {
-    padding: 10px;
-}*/

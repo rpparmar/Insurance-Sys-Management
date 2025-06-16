@@ -9,9 +9,15 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using System.Globalization;
 using System.Text;
-using InsuranceSys.Infrastructure.Utility;
 using Insurancesys.web.Utility;
 using InsuranceSys.Application.Interface;
+using Insurancesys.web.Middleware;
+using Serilog.Events;
+using Serilog.Sinks.MSSqlServer;
+using Serilog;
+using System.Data;
+using InsuranceSys.Infrastructure.Database.Interface;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Insurancesys.web
 {
@@ -21,8 +27,25 @@ namespace Insurancesys.web
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            #region Serilog configuration for error logs
+            Log.Logger = new LoggerConfiguration()
+                    .MinimumLevel.Error()
+                    .Enrich.FromLogContext()
+                    //.WriteTo.File("Logs/app_log.txt", rollingInterval: RollingInterval.Day)
+                    .WriteTo.MSSqlServer(
+                        connectionString: builder.Configuration.GetConnectionString("MasterConnection"),
+                        sinkOptions: new Serilog.Sinks.MSSqlServer.MSSqlServerSinkOptions
+                        {
+                            TableName = "AppLogs",
+                            AutoCreateSqlTable = true
+                        },
+                        restrictedToMinimumLevel: LogEventLevel.Error)
+                    .CreateLogger();
 
-            builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation(); // Optional - Add services to the container - used to have cshtml changes runtime.
+            builder.Host.UseSerilog(); 
+            #endregion
+
+            builder.Services.AddControllersWithViews();//.AddRazorRuntimeCompilation(); // Optional - Add services to the container - used to have cshtml changes runtime.
             builder.Services.AddControllers();
 
             // Add session services
@@ -35,9 +58,7 @@ namespace Insurancesys.web
             });
 
             // Add AutoMapper
-            builder.Services.AddAutoMapper(typeof(ViewModelDtoMapping)); // Scans for profiles in the assembly
-            builder.Services.AddAutoMapper(typeof(EntityDtoMapping)); // Scans for profiles in the assembly
-
+            builder.Services.AddAutoMapper(typeof(ViewModelDtoMapping)); // Scans for profiles in the assembly           
 
             // Build the configuration
             var configuration = new ConfigurationBuilder()
@@ -46,11 +67,9 @@ namespace Insurancesys.web
                 .Build();
 
             builder.Services.AddScoped<IAppDBContext, AppDBContext>(provider =>
-            {
-                var connectionString = configuration.GetConnectionString("MasterConnection") ?? string.Empty;
-                return new AppDBContext(connectionString);
-            });
-
+            {                
+                return new AppDBContext(configuration);
+            });            
             builder.Services.AddDbContext<EfdbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("MasterConnection") ?? string.Empty));
 
@@ -76,16 +95,18 @@ namespace Insurancesys.web
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
-                    options.Cookie.Name = "YourCookieName";
-                    options.LoginPath = $"/"; // Customize the login path as needed
-                    //options.Events = new CookieAuthenticationEvents
-                    //{
-                    //    OnRedirectToLogin = ctx =>
-                    //    {
-                    //        return Task.FromResult<object>(null);
-                    //    }
-                    //};
-                });
+                    options.Cookie.Name = "CookieAuth";
+                    options.LoginPath = "/"; // Customize the login path as needed					
+					options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+					options.SlidingExpiration = true;
+					//options.Events = new CookieAuthenticationEvents
+					//{
+					//    OnRedirectToLogin = ctx =>
+					//    {
+					//        return Task.FromResult<object>(null);
+					//    }
+					//};
+				});
             #endregion
 
             var app = builder.Build();
@@ -102,25 +123,24 @@ namespace Insurancesys.web
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseMiddleware<ExceptionHandlingMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
 
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                pattern: "{controller=Login}/{action=Login}/{id?}");
 
             app.Run();
         }
 
         private static void RegisterDependency(WebApplicationBuilder builder)
-        {
-            builder.Services.AddSingleton<DbContextFactory>(); //used this for allowing dynamic context/connectionstring with EF
-            builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
-            builder.Services.AddScoped<ICompanyService, CompanyService>();
-            builder.Services.AddScoped<ICountryRepository, CountryRepository>();
-            builder.Services.AddScoped<ICountryService, CountryService>();
-            builder.Services.AddScoped<ILeadRepository, LeadRepository>();
-            builder.Services.AddScoped<ILeadService, LeadService>();
+        {            
+            builder.Services.AddScoped<IConnectionStringProvider, ConnectionStringProvider>();            
+            builder.Services.AddScoped<IEFdbContextFactory, EFdbContextFactory>();            
+            builder.Services.AddScoped<ICompanyService, CompanyRepository>();            
+            builder.Services.AddScoped<ILeadService, LeadRepository>();            
+            builder.Services.AddScoped<ILoginService, LoginRepository>();
         }
     }
 }

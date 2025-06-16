@@ -29,8 +29,7 @@ namespace Insurancesys.web.Models
         public bool IsEditMode { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
-        public string? LeadSource { get; set; }
-
+        public string? LeadSource { get; set; }        
         #region Dropdown
         public string? CompanyID { get; set; }
         public List<SelectListItem> lstCompanies { get; set; }

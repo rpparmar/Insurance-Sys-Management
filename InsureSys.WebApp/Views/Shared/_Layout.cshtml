@@ -405,7 +405,7 @@
                                 <span class="navi-text text-muted text-hover-primary">jm@softplus.com</span>
                             </span>
                         </a>
-                        <a href="#" class="btn btn-sm btn-light-primary font-weight-bolder py-2 px-5">Sign Out</a>
+                        <a asp-controller="Login" asp-action="Logout" class="btn btn-sm btn-light-primary font-weight-bolder py-2 px-5">Sign Out</a>
                     </div>
                 </div>
             </div>
@@ -658,7 +658,6 @@
     }
     @await Html.PartialAsync("_LayoutFooterScriptsPartial")
     @await Html.PartialAsync("_ValidationScriptsPartial")
-    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
     @RenderSection("Scripts", required: false)
     <script src="~/js/_layout.min.js"></script>
     

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -8,6 +8,17 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>.</DockerfileContext>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="App_Data\**" />
+    <Compile Remove="wwwroot\assets\js\pages\crud\datatables\basic\**" />
+    <Content Remove="App_Data\**" />
+    <Content Remove="wwwroot\assets\js\pages\crud\datatables\basic\**" />
+    <EmbeddedResource Remove="App_Data\**" />
+    <EmbeddedResource Remove="wwwroot\assets\js\pages\crud\datatables\basic\**" />
+    <None Remove="App_Data\**" />
+    <None Remove="wwwroot\assets\js\pages\crud\datatables\basic\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="BuildBundlerMinifier" Version="3.2.449" />
@@ -24,16 +35,14 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.18.1" />
+    <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
+    <PackageReference Include="Serilog.Sinks.MSSqlServer" Version="8.2.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\InsuranceSys.Application\InsuranceSys.Application.csproj" />
-    <ProjectReference Include="..\InsuranceSys.Domain2\InsuranceSys.Domain.csproj" />
     <ProjectReference Include="..\InsuranceSys.Domain\InsuranceSys.Domain.csproj" />
     <ProjectReference Include="..\InsuranceSys.Infrastructure\InsuranceSys.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="App_Data\" />
   </ItemGroup>
 </Project>

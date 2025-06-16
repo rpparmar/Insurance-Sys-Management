@@ -1,4 +1,4 @@
-﻿using InsuranceSys.Domain.DTO;
+﻿using InsuranceSys.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -11,12 +11,12 @@ namespace InsuranceSys.Application
 {
     public interface ICompanyService
     {
-        Task <DataSet> GetAllCompanies(ImmutableDictionary<string, object> paramCollections);
-        Task<CompanyDto> GetCompanyById(int CompanyID);
-        Task<int> AddCompany(CompanyDto model);
-        Task<int> UpdateCompany(CompanyDto model);
-        Task<int> DeleteCompany(int CompanyID);
-        Task<int> UpdateStatus(int CompanyID, bool status);
-        Task<string?> FindByName(string CompanyName);
+        Task <DataSet> GetAllAsync(ImmutableDictionary<string, object> paramCollections);
+        Task<CompanyEntity?> GetByIdAsync(int CompanyID);
+        Task<int> AddAsync(CompanyEntity model);
+        Task<int> UpdateAsync(CompanyEntity model);
+        Task<int> DeleteAsync(int CompanyID);
+        Task<int> UpdateStatusAsync(int CompanyID, bool status);
+        Task<bool> FindByNameAsync(string CompanyName);
     }
 }

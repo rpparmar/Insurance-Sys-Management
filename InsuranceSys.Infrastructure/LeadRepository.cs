@@ -1,69 +1,63 @@
 ﻿using AutoMapper;
-using Azure.Core;
 using InsuranceSys.Application.Interface;
-using InsuranceSys.Domain.DTO;
-using InsuranceSys.Infrastructure.Database;
-using InsuranceSys.Infrastructure.EFEntities;
+using InsuranceSys.Domain.Entities;
+using InsuranceSys.Infrastructure.Database.Interface;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace InsuranceSys.Infrastructure
 {
-    public class LeadRepository: ILeadRepository
+    public class LeadRepository : ILeadService
     {
-        private readonly EfdbContext _efdbcontext;
         private readonly IAppDBContext _dbcontext;
-        private readonly IMapper _mapper;
-        //private readonly DbContextFactory _dbContextFactory;
-        //private readonly IConfiguration _config;
-
-        public LeadRepository(EfdbContext efdbcontext, IAppDBContext dbcontext, IMapper mapper
-            //, DbContextFactory dbContextFactory
-            //, IConfiguration config
+        private readonly IMapper _mapper;                
+        private readonly IEFdbContextFactory _efdbContextFactory;
+        private readonly IConnectionStringProvider _connStringProvider;
+        public LeadRepository(            
+            IAppDBContext dbcontext
+            , IMapper mapper            
+            , IEFdbContextFactory efdbContextFactory     
+            , IConnectionStringProvider connStringProvider
             )
-        {
-            _efdbcontext = efdbcontext;
+        {            
             _dbcontext = dbcontext;
             _mapper = mapper;
-            //_dbContextFactory = dbContextFactory;
-            //_config = config;
+            _efdbContextFactory = efdbContextFactory;
+            _connStringProvider = connStringProvider;
         }
-		public async Task<DataSet> GetAllAsync(ImmutableDictionary<string, object> paramCollections)
-		{
-			DataSet ds = await _dbcontext.GetDataSetAsync(paramCollections, CommandType.StoredProcedure, "Lead_GetAll");
-			return ds;
-		}
-		public async Task<LeadDto> GetByIdAsync(int LeadID)
+        public async Task<DataSet> GetAllAsync(ImmutableDictionary<string, object> paramCollections)
         {
-            var _leadEfEntity = await _efdbcontext.EFLeads
+            DataSet ds = await _dbcontext.GetDataSetAsync(paramCollections, CommandType.StoredProcedure, "Lead_GetAll");
+            return ds;
+        }
+        public async Task<LeadEntity?> GetByIdAsync(int LeadID)
+        {
+            var connStr = await _connStringProvider.GetConnectionStringAsync();
+            using var _efdbcontext = _efdbContextFactory.CreateDbContext(connStr);
+            
+            return await _efdbcontext.EFLeads
                             .FirstOrDefaultAsync(c => c.LeadID == LeadID);
-            return _mapper.Map<LeadDto>(_leadEfEntity);
         }
-        public async Task<int> AddAsync(LeadDto lead)
+        public async Task<int> AddAsync(LeadEntity lead)
         {
-            var _leadEfEntity = _mapper.Map<LeadEFEntity>(lead);
-            _leadEfEntity.InquiryDate = DateTime.UtcNow;
-            await _efdbcontext.EFLeads.AddAsync(_leadEfEntity);
+            var connStr = await _connStringProvider.GetConnectionStringAsync();
+            using var _efdbcontext = _efdbContextFactory.CreateDbContext(connStr);
+            lead.InquiryDate = DateTime.UtcNow;
+            await _efdbcontext.EFLeads.AddAsync(lead);
             return await _efdbcontext.SaveChangesAsync();
         }
-        public async Task<int> UpdateAsync(LeadDto lead)
+        public async Task<int> UpdateAsync(LeadEntity lead)
         {
-            var _lead = await _efdbcontext.EFLeads.FirstOrDefaultAsync(c => c.LeadID == lead.LeadID);
-            if (_lead != null)
-            {
-                _mapper.Map(lead, _lead);
-            }
+            var connStr = await _connStringProvider.GetConnectionStringAsync();
+            using var _efdbcontext = _efdbContextFactory.CreateDbContext(connStr);
+            _efdbcontext.EFLeads.Update(lead);
             return await _efdbcontext.SaveChangesAsync();
         }
         public async Task<int> DeleteAsync(int LeadID)
         {
+            var connStr = await _connStringProvider.GetConnectionStringAsync();
+            using var _efdbcontext = _efdbContextFactory.CreateDbContext(connStr);
             var _lead = await _efdbcontext.EFLeads.FindAsync(LeadID);
             if (_lead != null)
             {
@@ -73,7 +67,9 @@ namespace InsuranceSys.Infrastructure
         }
         public async Task<int> UpdateStatusAsync(int LeadID, bool status)
         {
-            var _lead = await _efdbcontext.Countries.FindAsync(LeadID);
+            var connStr = await _connStringProvider.GetConnectionStringAsync();
+            using var _efdbcontext = _efdbContextFactory.CreateDbContext(connStr);
+            var _lead = await _efdbcontext.EFLeads.FindAsync(LeadID);
             if (_lead != null)
             {
                 _lead.IsActive = status;

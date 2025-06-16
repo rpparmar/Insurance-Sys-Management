@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using Insurancesys.web.Models;
-using InsuranceSys.Domain.DTO;
+using InsuranceSys.Domain.Entities;
 
 namespace Insurancesys.web.Utility
 {
@@ -8,16 +8,16 @@ namespace Insurancesys.web.Utility
     {
         public ViewModelDtoMapping()
         {
-            #region ViewModel to DTO
-            CreateMap<CompanyViewModel, CompanyDto>();
-            CreateMap<CountryViewModel, CountryDto>();
-            CreateMap<LeadViewModel, LeadDto>();
+            #region ViewModel to DTO                        
+            CreateMap<UsersViewModel, UsersEntity>();
+            CreateMap<LeadViewModel, LeadEntity>();
+            CreateMap<CompanyViewModel, CompanyEntity>();
             #endregion
 
             #region DTO to ViewModel
-            CreateMap<CompanyDto, CompanyViewModel>(); 
-            CreateMap<CountryDto, CountryViewModel>(); 
-            CreateMap<LeadDto, LeadViewModel>(); 
+            CreateMap<UsersEntity, UsersViewModel>(); 
+            CreateMap<CompanyEntity, CompanyViewModel>();             
+            CreateMap<LeadEntity, LeadViewModel>(); 
             #endregion
         }
     }

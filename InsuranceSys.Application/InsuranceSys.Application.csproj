@@ -7,6 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Interface\ILeadRepository.cs" />
+    <Compile Remove="LeadService.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\InsuranceSys.Domain\InsuranceSys.Domain.csproj" />
   </ItemGroup>
 

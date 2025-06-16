@@ -1,69 +1,89 @@
-﻿using InsuranceSys.Application;
-using InsuranceSys.Domain.DTO;
-using InsuranceSys.Infrastructure;
-using Microsoft.VisualBasic;
+﻿using AutoMapper;
+using InsuranceSys.Application;
+using InsuranceSys.Domain.Entities;
+using InsuranceSys.Infrastructure.Database;
+using InsuranceSys.Infrastructure.Database.Interface;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Immutable;
-using System.ComponentModel;
-using System.ComponentModel.Design;
 using System.Data;
 
 namespace InsuranceSys.Infrastructure
 {
-    public class CompanyRepository : ICompanyRepository
+    public class CompanyRepository : ICompanyService
     {
         private readonly IAppDBContext _dbcontext;
-        public CompanyRepository(IAppDBContext dbcontext)
-        {
+        private readonly IMapper _mapper;        
+        private readonly IEFdbContextFactory _efdbContextFactory;
+        private readonly IConnectionStringProvider _connStringProvider;
+        public CompanyRepository(
+            IAppDBContext dbcontext
+            , IMapper mapper            
+            , IEFdbContextFactory efdbContextFactory
+            , IConnectionStringProvider connStringProvider)
+        {            
             _dbcontext = dbcontext;
+            _mapper = mapper;
+            _efdbContextFactory = efdbContextFactory;
+            _connStringProvider = connStringProvider;
         }
         public async Task<DataSet> GetAllAsync(ImmutableDictionary<string, object> paramCollections)
         {
             DataSet ds = await _dbcontext.GetDataSetAsync(paramCollections, CommandType.StoredProcedure, "CompanyMaster_GetAll");
             return ds;
         }
-        public async Task<CompanyDto> GetByIdAsync(int CompanyID)
+        public async Task<CompanyEntity?> GetByIdAsync(int CompanyID)
         {
-
-            var _params = ImmutableDictionary<string, object>.Empty
-            .Add("@CompanyID", CompanyID);
-            CompanyDto company = await _dbcontext.GetObjectAsync<CompanyDto>(_params, CommandType.StoredProcedure, "CompanyMaster_GetByID");
-            return company;
+            var connStr = await _connStringProvider.GetConnectionStringAsync();
+            using var _efdbcontext = _efdbContextFactory.CreateDbContext(connStr);
+            return await _efdbcontext.EFCompanies
+                            .FirstOrDefaultAsync(c => c.CompanyID == CompanyID);            
         }
-        public async Task<int> AddAsync(CompanyDto company)
+        public async Task<int> AddAsync(CompanyEntity company)
         {
-            var _params = ImmutableDictionary<string, object>.Empty
-            .Add("@CompanyName", company.CompanyName)
-            .Add("@IsActive", company.IsActive);
-
-            return await _dbcontext.ExecuteNonQueryAsync(_params, CommandType.StoredProcedure, "CompanyMaster_Insert");
+            var connStr = await _connStringProvider.GetConnectionStringAsync();
+            using var _efdbcontext = _efdbContextFactory.CreateDbContext(connStr);
+            company.CreatedOn = DateTime.UtcNow;
+            company.UpdatedOn = DateTime.UtcNow;
+            await _efdbcontext.EFCompanies.AddAsync(company);
+            return await _efdbcontext.SaveChangesAsync();
         }
-        public async Task<int> UpdateAsync(CompanyDto company)
+        public async Task<int> UpdateAsync(CompanyEntity company)
         {
-            var _params = ImmutableDictionary<string, object>.Empty
-            .Add("@CompanyID", company.CompanyID)
-            .Add("@CompanyName", company.CompanyName)
-            .Add("@IsActive", company.IsActive);
-            return await _dbcontext.ExecuteNonQueryAsync(_params, CommandType.StoredProcedure, "CompanyMaster_Update");
+            var connStr = await _connStringProvider.GetConnectionStringAsync();
+            using var _efdbcontext = _efdbContextFactory.CreateDbContext(connStr);
+            company.UpdatedOn = DateTime.UtcNow;
+            _efdbcontext.EFCompanies.Update(company);
+            return await _efdbcontext.SaveChangesAsync();
         }
         public async Task<int> DeleteAsync(int CompanyID)
         {
-            var _params = ImmutableDictionary<string, object>.Empty
-            .Add("@CompanyID", CompanyID);
-            return await _dbcontext.ExecuteNonQueryAsync(_params, CommandType.StoredProcedure, "CompanyMaster_Delete");
+            var connStr = await _connStringProvider.GetConnectionStringAsync();
+            using var _efdbcontext = _efdbContextFactory.CreateDbContext(connStr);
+            var _company = await _efdbcontext.EFCompanies.FindAsync(CompanyID);
+            if (_company != null)
+            {
+                _company.UpdatedOn = DateTime.UtcNow;
+                _company.IsDeleted = true;
+            }
+            return await _efdbcontext.SaveChangesAsync();
         }
         public async Task<int> UpdateStatusAsync(int CompanyID, bool status)
         {
-            var _params = ImmutableDictionary<string, object>.Empty
-            .Add("@CompanyID", CompanyID)
-            .Add("@IsActive", status);
-            return await _dbcontext.ExecuteNonQueryAsync(_params, CommandType.StoredProcedure, "CompanyMaster_UpdateRecordStatus");
+            var connStr = await _connStringProvider.GetConnectionStringAsync();
+            using var _efdbcontext = _efdbContextFactory.CreateDbContext(connStr);
+            var _company = await _efdbcontext.EFCompanies.FindAsync(CompanyID);
+            if (_company != null)
+            {
+                _company.UpdatedOn = DateTime.UtcNow;
+                _company.IsActive = status;
+            }
+            return await _efdbcontext.SaveChangesAsync();            
         }
-        public async Task<string?> FindByNameAsync(string CompanyName)
+        public async Task<bool> FindByNameAsync(string CompanyName)
         {
-            var _params = ImmutableDictionary<string, object>.Empty
-            .Add("@CompanyName", CompanyName);
-            return await _dbcontext.ExecuteScalarAsync(_params, CommandType.StoredProcedure, "CompanyMaster_CheckExist");
-            
+            var connStr = await _connStringProvider.GetConnectionStringAsync();
+            using var _efdbcontext = _efdbContextFactory.CreateDbContext(connStr);
+            return await _efdbcontext.EFCompanies.AnyAsync(c => c.CompanyName == CompanyName);
         }
     }
 }

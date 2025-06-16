@@ -26,4 +26,8 @@
     <ProjectReference Include="..\InsuranceSys.Domain\InsuranceSys.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+  </ItemGroup>
+
 </Project>

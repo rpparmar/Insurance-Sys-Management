@@ -1,4 +1,5 @@
-﻿@section Styles {
+﻿@using InsuranceSys.Domain
+@section Styles {
     <link href="~/assets/plugins/custom/datatables/datatables.bundle.min.css" rel="stylesheet" type="text/css" />
     <link href="~/css/custom-datatable.css" rel="stylesheet" type="text/css" />
 }
@@ -9,7 +10,7 @@
 <style>
     #dt_leads {
         display: none;
-    }
+    }    
 </style>
 <!--begin::Subheader-->
 <div class="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader">
@@ -80,26 +81,9 @@
                                 <th>Company</th>
                                 <th>Type Of Policy</th>
                                 <th>Date Of Inquiry</th>
+                                <th>Next Followup Date</th>
                                 <th>Source Of Lead</th>
                                 <th>Lead Status</th>
-                                
-                                @* <th style="width:70px;">First Name</th>
-                                <th style="width:70px;">Last Name</th>
-                                <th style="width:150px;">Email</th>
-                                <th style="width:70px;">Phone Number</th>
-                                <th style="width:100px;">Company</th>
-                                <th style="width:100px;">Type Of Policy</th>
-                                <th style="width:100px;">Date Of Inquiry</th>
-                                <th style="width:70px;">Source Of Lead</th>
-                                <th style="width:125px;">Lead Status</th>
-                                <th style="width:70px;">Lead Status</th>
-                                <th style="width:70px;">Lead Status</th>
-                                <th style="width:70px;">Lead Status</th>
-                                <th style="width:70px;">Lead Status</th>
-                                <th style="width:70px;">Lead Status</th>
-                                <th style="width:70px;">Lead Status</th>
-                                <th style="width:70px;">Lead Status</th>
-                                <th style="width:70px;">Lead Status</th> *@
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -114,20 +98,25 @@
     <!--end::Container-->
 </div>
 <!--end::Entry-->
-@section Scripts {
-    <!--begin::Page Vendors(used by this page)-->
-    <script src="~/assets/plugins/custom/datatables/datatables.bundle.min.js"></script>
-    @* <script src="~/assets/js/pages/crud/datatables/basic/scrollable.js"></script> *@
-    <script src="~/js/_datatablefunctions.js"></script>
-    <!--end::Page Vendors-->
-
+@section Scripts {    
+    @await Html.PartialAsync("_DataTableEssentials")
     <script>
         var globalvar = {
-            actionURL: "@Html.Raw(Url.Action("GetData", "Lead"))",
+            listingURL: "@Html.Raw(Url.Action("GetData", "Lead"))",            
             IsformView: false,
             tostarMsg: "@TempData["Message"]",
             rowsaffected: "@TempData["RowsAffected"]",
         }
-    </script>
-    <script src="~/js/pages/lead/_lead.min.js"></script>
+        var globalconst = {
+            activateRecord: "@Constants.ScriptMessages.MsgActivateRecords",
+            deactivateRecord: "@Constants.ScriptMessages.MsgDeActivateRecords",
+            statusChangeMsg: "@Constants.ScriptMessages.MsgStatusChangeSuccess",
+            deleteConfirmMsg: "@string.Format(Constants.ScriptMessages.MsgDeleteConfirmation, "lead")",
+            deleteConscentMsg: "@Constants.ScriptMessages.MsgDeleteConscent",
+            deleteSuccessMsg: "@Constants.ScriptMessages.MsgDeleteSuccess",
+            cancelBtnTitle: "@Constants.ScriptMessages.CancelBtnTitle",
+            cancelBtnInnerText: "@Constants.ScriptMessages.CancelBtnInnerText",
+        }
+    </script>    
+    <script src="~/js/pages/lead/_lead.min.js"></script>    
 }

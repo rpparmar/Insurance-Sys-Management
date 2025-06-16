@@ -9,22 +9,26 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using InsuranceSys.Domain.DTO;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using InsuranceSys.Infrastructure.Database.Interface;
+using Microsoft.Extensions.Configuration;
 
 namespace InsuranceSys.Infrastructure
 {
-	public sealed class AppDBContext : IAppDBContext
-	{
-		private readonly string _connectionString;
-		public AppDBContext(string conn)
+    public sealed class AppDBContext : IAppDBContext, IConnectionStringProvider
+    {
+		//private readonly string _connectionString;
+        private readonly IConfiguration _configuration;
+        public AppDBContext(IConfiguration configuration
+            //,string conn
+			)
 		{
-			_connectionString = conn;
-		}
-
-		public async Task<int> ExecuteNonQueryAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "")
+			//_connectionString = conn;
+            _configuration = configuration;
+        }
+        
+        public async Task<int> ExecuteNonQueryAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, bool masterDBConn = true)
 		{
-			using (SqlConnection connection = new SqlConnection(string.IsNullOrEmpty(dynamicConnstring) ? _connectionString : dynamicConnstring))
+			using (SqlConnection connection = new SqlConnection(await GetConnectionStringAsync(masterDBConn)))
 			{
 				await connection.OpenAsync();
 				using (SqlCommand cmd = new SqlCommand(cmdText, connection))
@@ -38,10 +42,10 @@ namespace InsuranceSys.Infrastructure
 				}
 			}
 		}
-		public Task<DataSet> GetDataSetAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "")
+		public async Task<DataSet> GetDataSetAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, bool masterDBConn = true)
 		{
 			DataSet ds = new DataSet();
-			using (SqlConnection connection = new SqlConnection(string.IsNullOrEmpty(dynamicConnstring) ? _connectionString : dynamicConnstring))
+			using (SqlConnection connection = new SqlConnection(await GetConnectionStringAsync(masterDBConn)))
 			{
 				connection.Open();
 				using (SqlCommand cmd = new SqlCommand(cmdText, connection))
@@ -53,15 +57,15 @@ namespace InsuranceSys.Infrastructure
 					}
 					using (var da = new SqlDataAdapter(cmd))
 					{
-						da.Fill(ds);
-						return Task.FromResult(ds);
+						da.Fill(ds);						
 					}
 				}
 			}
-		}
-		public async Task<T> GetObjectAsync<T>(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "") where T : class, new()
+            return ds;
+        }
+		public async Task<T> GetObjectAsync<T>(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, bool masterDBConn = true) where T : class, new()
 		{
-			using (SqlConnection connection = new SqlConnection(string.IsNullOrEmpty(dynamicConnstring) ? _connectionString : dynamicConnstring))
+			using (SqlConnection connection = new SqlConnection(await GetConnectionStringAsync(masterDBConn)))
 			{
 				await connection.OpenAsync();
 				using (SqlCommand cmd = new SqlCommand(cmdText, connection))
@@ -81,9 +85,9 @@ namespace InsuranceSys.Infrastructure
 				}
 			}
 		}
-		public async Task<string?> ExecuteScalarAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "")
+		public async Task<string?> ExecuteScalarAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, bool masterDBConn = true)
 		{
-			using (SqlConnection connection = new SqlConnection(string.IsNullOrEmpty(dynamicConnstring) ? _connectionString : dynamicConnstring))
+			using (SqlConnection connection = new SqlConnection(await GetConnectionStringAsync(masterDBConn)))
 			{
 				await connection.OpenAsync();
 				using (SqlCommand cmd = new SqlCommand(cmdText, connection))
@@ -97,11 +101,10 @@ namespace InsuranceSys.Infrastructure
 				}
 			}
 		}
-		public async Task<DataTable> GetDataTableAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "")
+		public async Task<DataTable> GetDataTableAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, bool masterDBConn = true)
 		{
-			DataTable dt = new DataTable();
-			string connString = string.IsNullOrEmpty(dynamicConnstring) ? _connectionString : dynamicConnstring;
-			using (SqlConnection conn = new SqlConnection(connString))
+			DataTable dt = new DataTable();			
+			using (SqlConnection conn = new SqlConnection(await GetConnectionStringAsync(masterDBConn)))
 			{
 				await conn.OpenAsync().ConfigureAwait(false);
 				using (SqlCommand cmd = new SqlCommand(cmdText, conn)) 
@@ -123,10 +126,9 @@ namespace InsuranceSys.Infrastructure
 			return dt;
 		}
 
-		public async Task<SqlDataReader> GetSqlDataReaderAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, string dynamicConnstring = "")
-		{
-			string connString = string.IsNullOrEmpty(dynamicConnstring) ? _connectionString : dynamicConnstring;
-			using (SqlConnection conn = new SqlConnection(connString))
+		public async Task<SqlDataReader> GetSqlDataReaderAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, bool masterDBConn = true)
+		{			
+			using (SqlConnection conn = new SqlConnection(await GetConnectionStringAsync(masterDBConn)))
 			{
 				await conn.OpenAsync().ConfigureAwait(false);
 				using (SqlCommand cmd = new SqlCommand(cmdText, conn))
@@ -143,7 +145,19 @@ namespace InsuranceSys.Infrastructure
 				}
 			}
 		}
+        public Task<string> GetConnectionStringAsync(bool masterDBConn=true)
+        {
+            // Option 1: From config file
+            var connStr = _configuration.GetConnectionString("MasterConnection");
+            if (!masterDBConn)
+                connStr = _configuration.GetConnectionString("TestConnection");
 
+            // Option 2: Lookup from central config DB or cache
+            if (string.IsNullOrEmpty(connStr))
+                throw new Exception("Invalid client");
+
+            return Task.FromResult(connStr);
+        }  
 	}
 
 }

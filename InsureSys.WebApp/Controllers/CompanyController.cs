@@ -1,11 +1,14 @@
 ﻿using AutoMapper;
 using Insurancesys.web.Models;
+using Insurancesys.web.Models.Common;
 using InsuranceSys.Application;
+using InsuranceSys.Application.Interface;
 using InsuranceSys.Domain;
-using InsuranceSys.Domain.DTO;
+using InsuranceSys.Domain.Entities;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 using System.Collections.Immutable;
 using System.Data;
 using System.Diagnostics.Metrics;
@@ -17,7 +20,7 @@ using System.Xml.Linq;
 
 namespace Insurancesys.web.Controllers
 {
-    //[Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)] // Use cookie authentication
+    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)] // Use cookie authentication
     public class CompanyController : Controller
     {
         private readonly ICompanyService _companyService;
@@ -33,77 +36,79 @@ namespace Insurancesys.web.Controllers
             return View("../Masters/Company/CompanyList");
         }
 
-        public async Task<IActionResult> CompanyListInnerContent(string searchtxt = "", bool status = true, int page = 1, int pagesize = 10)
+        [HttpPost]
+        public async Task<IActionResult> GetData(DataTableRequest param)
         {
-            var @params = ImmutableDictionary<string, object>.Empty
-            .Add("page", page)
-            .Add("pagesize", pagesize)
-            .Add("searchval", searchtxt)
-            .Add("status", status)
-            .Add("Count", 0);
+            int page = param.iDisplayStart;
+            int pagesize = param.iDisplayLength;
 
-            StringBuilder strHTML = new StringBuilder();
-            using (DataSet ds = await _companyService.GetAllCompanies(@params))
+            #region sorting
+
+            StringValues sortDirValues = Request.Form["sSortDir_0"];
+            string sortDirection = sortDirValues.Count > 0 ? sortDirValues[0].ToLower() : "desc";
+
+            string sortingField = Request.Form["SortingField"];
+            string SortExp = !string.IsNullOrWhiteSpace(sortingField) ? sortingField : "1";
+            SortExp += (sortDirection == "asc") ? " asc" : " desc";
+            #endregion
+            string searchText = Request.Form["searchText"];
+            string searchTerm = !string.IsNullOrWhiteSpace(searchText) ? searchText : "";
+
+            var @params = ImmutableDictionary<string, object>.Empty
+            .Add("@PageNumber", page)
+            .Add("@PageSize", pagesize)
+            .Add("@SearchTerm", searchTerm)
+            .Add("@SortExp", SortExp);
+
+            using (DataSet ds = await _companyService.GetAllAsync(@params))
             {
                 if (ds != null && ds.Tables.Count > 0)
                 {
-                    int RowsCount = 1;
-                    int.TryParse(Convert.ToString(ds.Tables[0].Rows[0]["RowsCount"]), out RowsCount);
-
-                    TempData["totalrecords"] = RowsCount;
-                    TempData["paging_size"] = pagesize;
-
+                    int totalRecords = 1;
+                    int.TryParse(Convert.ToString(ds.Tables[0].Rows[0]["TotalRecords"]), out totalRecords);
                     using (DataTable dtContent = ds.Tables[1])
                     {
                         if (dtContent != null && dtContent.Rows.Count > 0)
                         {
-                            strHTML.Append(@"
-                                <table class='datatable-bordered datatable-head-custom datatable-table' id='kt_datatable'>
-                                    <thead class='datatable-head'>
-                                        <tr class='datatable-row'>
-                                            <th class='datatable-cell'>Company Name</th>
-                                            <th class='datatable-cell'>Active/InActive</th>
-                                            <th class='datatable-cell'>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class='datatable-body custom-scroll'>");
-                            foreach (DataRow row in dtContent.Rows)
-                            {
-                                int companyId = Convert.ToInt16(row["CompanyID"]);
-                                string companyName = Convert.ToString(row["CompanyName"]) ?? string.Empty;
-                                bool isActive = Convert.ToBoolean(row["IsActive"]);
+                            var response = dtContent.AsEnumerable()
+                            .Select(row => dtContent.Columns.Cast<DataColumn>()
+                            .ToDictionary(col => col.ColumnName, col => row[col])).ToList();
 
-                                string deleteConfirmationEvent = $"DeleteConfirmation('{companyId}', 'Company', 'Company')";
-                                string statusChangeEvent = $"StatusChangeConfirmation('{companyId}')";
-                                strHTML.Append($@"
-                                            <tr>
-                                                <td>{companyName}</td>
-                                                <td>
-                                                    <span class='switch switch-icon'>
-                                                        <label>
-                                                            <input onclick=""{statusChangeEvent}"" type='checkbox' id='chkstatus_{companyId}' {(isActive ? "checked" : "")}>
-                                                            <span></span>
-                                                        </label>
-                                                    </span>
-                                                </td>
-                                                <td>
-                                                    <a class='btn btn-sm btn-icon btn-lg-light btn-text-primary btn-hover-light-primary mr-3' href='/Companies/Edit/{companyId}'><i class='flaticon-edit'></i></a>
-                                                    <a id='del_{companyId}' class='btn btn-sm btn-icon btn-lg-light btn-text-danger btn-hover-light-danger' onclick=""{deleteConfirmationEvent}""><i class='flaticon-delete'></i></a>
-                                                </td>
-                                            </tr>");
-                            }
-                            strHTML.Append("</tbody></table>");
+                            return Json(new
+                            {
+                                iTotalRecords = totalRecords,
+                                iTotalDisplayRecords = totalRecords,
+                                data = response
+                            });
                         }
                         else
-                            strHTML.Append("<center>No records found</center>");
+                        {
+                            // Handle the case when no rows are returned
+                            return Json(new
+                            {
+                                iTotalRecords = 0,
+                                iTotalDisplayRecords = 0,
+                                data = new List<object>() // Empty list for no data
+                            });
+                        }
                     }
                 }
+                else
+                {
+                    // Handle the case when no rows are returned
+                    return Json(new
+                    {
+                        iTotalRecords = 0,
+                        iTotalDisplayRecords = 0,
+                        data = new List<object>() // Empty list for no data
+                    });
+                }
             }
-            return Content(strHTML.ToString());
+
         }
 
-        [HttpGet("Companies/Edit/{id}")]
         [HttpGet("Companies/Add")]
+        [HttpGet("Companies/Edit/{id}")]
         public async Task<IActionResult> AddEditCompany(string id = "")
         {
             CompanyViewModel model = new();
@@ -111,7 +116,7 @@ namespace Insurancesys.web.Controllers
             {
                 if (int.TryParse(id, out int _id) && _id > 0)
                 {
-                    var companydto = await _companyService.GetCompanyById(Convert.ToInt16(_id));
+                    var companydto = await _companyService.GetByIdAsync(Convert.ToInt16(_id));
                     if (companydto != null)
                     {
                         model = _mapper.Map<CompanyViewModel>(companydto);
@@ -145,19 +150,19 @@ namespace Insurancesys.web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Where(x => x.Value.Errors.Count > 0).Select(x => new { x.Key, x.Value.Errors }).ToArray();
+                var errors = ModelState.Where(x => x.Value?.Errors.Count > 0).Select(x => new { x.Key, x.Value?.Errors }).ToArray();
                 foreach (var item in errors)
                 {
                     ModelState.AddModelError(item.Key, item.Errors.Select(s => s.ErrorMessage).ToString());
                 }
                 return View("../Masters/Company/AddEditCompany", model);
             }
-            var company = _mapper.Map<CompanyDto>(model);
+            var company = _mapper.Map<CompanyEntity>(model);
 
             if (model.IsEditMode)
             {
                 #region Update
-                var rowsaffected = await _companyService.UpdateCompany(company);
+                var rowsaffected = await _companyService.UpdateAsync(company);
                 TempData["RowsAffected"] = rowsaffected;
                 if (rowsaffected > 0)
                     TempData["Message"] = Constants.SuccessMessages.MsgUpdateSuccess;
@@ -168,7 +173,7 @@ namespace Insurancesys.web.Controllers
             else
             {
                 #region Insert
-                var rowsaffected = await _companyService.AddCompany(company);
+                var rowsaffected = await _companyService.AddAsync(company);
                 TempData["RowsAffected"] = rowsaffected;
                 if (rowsaffected > 0)
                     TempData["Message"] = Constants.SuccessMessages.MsgInsertSuccess;
@@ -189,50 +194,39 @@ namespace Insurancesys.web.Controllers
                 return RedirectToAction("AddEditCompany");
             }
         }
-        public ActionResult CompanyCount()
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id)
         {
-            string result = string.Empty;
-            int totals = Convert.ToInt32(TempData["totalrecords"]);
-
-            int pagesize = Convert.ToInt32(TempData["paging_size"]);
-            ViewData["paging_size"] = pagesize;
-
-            int noofpages = 1;
-            if (totals > 0 && pagesize > 0)
-                noofpages = (totals / pagesize) + (totals % pagesize != 0 ? 1 : 0);
-            result = "{\"noofpages\":" + noofpages + ",\"NoOfTotalRecords\":" + totals + "}";
-
-            return Content((result));
+            bool status = Convert.ToBoolean(await _companyService.DeleteAsync(id));
+            return new JsonResult(status);
         }
 
-        [HttpGet]
-        public async Task<JsonResult> UpdateStatus(int id, bool status)
-        {
-            return new JsonResult(Convert.ToBoolean(await _companyService.UpdateStatus(id, status)));
-        }
+        //[HttpGet]
+        //public async Task<JsonResult> UpdateStatus(int id, bool status)
+        //{
+        //    return new JsonResult(Convert.ToBoolean(await _companyService.UpdateStatusAsync(id, status)));
+        //}
+
         [AcceptVerbs("Get", "Post")]
         public async Task<IActionResult> IsCompanyExist(string CompanyName = "")
         {
             string Original_CompanyName = HttpContext.Session.GetString("Original_CompanyName") ?? "";
             bool IsEditMode = !string.IsNullOrEmpty(Original_CompanyName);
-            int.TryParse(await _companyService.FindByName(CompanyName), out int matchCount);
-            if (IsEditMode && !string.Equals(Original_CompanyName, CompanyName) && matchCount > 0)
+            bool IsExist=await _companyService.FindByNameAsync(CompanyName);
+            if (IsEditMode && !string.Equals(Original_CompanyName, CompanyName) && IsExist)
                 return Json($"Company name '{CompanyName}' is already in use.");
-            else if (!IsEditMode && matchCount > 0)
+            else if (!IsEditMode && IsExist)
                 return Json($"Company name '{CompanyName}' is already in use.");
             return Json(true);
         }
+
+        #region Helper methods
         private void SetTempDataForNoRecord()
         {
             TempData["RowsAffected"] = 0;
             TempData["Message"] = Constants.AlertMessages.MsgNoRecords;
-        }
+        } 
+        #endregion
 
-        [HttpPost]
-        public async Task<IActionResult> Delete(int id)
-        {
-            bool status = Convert.ToBoolean(await _companyService.DeleteCompany(id));
-            return new JsonResult(status);
-        }
     }
 }
