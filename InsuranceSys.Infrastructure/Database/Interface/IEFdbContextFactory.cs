@@ -8,6 +8,6 @@ namespace InsuranceSys.Infrastructure.Database.Interface
 {
     public interface IEFdbContextFactory
     {
-        EfdbContext CreateDbContext(string connectionString);
+        EfdbContext CreateDbContext(string connectionString);        
     }
 }

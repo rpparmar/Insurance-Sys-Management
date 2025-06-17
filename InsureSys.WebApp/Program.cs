@@ -18,6 +18,7 @@ using Serilog;
 using System.Data;
 using InsuranceSys.Infrastructure.Database.Interface;
 using Microsoft.EntityFrameworkCore.Internal;
+using InsuranceSys.Infrastructure.Repositories;
 
 namespace Insurancesys.web
 {

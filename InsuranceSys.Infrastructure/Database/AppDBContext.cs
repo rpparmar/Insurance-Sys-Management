@@ -16,13 +16,9 @@ namespace InsuranceSys.Infrastructure
 {
     public sealed class AppDBContext : IAppDBContext, IConnectionStringProvider
     {
-		//private readonly string _connectionString;
         private readonly IConfiguration _configuration;
-        public AppDBContext(IConfiguration configuration
-            //,string conn
-			)
+        public AppDBContext(IConfiguration configuration)
 		{
-			//_connectionString = conn;
             _configuration = configuration;
         }
         
