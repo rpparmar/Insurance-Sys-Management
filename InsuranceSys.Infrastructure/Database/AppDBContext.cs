@@ -24,10 +24,10 @@ namespace InsuranceSys.Infrastructure
         
         public async Task<int> ExecuteNonQueryAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, bool masterDBConn = true)
 		{
-			using (SqlConnection connection = new SqlConnection(await GetConnectionStringAsync(masterDBConn)))
+			using (SqlConnection conn = new SqlConnection(await GetConnectionStringAsync(masterDBConn)))
 			{
-				await connection.OpenAsync();
-				using (SqlCommand cmd = new SqlCommand(cmdText, connection))
+                await conn.OpenAsync().ConfigureAwait(false);
+                using (SqlCommand cmd = new SqlCommand(cmdText, conn))
 				{
 					cmd.CommandType = cmdType;
 					foreach (var param in paramCollection)
@@ -41,10 +41,10 @@ namespace InsuranceSys.Infrastructure
 		public async Task<DataSet> GetDataSetAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, bool masterDBConn = true)
 		{
 			DataSet ds = new DataSet();
-			using (SqlConnection connection = new SqlConnection(await GetConnectionStringAsync(masterDBConn)))
+			using (SqlConnection conn = new SqlConnection(await GetConnectionStringAsync(masterDBConn)))
 			{
-				connection.Open();
-				using (SqlCommand cmd = new SqlCommand(cmdText, connection))
+                await conn.OpenAsync().ConfigureAwait(false);
+                using (SqlCommand cmd = new SqlCommand(cmdText, conn))
 				{
 					cmd.CommandType = cmdType;
 					foreach (var param in paramCollection)
@@ -61,10 +61,10 @@ namespace InsuranceSys.Infrastructure
         }
 		public async Task<T> GetObjectAsync<T>(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, bool masterDBConn = true) where T : class, new()
 		{
-			using (SqlConnection connection = new SqlConnection(await GetConnectionStringAsync(masterDBConn)))
+			using (SqlConnection conn = new SqlConnection(await GetConnectionStringAsync(masterDBConn)))
 			{
-				await connection.OpenAsync();
-				using (SqlCommand cmd = new SqlCommand(cmdText, connection))
+                await conn.OpenAsync().ConfigureAwait(false);
+                using (SqlCommand cmd = new SqlCommand(cmdText, conn))
 				{
 					cmd.CommandType = cmdType;
 					foreach (var param in paramCollection)
@@ -83,10 +83,10 @@ namespace InsuranceSys.Infrastructure
 		}
 		public async Task<string?> ExecuteScalarAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, bool masterDBConn = true)
 		{
-			using (SqlConnection connection = new SqlConnection(await GetConnectionStringAsync(masterDBConn)))
+			using (SqlConnection conn = new SqlConnection(await GetConnectionStringAsync(masterDBConn)))
 			{
-				await connection.OpenAsync();
-				using (SqlCommand cmd = new SqlCommand(cmdText, connection))
+                await conn.OpenAsync().ConfigureAwait(false);
+                using (SqlCommand cmd = new SqlCommand(cmdText, conn))
 				{
 					cmd.CommandType = cmdType;
 					foreach (var param in paramCollection)
