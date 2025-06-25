@@ -142,6 +142,7 @@ namespace Insurancesys.web
             builder.Services.AddScoped<ICompanyService, CompanyRepository>();            
             builder.Services.AddScoped<ILeadService, LeadRepository>();            
             builder.Services.AddScoped<ILoginService, LoginRepository>();
+            builder.Services.AddScoped<IInsuranceTypeService, InsuranceTypeRepository>();
         }
     }
 }

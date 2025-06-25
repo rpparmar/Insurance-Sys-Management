@@ -96,6 +96,58 @@ namespace Insurancesys.web.Helper
 
             return formGroupRow;
         }
+        
+        public static IHtmlContent SimpleFormMuliSelectDropdown(this IHtmlHelper htmlHelper,
+            string label,
+            string selectId,
+            IEnumerable<SelectListItem> selectList,
+            string onChangeFunction = "",
+            string? cssClass = "form-control selectpicker")
+        {
+            // Create the <label> tag
+            var labelTag = new TagBuilder("label");
+            labelTag.AddCssClass("col-form-label");
+            labelTag.InnerHtml.Append(label);
+
+            // Label column div
+            var labelColumn = new TagBuilder("div");
+            labelColumn.AddCssClass("col-md-4 col-xs-12 text-md-right");
+            labelColumn.InnerHtml.AppendHtml(labelTag);
+
+            // Create the <select> tag
+            var selectTag = new TagBuilder("select");
+            selectTag.Attributes.Add("id", selectId);
+            selectTag.Attributes.Add("multiple", "multiple");
+            selectTag.Attributes.Add("tabindex", "null");
+            if (!string.IsNullOrWhiteSpace(onChangeFunction))
+            {
+                selectTag.Attributes.Add("onchange", onChangeFunction);
+            }
+            selectTag.AddCssClass(cssClass ?? "form-control selectpicker");
+
+            // Append <option> tags from SelectListItem
+            foreach (var item in selectList)
+            {
+                var option = new TagBuilder("option");
+                option.Attributes["value"] = item.Value;
+                if (item.Selected)
+                    option.Attributes["selected"] = "selected";
+                option.InnerHtml.Append(item.Text);
+                selectTag.InnerHtml.AppendHtml(option);
+            }
+            // Input column div
+            var selectColumn = new TagBuilder("div");
+            selectColumn.AddCssClass("col-md-8 col-xs-12");
+            selectColumn.InnerHtml.AppendHtml(selectTag);
+
+            // Row wrapper
+            var formGroup = new TagBuilder("div");
+            formGroup.AddCssClass("form-group row");
+            formGroup.InnerHtml.AppendHtml(labelColumn);
+            formGroup.InnerHtml.AppendHtml(selectColumn);
+
+            return formGroup;
+        }
         public static IHtmlContent AccordianBaseTextBox(this IHtmlHelper htmlHelper, string label, string forExpression, bool isRequired = false, string placeholder = "", int maxlength = 0,bool isRegExpression = false)
         {
             // Create label element

@@ -13,7 +13,7 @@ BEGIN
  DECLARE @sql NVARCHAR(MAX);  
  DECLARE @params NVARCHAR(MAX)=N''@PageNumber INT,@PageSize INT,@SearchTerm VARCHAR(50),@SortExp VARCHAR(50)'';  
   
-	SELECT COUNT(*) AS TotalRecords FROM CompanyMaster WHERE IsDeleted<>1 
+	SELECT COUNT(*) AS TotalRecords FROM CompanyMaster WHERE ISNULL(IsDeleted,0)<>1 
 	AND 
 	(
 		''''+CONVERT(VARCHAR(50), @SearchTerm)+'''' IS NULL OR CompanyName LIKE ''%''+CONVERT(VARCHAR(50), @SearchTerm)+''%''
@@ -28,8 +28,11 @@ BEGIN
 		,[UpdatedOn]
 		FROM CompanyMaster
 		WHERE 
-			IsDeleted<>1 
-			AND ''''''+CONVERT(VARCHAR(50), @SearchTerm)+'''''' IS NULL OR CompanyName LIKE ''''%''''+CONVERT(VARCHAR(50), @SearchTerm)+''''%''''
+			ISNULL(IsDeleted,0)<>1
+			AND 
+			(
+				''''''+CONVERT(VARCHAR(50), @SearchTerm)+'''''' IS NULL OR CompanyName LIKE ''''%''''+CONVERT(VARCHAR(50), @SearchTerm)+''''%''''
+			)
 			ORDER BY '' + CONVERT(VARCHAR(50), @sortexp) + ''  
 			OFFSET '' + CONVERT(VARCHAR(10), @PageNumber) + '' ROWS FETCH NEXT '' + CONVERT(VARCHAR(10), @PageSize) + '' ROWS ONLY;   
  ''  
@@ -48,7 +51,7 @@ END
 Else
 begin
 exec('
-ALTER PROCEDURE [dbo].[CompanyMaster_GetAll]  
+ALTER  PROCEDURE [dbo].[CompanyMaster_GetAll]  
  @PageNumber INT,
 	@PageSize INT,
 	@SearchTerm varchar(100)='''',
@@ -60,7 +63,7 @@ BEGIN
  DECLARE @sql NVARCHAR(MAX);  
  DECLARE @params NVARCHAR(MAX)=N''@PageNumber INT,@PageSize INT,@SearchTerm VARCHAR(50),@SortExp VARCHAR(50)'';  
   
-	SELECT COUNT(*) AS TotalRecords FROM CompanyMaster WHERE IsDeleted<>1 
+	SELECT COUNT(*) AS TotalRecords FROM CompanyMaster WHERE ISNULL(IsDeleted,0)<>1 
 	AND 
 	(
 		''''+CONVERT(VARCHAR(50), @SearchTerm)+'''' IS NULL OR CompanyName LIKE ''%''+CONVERT(VARCHAR(50), @SearchTerm)+''%''
@@ -75,8 +78,11 @@ BEGIN
 		,[UpdatedOn]
 		FROM CompanyMaster
 		WHERE 
-			IsDeleted<>1 
-			AND ''''''+CONVERT(VARCHAR(50), @SearchTerm)+'''''' IS NULL OR CompanyName LIKE ''''%''''+CONVERT(VARCHAR(50), @SearchTerm)+''''%''''
+			ISNULL(IsDeleted,0)<>1 
+			AND 
+			(
+				''''''+CONVERT(VARCHAR(50), @SearchTerm)+'''''' IS NULL OR CompanyName LIKE ''''%''''+CONVERT(VARCHAR(50), @SearchTerm)+''''%''''
+			)
 			ORDER BY '' + CONVERT(VARCHAR(50), @sortexp) + ''  
 			OFFSET '' + CONVERT(VARCHAR(10), @PageNumber) + '' ROWS FETCH NEXT '' + CONVERT(VARCHAR(10), @PageSize) + '' ROWS ONLY;   
  ''  

@@ -76,9 +76,9 @@
                                             <div class="card-body">                                                
                                                 @Html.AccordianBaseTextBox("First Name", nameof(Model.FirstName), true, "Enter first name", 20)
                                                 @Html.AccordianBaseTextBox("Last Name", nameof(Model.LastName), false, "Enter last name", 20)
-                                                @Html.AccordianBaseTextBox("Phone Number", nameof(Model.PhoneNumber), true, "Enter phone number", 20)
-                                                @Html.AccordianBaseTextBox("Email", nameof(Model.Email), false, "Enter email", 100, isRegExpression: true)
+                                                @Html.AccordianBaseTextBox("Phone Number", nameof(Model.PhoneNumber), true, "Enter phone number", 20)                                                
                                                 @Html.AccordianBaseDropdown("Type of insurance", nameof(Model.PolicyTypeID), Model.lstInsuranceType, isRequired: true, isRegExpression:false)
+                                                @Html.AccordianBaseDropdown("Company", nameof(Model.CompanyID), Model.lstCompanies, isRequired: false, isRegExpression: false)
                                                 @Html.AccordianBaseDropdown("Assignee", nameof(Model.AssignedTo), Model.lstUsers, isRequired: true, isRegExpression: false)
                                                 
                                             </div>
@@ -93,7 +93,7 @@
                                         </div>
                                         <div id="collapseTwo6" class="collapse" data-parent="#accordionExample6" style="align-self:center">
                                             <div class="card-body">
-                                                @Html.AccordianBaseDropdown("Company", nameof(Model.CompanyID), Model.lstCompanies, isRequired: false, isRegExpression: false)
+                                                @Html.AccordianBaseTextBox("Email", nameof(Model.Email), false, "Enter email", 100, isRegExpression: true)
                                                 @Html.AccordianBaseDropdown("Lead Status", nameof(Model.LeadStatus), Model.lstLeadStatus, isRequired: false, isRegExpression: false)                                                
                                                 @Html.AccordianBaseTextBox("Source Of Lead", nameof(Model.LeadSource), false, "Enter source of lead", 50)                                                
                                                 @Html.AccordianBaseDateTimePicker("Next Follow up Date", nameof(Model.NextFollowUpDate), pickerId: "kt_datetimepicker_3")                                                

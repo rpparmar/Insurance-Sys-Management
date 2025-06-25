@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using InsuranceSys.Application;
+using InsuranceSys.Application.DTO;
 using InsuranceSys.Domain.Entities;
 using InsuranceSys.Infrastructure.Database;
 using InsuranceSys.Infrastructure.Database.Interface;
@@ -74,6 +75,21 @@ namespace InsuranceSys.Infrastructure.Repositories
         {
             using var _efdbcontext = await CreateContextAsync();
             return await _efdbcontext.EFCompanies.AnyAsync(c => c.CompanyName == CompanyName);
+        }
+        public async Task<List<DropdownItemDto>> GetCompanyDropdownAsync()
+        {
+            using var _efdbcontext = await CreateContextAsync();
+
+            return await _efdbcontext.EFCompanies
+                .AsNoTracking()
+                .Where(c => c.IsActive && !c.IsDeleted)
+                .OrderBy(c => c.CompanyName)
+                .Select(c => new DropdownItemDto
+                {
+                    Value = c.CompanyID.ToString(),
+                    Text = c.CompanyName
+                })
+                .ToListAsync();
         }
     }
 }

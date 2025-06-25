@@ -1,4 +1,5 @@
-﻿using InsuranceSys.Domain.Entities;
+﻿using InsuranceSys.Application.DTO;
+using InsuranceSys.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,5 +19,6 @@ namespace InsuranceSys.Application
         Task<int> DeleteAsync(int CompanyID);
         Task<int> UpdateStatusAsync(int CompanyID, bool status);
         Task<bool> FindByNameAsync(string CompanyName);
+        Task<List<DropdownItemDto>> GetCompanyDropdownAsync();
     }
 }

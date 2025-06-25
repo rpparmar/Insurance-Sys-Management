@@ -1,0 +1,35 @@
+﻿using InsuranceSys.Application.DTO;
+using Microsoft.AspNetCore.Mvc.Rendering;
+
+namespace Insurancesys.web.Helper
+{
+    public static class DropdownMapper
+    {
+        public static List<SelectListItem> ToSelectListItems(List<DropdownItemDto> source)
+        {
+            return source.Select(x => new SelectListItem
+            {
+                Value = x.Value,
+                Text = x.Text,
+                Selected = x.Selected
+            }).ToList();
+        }
+        public static List<SelectListItem> ToSelectListItemsWithPreSelected(List<DropdownItemDto> source, string? commaSeparatedIds)
+        {            
+           var selectedIds = new HashSet<string>();
+            if (!string.IsNullOrWhiteSpace(commaSeparatedIds))
+            {
+                selectedIds = commaSeparatedIds?
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Select(id => id.Trim())
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+            }                
+            return source.Select(c => new SelectListItem
+            {
+                Value = c.Value,
+                Text = c.Text,
+                Selected = selectedIds.Contains(c.Value)
+            }).ToList() ?? new List<SelectListItem>();
+        }        
+    }
+}
