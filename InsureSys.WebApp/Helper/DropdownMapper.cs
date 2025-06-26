@@ -14,12 +14,12 @@ namespace Insurancesys.web.Helper
                 Selected = x.Selected
             }).ToList();
         }
-        public static List<SelectListItem> ToSelectListItemsWithPreSelected(List<DropdownItemDto> source, string? commaSeparatedIds)
+        public static List<SelectListItem> ToSelectListItems(List<DropdownItemDto> source, string? commaSeparatedIds)
         {            
            var selectedIds = new HashSet<string>();
             if (!string.IsNullOrWhiteSpace(commaSeparatedIds))
             {
-                selectedIds = commaSeparatedIds?
+                selectedIds = commaSeparatedIds
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(id => id.Trim())
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
@@ -28,7 +28,7 @@ namespace Insurancesys.web.Helper
             {
                 Value = c.Value,
                 Text = c.Text,
-                Selected = selectedIds.Contains(c.Value)
+                Selected = c.Value != null && selectedIds.Contains(c.Value)
             }).ToList() ?? new List<SelectListItem>();
         }        
     }

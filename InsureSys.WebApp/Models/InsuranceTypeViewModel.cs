@@ -14,7 +14,7 @@ namespace Insurancesys.web.Models
         
         [Required(ErrorMessage = "Insurance type is required")]
         [Remote(action: "IsInsurancetypeExist", controller: "InsuranceType")]
-        public string? InsuranceType { get; set; }
+        public string InsuranceType { get; set; } = string.Empty;
         public DateTime? CreatedOn { get; set; }
         public DateTime? UpdatedOn { get; set; }
         public bool? IsDeleted { get; set; }

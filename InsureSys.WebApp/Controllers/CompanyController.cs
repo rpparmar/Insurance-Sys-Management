@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Insurancesys.web.Helper;
 using Insurancesys.web.Models;
 using Insurancesys.web.Models.Common;
 using InsuranceSys.Application;
@@ -42,17 +43,10 @@ namespace Insurancesys.web.Controllers
             int page = param.iDisplayStart;
             int pagesize = param.iDisplayLength;
 
-            #region sorting
-
-            StringValues sortDirValues = Request.Form["sSortDir_0"];
-            string sortDirection = sortDirValues.Count > 0 ? sortDirValues[0].ToLower() : "desc";
-
-            string sortingField = Request.Form["SortingField"];
-            string SortExp = !string.IsNullOrWhiteSpace(sortingField) ? sortingField : "1";
-            SortExp += (sortDirection == "asc") ? " asc" : " desc";
-            #endregion
-            string searchText = Request.Form["searchText"];
-            string searchTerm = !string.IsNullOrWhiteSpace(searchText) ? searchText : "";
+            string sortDirection = CommonHelper.SearchSortValue(Request.Form, "sSortDir_0", "desc").ToLowerInvariant();
+            string sortField = CommonHelper.SearchSortValue(Request.Form, "SortingField", "1");
+            string SortExp = $"{sortField} {(sortDirection == "asc" ? "asc" : "desc")}";
+            string searchTerm = CommonHelper.SearchSortValue(Request.Form, "searchText");
 
             var @params = ImmutableDictionary<string, object>.Empty
             .Add("@PageNumber", page)
@@ -72,7 +66,11 @@ namespace Insurancesys.web.Controllers
                         {
                             var response = dtContent.AsEnumerable()
                             .Select(row => dtContent.Columns.Cast<DataColumn>()
-                            .ToDictionary(col => col.ColumnName, col => row[col])).ToList();
+                                .ToDictionary(
+                                    col => col.ColumnName,
+                                    col => CommonHelper.FormatCellValue(row[col]) // format logic for null/blank
+                                )
+                            ).ToList();
 
                             return Json(new
                             {
@@ -150,10 +148,15 @@ namespace Insurancesys.web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Where(x => x.Value?.Errors.Count > 0).Select(x => new { x.Key, x.Value?.Errors }).ToArray();
-                foreach (var item in errors)
+                // Extract all model state errors
+                var errors = ModelState
+                    .Where(x => x.Value?.Errors?.Count > 0)
+                    .SelectMany(x => x.Value!.Errors
+                        .Select(error => new { Key = x.Key, ErrorMessage = error.ErrorMessage }))
+                    .ToList();
+                foreach (var error in errors)
                 {
-                    ModelState.AddModelError(item.Key, item.Errors.Select(s => s.ErrorMessage).ToString());
+                    ModelState.AddModelError(error.Key, error.ErrorMessage);
                 }
                 return View("../Masters/Company/AddEditCompany", model);
             }
@@ -200,12 +203,6 @@ namespace Insurancesys.web.Controllers
             bool status = Convert.ToBoolean(await _companyService.DeleteAsync(id));
             return new JsonResult(status);
         }
-
-        //[HttpGet]
-        //public async Task<JsonResult> UpdateStatus(int id, bool status)
-        //{
-        //    return new JsonResult(Convert.ToBoolean(await _companyService.UpdateStatusAsync(id, status)));
-        //}
 
         [AcceptVerbs("Get", "Post")]
         public async Task<IActionResult> IsCompanyExist(string CompanyName = "")
