@@ -20,14 +20,14 @@ namespace Insurancesys.web.Controllers
     [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)] // Use cookie authentication
     public class InsuranceTypeController : Controller
     {
-        private readonly IInsuranceTypeService _insuranceTypeService;
-        private readonly ICompanyService _companyService;
+        private readonly IInsuranceTypeService _insuranceTypeService;        
+        private readonly IDropDownBinderService _dropDownBinderService;
         private readonly IMapper _mapper;
-        public InsuranceTypeController(IInsuranceTypeService insuranceTypeService, IMapper mapper, ICompanyService companyService)
+        public InsuranceTypeController(IInsuranceTypeService insuranceTypeService, IMapper mapper, IDropDownBinderService dropDownBinderService)
         {
             _insuranceTypeService= insuranceTypeService;
             _mapper=mapper;
-            _companyService=companyService;
+            _dropDownBinderService = dropDownBinderService;
         }
         [Route("InsuranceTypes")]
         public IActionResult InsuranceTypeList()
@@ -37,69 +37,8 @@ namespace Insurancesys.web.Controllers
         [HttpPost]
         public async Task<IActionResult> GetData(DataTableRequest param)
         {
-            int page = param.iDisplayStart;
-            int pagesize = param.iDisplayLength;
-
-            string sortDirection = CommonHelper.SearchSortValue(Request.Form, "sSortDir_0", "desc").ToLowerInvariant();
-            string sortField = CommonHelper.SearchSortValue(Request.Form, "SortingField", "1");
-            string SortExp = $"{sortField} {(sortDirection == "asc" ? "asc" : "desc")}";
-            string searchTerm = CommonHelper.SearchSortValue(Request.Form, "searchText");
-
-            var @params = ImmutableDictionary<string, object>.Empty
-            .Add("@PageNumber", page)
-            .Add("@PageSize", pagesize)
-            .Add("@SearchTerm", searchTerm)
-            .Add("@SortExp", SortExp);
-
-            using (DataSet ds = await _insuranceTypeService.GetAllAsync(@params))
-            {
-                if (ds != null && ds.Tables.Count > 0)
-                {
-                    int totalRecords = 1;
-                    int.TryParse(Convert.ToString(ds.Tables[0].Rows[0]["TotalRecords"]), out totalRecords);
-                    using (DataTable dtContent = ds.Tables[1])
-                    {
-                        if (dtContent != null && dtContent.Rows.Count > 0)
-                        {
-                            var response = dtContent.AsEnumerable()
-                            .Select(row => dtContent.Columns.Cast<DataColumn>()
-                                .ToDictionary(
-                                    col => col.ColumnName,
-                                    col => CommonHelper.FormatCellValue(row[col]) // format logic for null/blank
-                                )
-                            ).ToList();
-
-                            return Json(new
-                            {
-                                iTotalRecords = totalRecords,
-                                iTotalDisplayRecords = totalRecords,
-                                data = response
-                            });
-                        }
-                        else
-                        {
-                            // Handle the case when no rows are returned
-                            return Json(new
-                            {
-                                iTotalRecords = 0,
-                                iTotalDisplayRecords = 0,
-                                data = new List<object>() // Empty list for no data
-                            });
-                        }
-                    }
-                }
-                else
-                {
-                    // Handle the case when no rows are returned
-                    return Json(new
-                    {
-                        iTotalRecords = 0,
-                        iTotalDisplayRecords = 0,
-                        data = new List<object>() // Empty list for no data
-                    });
-                }
-            }
-
+            var result = await DataTableHelper.BuildGridResponseAsync(Request, _insuranceTypeService.GetAllAsync);
+            return Json(result);
         }
 
         [HttpGet("InsuranceType/Add")]
@@ -224,7 +163,7 @@ namespace Insurancesys.web.Controllers
         }
         private async Task<InsuranceTypeViewModel> BindDropdowns(InsuranceTypeViewModel model)
         {
-            var companies = await _companyService.GetCompanyDropdownAsync();            
+            var companies = await _dropDownBinderService.GetCompanyDropdownAsync();            
             model.lstOfCompanies = DropdownMapper.ToSelectListItems(companies ?? new List<DropdownItemDto>(),model.AssociationWithCompanyIDs);            
             return model;
         }        

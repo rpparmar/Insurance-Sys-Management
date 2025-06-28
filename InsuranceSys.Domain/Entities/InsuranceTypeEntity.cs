@@ -11,12 +11,13 @@ namespace InsuranceSys.Domain.Entities
     public class InsuranceTypeEntity
     {
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int InsuranceTypeId { get; set; }
         public required string InsuranceType { get; set; }
         public DateTime? CreatedOn { get; set; }
         public DateTime? UpdatedOn { get; set; }
-        public bool? IsDeleted { get; set; }
-        public bool? IsActive { get; set; }
+        public bool IsDeleted { get; set; }=false;
+        public bool IsActive { get; set; }=true;
         [NotMapped]
         public string? AssociationWithCompanyIDs { get; set; }
     }

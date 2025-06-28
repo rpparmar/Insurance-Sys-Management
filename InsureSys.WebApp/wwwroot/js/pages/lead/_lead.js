@@ -16,25 +16,33 @@
 			bSortable: false,			
 		},
 		{
-			data: "CompanyID",
+			data: "CompanyName",
 			bSortable: false,			
 		},
 		{
-			data: "PolicyTypeID",
+			data: "PolicyType",
 			bSortable: false,			
 		},
 		{
 			data: "InquiryDate",
 			bSortable: true,			
 			render: function (data, type, row) {				
-				return data ? moment(data).format("MM/DD/YYYY hh:mm A") : "";
+				// Check if data is a valid date
+				if (!data || data === 'NA' || !moment(data).isValid()) {
+					return 'NA';
+				}
+				return moment(data).format("MM/DD/YYYY hh:mm A");
 			}
 		},
 		{
 			data: "NextFollowUpDate",
 			bSortable: true,
-			render: function (data, type, row) {
-				return data ? moment(data).format("MM/DD/YYYY hh:mm A") : "";
+			render: function (data, type, row) {				
+				// Check if data is a valid date
+				if (!data || data === 'NA' || !moment(data).isValid()) {
+					return 'NA';
+				}
+				return moment(data).format("MM/DD/YYYY hh:mm A");
 			}
 		},
 		{
@@ -83,12 +91,65 @@ function initDataTable() {
 		tableId: "#dt_leads",
 		url: globalvar.listingURL,
 		columns: columnsConfig,
-		extraParams: [{ name: "searchText", value: $('#txtSearch').val() }]
+		extraParams: [
+			{ name: "searchText", value: $('#txtSearch').val() }
+			//,{ name: "StatusId", value: 'active' } //extra parameter
+		]
 	});
 }
 
 $("#txtSearch").on('keyup', function () {
 	initDataTable();
+});
+$("#drpPolicyTypeID").on('change', function () {
+	/*
+	const policyTypeId = $(this).val();
+	let $companiesDropdown = $('#drpCompanyID');
+	$companiesDropdown.empty();	
+	$companiesDropdown.append(
+		$('<option>', {
+			value: '',
+			text: 'Select'
+		})
+	);
+	if (policyTypeId) {
+		$.ajax({
+			url: '/Lead/GetCompaniesByPolicyType',
+			type: 'POST',
+			data: { insuranceTypeId: policyTypeId },
+			success: function (response) {
+				if (response && response.length > 0) {
+					$.each(response, function (i, item) {
+						$companiesDropdown.append(
+							$('<option>', {
+								value: item.value,
+								text: item.text
+							})
+						);
+					});
+					$companiesDropdown.selectpicker('refresh'); // if you're using Bootstrap SelectPicker
+				} else {
+					$companiesDropdown.selectpicker('refresh');
+				}
+			},
+			error: function () {
+				toastr.error('Error occurred while fetching companies.');
+			}
+		});
+	}
+	else 
+		$companiesDropdown.selectpicker('refresh'); // if you're using Bootstrap SelectPicker
+
+	*/
+	bindDropdownByDependency({
+		sourceSelector: this,
+		targetSelector: "#drpCompanyID",
+		endpointUrl: "/Lead/GetCompaniesByPolicyType",
+		paramName: "insuranceTypeId",
+		includeDefaultOption: true,
+		defaultOptionText: 'Select',
+		useSelectPicker: true
+	});
 });
 
 

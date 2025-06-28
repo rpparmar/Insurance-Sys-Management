@@ -3,6 +3,7 @@ using Insurancesys.web.Helper;
 using Insurancesys.web.Models;
 using Insurancesys.web.Models.Common;
 using InsuranceSys.Application;
+using InsuranceSys.Application.DTO;
 using InsuranceSys.Application.Interface;
 using InsuranceSys.Domain;
 using InsuranceSys.Domain.Entities;
@@ -25,13 +26,16 @@ namespace Insurancesys.web.Controllers
     public class LeadController : Controller
     {
         private readonly ILeadService _leadService;
+        private readonly IDropDownBinderService _dropDownBinderService;
         private readonly IMapper _mapper;
         public LeadController(
              ILeadService leadService,
-             IMapper mapper)
+             IMapper mapper,
+             IDropDownBinderService dropDownBinderService)
         {
             _leadService = leadService;
             _mapper = mapper;
+            _dropDownBinderService = dropDownBinderService;
         }
         [Route("Leads")]
         public IActionResult ListOfLeads()
@@ -40,70 +44,20 @@ namespace Insurancesys.web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetData(DataTableRequest param)
+        public async Task<IActionResult> GetData()
         {
-            int page = param.iDisplayStart;
-            int pagesize = param.iDisplayLength;
-
-            string sortDirection = CommonHelper.SearchSortValue(Request.Form, "sSortDir_0", "desc").ToLowerInvariant();
-            string sortField = CommonHelper.SearchSortValue(Request.Form, "SortingField", "1");
-            string SortExp = $"{sortField} {(sortDirection == "asc" ? "asc" : "desc")}";
-            string searchTerm = CommonHelper.SearchSortValue(Request.Form, "searchText");
-
-            var @params = ImmutableDictionary<string, object>.Empty
-            .Add("@PageNumber", page)
-            .Add("@PageSize", pagesize)
-            .Add("@SearchTerm", searchTerm)
-            .Add("@SortExp", SortExp);
-
-            using (DataSet ds = await _leadService.GetAllAsync(@params))
-            {
-                if (ds != null && ds.Tables.Count > 0)
-                {
-                    int totalRecords = 1;
-                    int.TryParse(Convert.ToString(ds.Tables[0].Rows[0]["TotalRecords"]), out totalRecords);
-                    using (DataTable dtContent = ds.Tables[1])
-                    {
-                        if (dtContent != null && dtContent.Rows.Count > 0)
-                        {                            
-                            var response = dtContent.AsEnumerable()
-                            .Select(row => dtContent.Columns.Cast<DataColumn>()
-                                .ToDictionary(
-                                    col => col.ColumnName,
-                                    col => CommonHelper.FormatCellValue(row[col]) // format logic for null/blank
-                                )
-                            ).ToList();
-                            return Json(new
-                            {
-                                iTotalRecords = totalRecords,
-                                iTotalDisplayRecords = totalRecords,
-                                data = response
-                            });
-                        }
-                        else
-                        {
-                            // Handle the case when no rows are returned
-                            return Json(new
-                            {
-                                iTotalRecords = 0,
-                                iTotalDisplayRecords = 0,
-                                data = new List<object>() // Empty list for no data
-                            });
-                        }
-                    }
-                }
-                else
-                {
-                    // Handle the case when no rows are returned
-                    return Json(new
-                    {
-                        iTotalRecords = 0,
-                        iTotalDisplayRecords = 0,
-                        data = new List<object>() // Empty list for no data
-                    });
-                }
-            }
-
+            var result = await DataTableHelper.BuildGridResponseAsync(Request
+                , _leadService.GetAllAsync
+                /* Add extra filter parameters here */
+                //, request =>
+                //{
+                //    var extra = new Dictionary<string, object>();                
+                //    var _statusId = DataTableHelper.SearchSortValue(request.Form, "StatusId");
+                //    extra.Add("@StatusId", _statusId);
+                //    return extra;
+                //}
+                );
+            return Json(result);
         }
 
         [HttpGet("Leads/Add")]
@@ -142,7 +96,7 @@ namespace Insurancesys.web.Controllers
                 model.IsActive = true;
                 //HttpContext.Session.SetString("Original_CountryName", "");
             }
-            model = BindDropdowns(model);
+            model = await BindDropdowns(model);
             return View("../Customer/AddEditLeads", model);
         }
 
@@ -151,7 +105,7 @@ namespace Insurancesys.web.Controllers
         {
             if (!ModelState.IsValid)
             {
-                model = BindDropdowns(model);
+                model = await BindDropdowns(model);
                 // Extract all model state errors
                 var errors = ModelState
                     .Where(x => x.Value?.Errors?.Count > 0)
@@ -207,33 +161,31 @@ namespace Insurancesys.web.Controllers
             bool status = Convert.ToBoolean(await _leadService.DeleteAsync(id));
             return new JsonResult(status);
         }
-        #region Helper methods
-        private LeadViewModel BindDropdowns(LeadViewModel model)
+        [HttpPost]        
+        public async Task<List<SelectListItem>> GetCompaniesByPolicyType(int insuranceTypeId)
         {
-            model.lstCompanies = GetCompanyDropdown();
-            model.lstInsuranceType = GetInsuranceTypeDropdown();
-            model.lstUsers = GetUserDropdown();
+            return await GetCompanyDropdown(insuranceTypeId);
+        }
+        #region Helper methods
+        private async Task<LeadViewModel> BindDropdowns(LeadViewModel model)
+        {
+            int.TryParse(model.PolicyTypeID, out int insuranceTypeId);
+            model.lstCompanies = await GetCompanyDropdown(insuranceTypeId);
+            model.lstInsuranceType = await GetInsuranceTypeDropdown(model);
             model.lstLeadStatus = GetLeadStatusDropdown();
+            model.lstUsers = GetUserDropdown();
             return model;
         }
-        private List<SelectListItem> GetCompanyDropdown()
+        private async Task<List<SelectListItem>> GetCompanyDropdown(int insuranceTypeId)
         {
-            return new List<SelectListItem>
-            {
-                new() { Text = "Bajaj Allienz", Value = "1" },
-                new() { Text = "Care Insurance", Value = "2" },
-                new() { Text = "Edelwiess", Value = "3" }
-            };
+            var companies = await _dropDownBinderService.GetCompanyMappedWithInsuranceType(insuranceTypeId);
+            return DropdownMapper.ToSelectListItems(companies ?? new List<DropdownItemDto>());            
         }
 
-        private List<SelectListItem> GetInsuranceTypeDropdown()
-        {
-            return new List<SelectListItem>
-            {
-                new() { Text = "Health Insurance", Value = "1" },
-                new() { Text = "Motor Insurance", Value = "2" },
-                new() { Text = "General Insurance", Value = "3" }
-            };
+        private async Task<List<SelectListItem>> GetInsuranceTypeDropdown(LeadViewModel model)
+        {            
+            var insuranceTypes = await _dropDownBinderService.GetInsuranceTypeDropdownAsync();
+            return DropdownMapper.ToSelectListItems(insuranceTypes ?? new List<DropdownItemDto>());
         }
 
         private List<SelectListItem> GetUserDropdown()

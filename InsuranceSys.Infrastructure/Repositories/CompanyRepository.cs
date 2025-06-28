@@ -74,22 +74,7 @@ namespace InsuranceSys.Infrastructure.Repositories
         public async Task<bool> FindByNameAsync(string CompanyName)
         {
             using var _efdbcontext = await CreateContextAsync();
-            return await _efdbcontext.EFCompanies.AnyAsync(c => c.CompanyName == CompanyName);
-        }
-        public async Task<List<DropdownItemDto>> GetCompanyDropdownAsync()
-        {
-            using var _efdbcontext = await CreateContextAsync();
-
-            return await _efdbcontext.EFCompanies
-                .AsNoTracking()
-                .Where(c => c.IsActive && !c.IsDeleted)
-                .OrderBy(c => c.CompanyName)
-                .Select(c => new DropdownItemDto
-                {
-                    Value = c.CompanyID.ToString(),
-                    Text = c.CompanyName
-                })
-                .ToListAsync();
-        }
+            return await _efdbcontext.EFCompanies.AnyAsync(c => c.CompanyName == CompanyName && !c.IsDeleted);
+        }        
     }
 }

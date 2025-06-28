@@ -1,4 +1,5 @@
-﻿using InsuranceSys.Domain.Entities;
+﻿using InsuranceSys.Application.DTO;
+using InsuranceSys.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,6 +17,6 @@ namespace InsuranceSys.Application.Interface
 		Task<int> AddAsync(LeadEntity lead);
 		Task<int> UpdateAsync(LeadEntity lead);
 		Task<int> DeleteAsync(int LeadID);
-		Task<int> UpdateStatusAsync(int LeadID, bool status);
-	}
+		Task<int> UpdateStatusAsync(int LeadID, bool status);		
+    }
 }

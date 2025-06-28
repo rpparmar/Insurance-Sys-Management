@@ -33,11 +33,13 @@ SELECT COUNT(*) AS TotalRecords FROM LeadManagement WHERE ISNULL(IsDeleted,0)<>1
 		,[NextFollowUpDate]
 		,[Notes]
 		,[Address]
-		,[CompanyID]
-		,[PolicyTypeID]
-		FROM LeadManagement
+		,Comp.[CompanyName] AS CompanyName
+		,PolicyType.[InsuranceType]  AS PolicyType
+		FROM LeadManagement Lead
+		LEFT JOIN CompanyMaster Comp ON Lead.CompanyID=Comp.CompanyID
+		LEFT JOIN InsuranceTypeMaster PolicyType ON PolicyType.InsuranceTypeId=Lead.PolicyTypeID
 		WHERE 
-			ISNULL(IsDeleted,0)<>1 
+			ISNULL(Lead.IsDeleted,0)<>1 
 			AND 
 			(
 				''''''+CONVERT(VARCHAR(50), @SearchTerm)+'''''' IS NULL OR FirstName LIKE ''''%''''+CONVERT(VARCHAR(50), @SearchTerm)+''''%''''
@@ -92,11 +94,13 @@ SELECT COUNT(*) AS TotalRecords FROM LeadManagement WHERE ISNULL(IsDeleted,0)<>1
 		,[NextFollowUpDate]
 		,[Notes]
 		,[Address]
-		,[CompanyID]
-		,[PolicyTypeID]
-		FROM LeadManagement
+		,Comp.[CompanyName] AS CompanyName
+		,PolicyType.[InsuranceType]  AS PolicyType
+		FROM LeadManagement Lead
+		LEFT JOIN CompanyMaster Comp ON Lead.CompanyID=Comp.CompanyID
+		LEFT JOIN InsuranceTypeMaster PolicyType ON PolicyType.InsuranceTypeId=Lead.PolicyTypeID
 		WHERE 
-			ISNULL(IsDeleted,0)<>1 
+			ISNULL(Lead.IsDeleted,0)<>1 
 			AND 
 			(
 				''''''+CONVERT(VARCHAR(50), @SearchTerm)+'''''' IS NULL OR FirstName LIKE ''''%''''+CONVERT(VARCHAR(50), @SearchTerm)+''''%''''

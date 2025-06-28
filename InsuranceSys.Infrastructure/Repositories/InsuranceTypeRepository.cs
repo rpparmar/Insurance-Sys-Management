@@ -168,7 +168,7 @@ namespace InsuranceSys.Infrastructure.Repositories
         public async Task<bool> FindByNameAsync(string InsuranceType)
         {
             using var _efdbcontext = await CreateContextAsync();
-            return await _efdbcontext.EFInsuranceTypes.AnyAsync(c => c.InsuranceType == InsuranceType);
+            return await _efdbcontext.EFInsuranceTypes.AnyAsync(c => c.InsuranceType == InsuranceType && !c.IsDeleted);
         }
     }
 }

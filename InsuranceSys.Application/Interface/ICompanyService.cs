@@ -18,7 +18,6 @@ namespace InsuranceSys.Application
         Task<int> UpdateAsync(CompanyEntity model);
         Task<int> DeleteAsync(int CompanyID);
         Task<int> UpdateStatusAsync(int CompanyID, bool status);
-        Task<bool> FindByNameAsync(string CompanyName);
-        Task<List<DropdownItemDto>> GetCompanyDropdownAsync();
+        Task<bool> FindByNameAsync(string CompanyName);        
     }
 }

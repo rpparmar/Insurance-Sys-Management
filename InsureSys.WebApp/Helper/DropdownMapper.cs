@@ -14,12 +14,12 @@ namespace Insurancesys.web.Helper
                 Selected = x.Selected
             }).ToList();
         }
-        public static List<SelectListItem> ToSelectListItems(List<DropdownItemDto> source, string? commaSeparatedIds)
+        public static List<SelectListItem> ToSelectListItems(List<DropdownItemDto> source, string? selectedvalues)
         {            
            var selectedIds = new HashSet<string>();
-            if (!string.IsNullOrWhiteSpace(commaSeparatedIds))
+            if (!string.IsNullOrWhiteSpace(selectedvalues))
             {
-                selectedIds = commaSeparatedIds
+                selectedIds = selectedvalues
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(id => id.Trim())
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);

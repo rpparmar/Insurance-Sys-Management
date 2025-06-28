@@ -32,19 +32,46 @@
 		},
 		aoColumns: columns,
 		fnServerData: function (sSource, aoData, fnCallback, oSettings) {
-			ConfigureServerSideSorting(oSettings, this.fnSettings().aoColumns, aoData);			
-			// Ensure extra params are added like this
-			if (Array.isArray(extraParams)) {				
-				extraParams.forEach(p => aoData.push(p));
+			try {
+				ConfigureServerSideSorting(oSettings, this.fnSettings().aoColumns, aoData);
+				// Ensure extra params are added like this
+				if (Array.isArray(extraParams)) {
+					extraParams.forEach(p => aoData.push(p));
+				}
+				oSettings.jqXHR = $.ajax({
+					dataType: 'json',
+					type: "POST",
+					url: sSource,
+					data: aoData,
+					async: false,
+					success: fnCallback,
+					error: function (xhr, status, error) {
+						console.error("DataTable load error:", status, error);
+						// Hide spinner
+						$(tableId).trigger('processing.dt', [false]);
+
+						// Show alert/toast (you can customize this with your notification system)						
+						toastr.error("Failed to load data. Please try again later.");
+
+						// Inform DataTables to stop processing with empty data
+						fnCallback({
+							data: [],
+							iTotalRecords: 0,
+							iTotalDisplayRecords: 0
+						});
+					}
+				});
 			}
-			oSettings.jqXHR = $.ajax({
-				dataType: 'json',
-				type: "POST",
-				url: sSource,
-				data: aoData,
-				async: false,
-				success: fnCallback
-			});
+			catch (err) {
+				console.error("Unexpected error:", err);
+				$(tableId).trigger('processing.dt', [false]);
+				toastr.error(err);
+				fnCallback({
+					data: [],
+					iTotalRecords: 0,
+					iTotalDisplayRecords: 0
+				});
+			}
 		},
 		initComplete: function () {
 			$(tableId).show();

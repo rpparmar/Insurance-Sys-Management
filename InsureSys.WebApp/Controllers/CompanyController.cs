@@ -40,68 +40,73 @@ namespace Insurancesys.web.Controllers
         [HttpPost]
         public async Task<IActionResult> GetData(DataTableRequest param)
         {
-            int page = param.iDisplayStart;
-            int pagesize = param.iDisplayLength;
+            var result = await DataTableHelper.BuildGridResponseAsync(Request, _companyService.GetAllAsync);
+            return Json(result);
 
-            string sortDirection = CommonHelper.SearchSortValue(Request.Form, "sSortDir_0", "desc").ToLowerInvariant();
-            string sortField = CommonHelper.SearchSortValue(Request.Form, "SortingField", "1");
-            string SortExp = $"{sortField} {(sortDirection == "asc" ? "asc" : "desc")}";
-            string searchTerm = CommonHelper.SearchSortValue(Request.Form, "searchText");
+            #region Old method
+            //int page = param.iDisplayStart;
+            //int pagesize = param.iDisplayLength;
 
-            var @params = ImmutableDictionary<string, object>.Empty
-            .Add("@PageNumber", page)
-            .Add("@PageSize", pagesize)
-            .Add("@SearchTerm", searchTerm)
-            .Add("@SortExp", SortExp);
+            //string sortDirection = CommonHelper.SearchSortValue(Request.Form, "sSortDir_0", "desc").ToLowerInvariant();
+            //string sortField = CommonHelper.SearchSortValue(Request.Form, "SortingField", "1");
+            //string SortExp = $"{sortField} {(sortDirection == "asc" ? "asc" : "desc")}";
+            //string searchTerm = CommonHelper.SearchSortValue(Request.Form, "searchText");
 
-            using (DataSet ds = await _companyService.GetAllAsync(@params))
-            {
-                if (ds != null && ds.Tables.Count > 0)
-                {
-                    int totalRecords = 1;
-                    int.TryParse(Convert.ToString(ds.Tables[0].Rows[0]["TotalRecords"]), out totalRecords);
-                    using (DataTable dtContent = ds.Tables[1])
-                    {
-                        if (dtContent != null && dtContent.Rows.Count > 0)
-                        {
-                            var response = dtContent.AsEnumerable()
-                            .Select(row => dtContent.Columns.Cast<DataColumn>()
-                                .ToDictionary(
-                                    col => col.ColumnName,
-                                    col => CommonHelper.FormatCellValue(row[col]) // format logic for null/blank
-                                )
-                            ).ToList();
+            //var @params = ImmutableDictionary<string, object>.Empty
+            //.Add("@PageNumber", page)
+            //.Add("@PageSize", pagesize)
+            //.Add("@SearchTerm", searchTerm)
+            //.Add("@SortExp", SortExp);
 
-                            return Json(new
-                            {
-                                iTotalRecords = totalRecords,
-                                iTotalDisplayRecords = totalRecords,
-                                data = response
-                            });
-                        }
-                        else
-                        {
-                            // Handle the case when no rows are returned
-                            return Json(new
-                            {
-                                iTotalRecords = 0,
-                                iTotalDisplayRecords = 0,
-                                data = new List<object>() // Empty list for no data
-                            });
-                        }
-                    }
-                }
-                else
-                {
-                    // Handle the case when no rows are returned
-                    return Json(new
-                    {
-                        iTotalRecords = 0,
-                        iTotalDisplayRecords = 0,
-                        data = new List<object>() // Empty list for no data
-                    });
-                }
-            }
+            //using (DataSet ds = await _companyService.GetAllAsync(@params))
+            //{
+            //    if (ds != null && ds.Tables.Count > 0)
+            //    {
+            //        int totalRecords = 1;
+            //        int.TryParse(Convert.ToString(ds.Tables[0].Rows[0]["TotalRecords"]), out totalRecords);
+            //        using (DataTable dtContent = ds.Tables[1])
+            //        {
+            //            if (dtContent != null && dtContent.Rows.Count > 0)
+            //            {
+            //                var response = dtContent.AsEnumerable()
+            //                .Select(row => dtContent.Columns.Cast<DataColumn>()
+            //                    .ToDictionary(
+            //                        col => col.ColumnName,
+            //                        col => CommonHelper.FormatCellValue(row[col]) // format logic for null/blank
+            //                    )
+            //                ).ToList();
+
+            //                return Json(new
+            //                {
+            //                    iTotalRecords = totalRecords,
+            //                    iTotalDisplayRecords = totalRecords,
+            //                    data = response
+            //                });
+            //            }
+            //            else
+            //            {
+            //                // Handle the case when no rows are returned
+            //                return Json(new
+            //                {
+            //                    iTotalRecords = 0,
+            //                    iTotalDisplayRecords = 0,
+            //                    data = new List<object>() // Empty list for no data
+            //                });
+            //            }
+            //        }
+            //    }
+            //    else
+            //    {
+            //        // Handle the case when no rows are returned
+            //        return Json(new
+            //        {
+            //            iTotalRecords = 0,
+            //            iTotalDisplayRecords = 0,
+            //            data = new List<object>() // Empty list for no data
+            //        });
+            //    }
+            //} 
+            #endregion
 
         }
 
