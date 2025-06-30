@@ -172,7 +172,7 @@ namespace Insurancesys.web.Controllers
             int.TryParse(model.PolicyTypeID, out int insuranceTypeId);
             model.lstCompanies = await GetCompanyDropdown(insuranceTypeId);
             model.lstInsuranceType = await GetInsuranceTypeDropdown(model);
-            model.lstLeadStatus = GetLeadStatusDropdown();
+            model.lstLeadStatus = await GetLeadStatusDropdown(model);
             model.lstUsers = GetUserDropdown();
             return model;
         }
@@ -187,7 +187,11 @@ namespace Insurancesys.web.Controllers
             var insuranceTypes = await _dropDownBinderService.GetInsuranceTypeDropdownAsync();
             return DropdownMapper.ToSelectListItems(insuranceTypes ?? new List<DropdownItemDto>());
         }
-
+        private async Task<List<SelectListItem>> GetLeadStatusDropdown(LeadViewModel model)
+        {
+            var listofLeadStatus = await _dropDownBinderService.GetLeadStatusDropdownAsync();
+            return DropdownMapper.ToSelectListItems(listofLeadStatus ?? new List<DropdownItemDto>());
+        }
         private List<SelectListItem> GetUserDropdown()
         {
             return new List<SelectListItem>
@@ -196,20 +200,6 @@ namespace Insurancesys.web.Controllers
                 new() { Text = "User 2", Value = "2" }
             };
         }
-
-        private List<SelectListItem> GetLeadStatusDropdown()
-        {
-            return new List<SelectListItem>
-            {
-                new() { Text = "Contacted", Value = "1", Selected = true },
-                new() { Text = "Qualified", Value = "2" },
-                new() { Text = "Proposal Sent", Value = "3" },
-                new() { Text = "Negotiation", Value = "4" },
-                new() { Text = "Closed/Won", Value = "5" },
-                new() { Text = "Closed/Lost", Value = "6" }
-            };
-        }
-        
         #endregion
     }
 }

@@ -144,6 +144,7 @@ namespace Insurancesys.web
             builder.Services.AddScoped<ILoginService, LoginRepository>();
             builder.Services.AddScoped<IInsuranceTypeService, InsuranceTypeRepository>();
             builder.Services.AddScoped<IDropDownBinderService, DropDownBinderRepository>();
+            builder.Services.AddScoped<ILeadStatusService, LeadStatusRepository>();
         }
     }
 }

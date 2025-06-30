@@ -16,6 +16,7 @@ namespace InsuranceSys.Infrastructure.Database
         public DbSet<UsersEntity> EFUsers { get; set; }
         public DbSet<CompanyEntity> EFCompanies { get; set; }
         public DbSet<InsuranceTypeEntity> EFInsuranceTypes { get; set; }
+        public DbSet<LeadStatusEntity> EFLeadStatus { get; set; }
         public DbSet<Mapping_Company_InsuranceType> EFMappingCompanyInsuranceType { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {            
@@ -23,6 +24,7 @@ namespace InsuranceSys.Infrastructure.Database
             modelBuilder.Entity<UsersEntity>().ToTable("UsersInfo");
             modelBuilder.Entity<CompanyEntity>().ToTable("CompanyMaster");
             modelBuilder.Entity<InsuranceTypeEntity>().ToTable("InsuranceTypeMaster");
+            modelBuilder.Entity<LeadStatusEntity>().ToTable("LeadStatus");
             modelBuilder.Entity<Mapping_Company_InsuranceType>().ToTable("Mapping_Company_InsuranceType");
 
         }

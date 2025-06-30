@@ -12,5 +12,6 @@ namespace InsuranceSys.Application.Interface
         Task<List<DropdownItemDto>> GetCompanyMappedWithInsuranceType(int policyTypeID);
         Task<List<DropdownItemDto>> GetInsuranceTypeDropdownAsync();
         Task<List<DropdownItemDto>> GetCompanyDropdownAsync();
+        Task<List<DropdownItemDto>> GetLeadStatusDropdownAsync();
     }
 }

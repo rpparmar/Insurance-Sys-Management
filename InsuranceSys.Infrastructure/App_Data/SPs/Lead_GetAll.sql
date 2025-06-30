@@ -26,7 +26,7 @@ SELECT COUNT(*) AS TotalRecords FROM LeadManagement WHERE ISNULL(IsDeleted,0)<>1
 		,[LastName]
 		,[Email]
 		,[PhoneNumber]
-		,[LeadStatus]
+		,LeadStatus.[LeadStatus]
 		,[LeadSource]
 		,[AssignedTo]
 		,[InquiryDate]
@@ -38,6 +38,7 @@ SELECT COUNT(*) AS TotalRecords FROM LeadManagement WHERE ISNULL(IsDeleted,0)<>1
 		FROM LeadManagement Lead
 		LEFT JOIN CompanyMaster Comp ON Lead.CompanyID=Comp.CompanyID
 		LEFT JOIN InsuranceTypeMaster PolicyType ON PolicyType.InsuranceTypeId=Lead.PolicyTypeID
+		LEFT JOIN LeadStatus ON LeadStatus.LeadStatusID=Lead.LeadStatus
 		WHERE 
 			ISNULL(Lead.IsDeleted,0)<>1 
 			AND 
@@ -62,7 +63,7 @@ END
 Else
 begin
 exec('
-ALTER  PROCEDURE [dbo].[Lead_GetAll]  
+ALTER PROCEDURE [dbo].[Lead_GetAll]  
  @PageNumber INT,
 	@PageSize INT,
 	@SearchTerm varchar(100)='''',
@@ -87,7 +88,7 @@ SELECT COUNT(*) AS TotalRecords FROM LeadManagement WHERE ISNULL(IsDeleted,0)<>1
 		,[LastName]
 		,[Email]
 		,[PhoneNumber]
-		,[LeadStatus]
+		,LeadStatus.[LeadStatus]
 		,[LeadSource]
 		,[AssignedTo]
 		,[InquiryDate]
@@ -99,6 +100,7 @@ SELECT COUNT(*) AS TotalRecords FROM LeadManagement WHERE ISNULL(IsDeleted,0)<>1
 		FROM LeadManagement Lead
 		LEFT JOIN CompanyMaster Comp ON Lead.CompanyID=Comp.CompanyID
 		LEFT JOIN InsuranceTypeMaster PolicyType ON PolicyType.InsuranceTypeId=Lead.PolicyTypeID
+		LEFT JOIN LeadStatus ON LeadStatus.LeadStatusID=Lead.LeadStatus
 		WHERE 
 			ISNULL(Lead.IsDeleted,0)<>1 
 			AND 

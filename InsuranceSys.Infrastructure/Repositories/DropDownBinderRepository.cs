@@ -74,5 +74,20 @@ namespace InsuranceSys.Infrastructure.Repositories
                 })
                 .ToListAsync();
         }
+        public async Task<List<DropdownItemDto>> GetLeadStatusDropdownAsync()
+        {
+            using var _efdbcontext = await CreateContextAsync();
+
+            return await _efdbcontext.EFLeadStatus
+                .AsNoTracking()
+                .Where(c => c.IsActive && !c.IsDeleted)
+                .OrderBy(c => c.LeadStatus)
+                .Select(c => new DropdownItemDto
+                {
+                    Value = c.LeadStatusID.ToString(),
+                    Text = c.LeadStatus
+                })
+                .ToListAsync();
+        }
     }
 }

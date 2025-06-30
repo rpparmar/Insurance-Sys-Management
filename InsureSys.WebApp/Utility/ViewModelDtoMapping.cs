@@ -13,6 +13,7 @@ namespace Insurancesys.web.Utility
             CreateMap<LeadViewModel, LeadEntity>();
             CreateMap<CompanyViewModel, CompanyEntity>();
             CreateMap<InsuranceTypeViewModel, InsuranceTypeEntity>();
+            CreateMap<LeadStatusViewModel, LeadStatusEntity>();
             #endregion
 
             #region DTO to ViewModel
@@ -20,6 +21,7 @@ namespace Insurancesys.web.Utility
             CreateMap<CompanyEntity, CompanyViewModel>();             
             CreateMap<LeadEntity, LeadViewModel>();
             CreateMap<InsuranceTypeEntity, InsuranceTypeViewModel>();
+            CreateMap<LeadStatusEntity, LeadStatusViewModel>();
             #endregion
         }
     }
