@@ -35,7 +35,7 @@ namespace Insurancesys.web.Controllers
             return View("../Masters/InsuranceType/InsuranceTypeList");
         }
         [HttpPost]
-        public async Task<IActionResult> GetData(DataTableRequest param)
+        public async Task<IActionResult> GetData()
         {
             var result = await DataTableHelper.BuildGridResponseAsync(Request, _insuranceTypeService.GetAllAsync);
             return Json(result);

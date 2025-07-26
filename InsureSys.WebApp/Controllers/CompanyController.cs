@@ -38,7 +38,7 @@ namespace Insurancesys.web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> GetData(DataTableRequest param)
+        public async Task<IActionResult> GetData()
         {
             var result = await DataTableHelper.BuildGridResponseAsync(Request, _companyService.GetAllAsync);
             return Json(result);

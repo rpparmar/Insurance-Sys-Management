@@ -28,7 +28,7 @@ namespace Insurancesys.web.Controllers
             return View("../Masters/LeadStatus/LeadStatusList");
         }
         [HttpPost]
-        public async Task<IActionResult> GetData(DataTableRequest param)
+        public async Task<IActionResult> GetData()
         {
             var result = await DataTableHelper.BuildGridResponseAsync(Request, _leadStatusService.GetAllAsync);
             return Json(result);
