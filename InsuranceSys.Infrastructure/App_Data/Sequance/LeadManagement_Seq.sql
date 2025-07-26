@@ -1,0 +1,5 @@
+
+IF OBJECT_ID('[dbo].[LeadManagement_Seq]') IS  NULL
+BEGIN
+	CREATE SEQUENCE LeadManagement_Seq START WITH 0 INCREMENT BY 1;
+END

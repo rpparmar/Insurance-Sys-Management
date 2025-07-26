@@ -140,7 +140,7 @@ namespace InsuranceSys.Infrastructure
 					return await cmd.ExecuteReaderAsync().ConfigureAwait(false);
 				}
 			}
-		}
+		}        
         public Task<string> GetConnectionStringAsync(bool masterDBConn=true)
         {
             // Option 1: From config file
@@ -153,7 +153,17 @@ namespace InsuranceSys.Infrastructure
                 throw new Exception("Invalid client");
 
             return Task.FromResult(connStr);
-        }  
-	}
+        }
+        public async Task<int> GetNextIdAsync(string objName)
+        {
+            using var connection = new SqlConnection(await GetConnectionStringAsync());
+            using var command = new SqlCommand($"SELECT NEXT VALUE FOR {objName}", connection);
+
+            await connection.OpenAsync();
+            var result = await command.ExecuteScalarAsync();
+
+            return Convert.ToInt32(result);
+        }
+    }
 
 }

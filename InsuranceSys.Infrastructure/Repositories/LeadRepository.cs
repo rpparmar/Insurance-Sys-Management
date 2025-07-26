@@ -39,6 +39,7 @@ namespace InsuranceSys.Infrastructure.Repositories
         {
             using var _efdbcontext = await CreateContextAsync();
             lead.InquiryDate = DateTime.UtcNow;
+            //lead.LeadID = await _dbcontext.GetNextIdAsync("LeadManagement_Seq");
             await _efdbcontext.EFLeads.AddAsync(lead);
             return await _efdbcontext.SaveChangesAsync();
         }
