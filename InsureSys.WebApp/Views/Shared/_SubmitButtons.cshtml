@@ -1,0 +1,14 @@
+﻿@using Insurancesys.web.Models.Common
+@model SubmitButtonViewModel
+@{
+    var saveAndNewLabel = Model.IsEditMode ? "Update & Continue" : "Save & Add New";
+    var saveAndExitLabel = Model.IsEditMode ? "Update & Exit" : "Save & Exit";
+}
+<button type="submit" form="@Model.FormId" name="saveAndExit" value="false" class="btn btn-primary font-weight-bolder mr-2">
+    <i class="flaticon-interface-5"></i>
+    <span class="nav-text">@saveAndNewLabel</span>
+</button>
+<button type="submit" form="@Model.FormId" name="saveAndExit" value="true" class="btn btn-warning font-weight-bolder">
+    <i class="flaticon-logout"></i>
+    <span class="nav-text">@saveAndExitLabel</span>
+</button>

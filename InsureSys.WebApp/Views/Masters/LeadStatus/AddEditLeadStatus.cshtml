@@ -1,4 +1,5 @@
 ﻿@using Insurancesys.web.Helper
+@using Insurancesys.web.Models.Common
 @model Insurancesys.web.Models.LeadStatusViewModel
 @section Styles {
     <link href="~/css/common.css" rel="stylesheet" type="text/css" />
@@ -49,16 +50,11 @@
                             <a asp-controller="LeadStatus" asp-action="LeadStatusList" class="btn btn-danger font-weight-bolder mr-2">
                                 <i class="flaticon2-left-arrow-1 icon-sm-nm"></i>Back
                             </a>
-                            @{
-                                <button type="submit" form="frmLeadStatus" name="saveAndExit" value="false" class="btn btn-primary font-weight-bolder mr-2">
-                                    <i class="flaticon-interface-5"></i>
-                                    <span class="nav-text">@(!Model.IsEditMode ? "Save & Add New" : "Update & continue")</span>
-                                </button>
-                                <button type="submit" form="frmLeadStatus" name="saveAndExit" value="true" class="btn btn-warning font-weight-bolder mr-2">
-                                    <i class="flaticon-logout"></i>
-                                    <span class="nav-text">@(!Model.IsEditMode ? "Save & Exit" : "Update & Exit")</span>
-                                </button>
-                            }
+                            @await Html.PartialAsync("_SubmitButtons", new SubmitButtonViewModel
+                            {
+                                IsEditMode = Model.IsEditMode,
+                                FormId = "frmLeadStatus"
+                            })                            
                         </div>
                     </div>
                     <div class="card-body">
