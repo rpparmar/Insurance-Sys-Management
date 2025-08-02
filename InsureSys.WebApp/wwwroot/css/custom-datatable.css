@@ -38,3 +38,13 @@ div.dataTables_processing {
     border: none !important;
     box-shadow: none !important;
 }
+table.dataTable thead tr th { background: #e7e9f1; }
+.table.table-head-custom thead tr, .table.table-head-custom thead th {
+    color: #000 !important;
+}
+.table.table-separate th:first-child, .table.table-separate td:first-child {
+    padding-left: 13px !important;
+}
+.table.table-separate th:last-child, .table.table-separate td:last-child {
+    padding-right: 13px !important;
+}
