@@ -1,4 +1,4 @@
-﻿@using Insurancesys.web.Helper
+@using Insurancesys.web.Helper
 @using Insurancesys.web.Models.Common
 @model Insurancesys.web.Models.PolicyVehicleDetailsViewModel
 @*
@@ -11,6 +11,7 @@
     var index = ViewBag.Index ?? 0;
     var policyType = ViewBag.PolicyType;
     var prefix = $"{policyType}Policies[{index}].VehicleDetails";
+    ViewData.TemplateInfo.HtmlFieldPrefix = prefix;
 }
 
 <div class="separator-content-wrapper">
@@ -20,13 +21,13 @@
 <div class="form-group row mt-3">
     @Html.TwoColsHorizontalFormTextBox(
     label: "Vehicle No",
-        forExpression: $"{prefix}.Vehicleno",
+        forExpression: "Vehicleno",
         isRequired: false,
         placeholder: "Enter vehicle no",
         maxlength: 100)
     @Html.TwoColsHorizontalFormTextBox(
         label: "Chassise No",
-        forExpression: $"{prefix}.Chassiseno",
+        forExpression: "Chassiseno",
         isRequired: false,
         placeholder: "Enter chassise no",
         maxlength: 100)
@@ -35,13 +36,13 @@
 <div class="form-group row mt-3">
     @Html.TwoColsHorizontalFormTextBox(
         label: "Make",
-        forExpression: $"{prefix}.Make",
+        forExpression: "Make",
         isRequired: false,
         placeholder: "Enter make details",
         maxlength: 100)
     @Html.TwoColsHorizontalFormTextBox(
         label: "Model",
-        forExpression: $"{prefix}.VehicleModel",
+        forExpression: "VehicleModel",
         isRequired: false,
         placeholder: "Enter model detail",
         maxlength: 100)
@@ -50,13 +51,13 @@
 <div class="form-group row mt-3">
     @Html.TwoColsHorizontalFormTextBox(
         label: "Segment",
-        forExpression: $"{prefix}.Segment",
+        forExpression: "Segment",
         isRequired: false,
         placeholder: "Enter segment",
         maxlength: 50)
     @Html.TwoColsHorizontalDropdown(
         label: "Fuel Type",
-        forExpression: $"{prefix}.Fuel",
+        forExpression: "Fuel",
         new List<SelectListItem>{
         new SelectListItem { Text = "Petrol", Value = "PT" },
         new SelectListItem { Text = "Diesel", Value = "DS" },
@@ -67,13 +68,13 @@
 <div class="form-group row mt-3">
     @Html.TwoColsHorizontalFormTextBox(
         label: "Vehicle IDV",
-        forExpression: $"{prefix}.VehicleIDV",
+        forExpression: "VehicleIDV",
         isRequired: false,
         placeholder: "Enter idv",
         maxlength: 10)
     @Html.TwoColsHorizontalDropdown(
         label: "Plan Type",
-        forExpression: $"{prefix}.PlanType",
+        forExpression: "PlanType",
         new List<SelectListItem>{
         new SelectListItem { Text = "FULL", Value = "FULL" },
         new SelectListItem { Text = "T.P", Value = "TP" },

@@ -17,5 +17,7 @@ namespace InsuranceSys.Domain.Entities
         public string? PaymentMode { get; set; }
         public string? Transactionreferance { get; set; }
         public string? BankName { get; set; }
+        public DateTime? CreatedOn { get; set; }
+        public DateTime? UpdatedOn { get; set; }
     }
 }

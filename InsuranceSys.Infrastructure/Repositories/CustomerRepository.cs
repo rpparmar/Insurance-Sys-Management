@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using InsuranceSys.Application;
 using InsuranceSys.Application.Interface;
 using InsuranceSys.Domain.Entities;
@@ -77,12 +77,61 @@ namespace InsuranceSys.Infrastructure.Repositories
                 await context.EFVehicleDetails.AddAsync(vehicleDetails);
                 await context.SaveChangesAsync();
 
-                int generatedPolicyId = vehicleDetails.PolicyId;
+                int generatedVehicleId = vehicleDetails.VehicleId;
 
                 // Detach only this entity — don't affect other tracked entities
                 context.Entry(vehicleDetails).State = EntityState.Detached;
 
+                return generatedVehicleId;
+            });
+        }
+
+        public async Task<int> AddPolicyPaymentDetails(PolicyPaymentDetailsEntity policyPayment)
+        {
+            return await ExecuteWriteAsync(async context =>
+            {
+                policyPayment.CreatedOn = DateTime.UtcNow;
+                policyPayment.UpdatedOn = DateTime.UtcNow;
+                await context.EFPolicyPayment.AddAsync(policyPayment);
+                await context.SaveChangesAsync();
+
+                int generatedPolicyId = policyPayment.PolicyId;
+
+                // Detach only this entity — don't affect other tracked entities
+                context.Entry(policyPayment).State = EntityState.Detached;
+
                 return generatedPolicyId;
+            });
+        }
+
+        public async Task<List<PolicyDetailsEntity>> GetPolicyDetailsByCustomerAsync(int customerId)
+        {
+            return await ExecuteReadAsync(async context =>
+            {
+                return await context.EFPolicyDetails.AsNoTracking()
+                    .Where(p => p.CustomerID == customerId && !p.IsDeleted)
+                    .ToListAsync();
+            });
+        }
+
+        public async Task<PolicyVehicleDetailsEntity?> GetVehicleDetailsByPollicyAsync(int policyId)
+        {
+            return await ExecuteReadAsync(async context =>
+            {                
+                return await context.EFVehicleDetails.AsNoTracking()
+                    .Where(v => v.PolicyId == policyId)
+                    .FirstOrDefaultAsync();
+            });
+        }
+
+        public async Task<PolicyPaymentDetailsEntity?> GetPolicyPaymentsByPollicyAsync(int policyId)
+        {
+            return await ExecuteReadAsync(async context =>
+            {
+
+                return await context.EFPolicyPayment.AsNoTracking()
+                    .Where(pp => pp.PolicyId == policyId)
+                    .FirstOrDefaultAsync();
             });
         }
     }

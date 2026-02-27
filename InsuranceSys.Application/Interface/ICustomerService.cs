@@ -1,4 +1,4 @@
-﻿using InsuranceSys.Domain.Entities;
+using InsuranceSys.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -15,7 +15,10 @@ namespace InsuranceSys.Application.Interface
 
         Task<int> AddCustomer(CustomerEntity customer);
         Task<int> AddPolicyDetails(PolicyDetailsEntity policyDetails);
-        //Task<int> AddPolicyVehicleDetails(PolicyVehicleDetailsEntity vehicleDetails);
-        //Task<int> AddPolicyPaymentDetails(PolicyPaymentDetailsEntity policyPayment);
+        Task<int> AddVehicleDetails(PolicyVehicleDetailsEntity vehicleDetails);
+        Task<int> AddPolicyPaymentDetails(PolicyPaymentDetailsEntity policyPayment);
+        Task<List<PolicyDetailsEntity>> GetPolicyDetailsByCustomerAsync(int customerId);
+        Task<PolicyVehicleDetailsEntity?> GetVehicleDetailsByPollicyAsync(int policyId);
+        Task<PolicyPaymentDetailsEntity?> GetPolicyPaymentsByPollicyAsync(int policyId);
     }
 }

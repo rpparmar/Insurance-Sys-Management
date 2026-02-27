@@ -15,7 +15,8 @@ namespace InsuranceSys.Domain.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Column("PolicyID")]
         public int PolicyId { get; set; }
-        public int CustomerID { get; set; }        
+        public int CustomerID { get; set; }
+        public int InsuranceTypeID { get; set; }
         public string PolicyNumber { get; set; } = string.Empty;        
         public DateTime? PolicyStartDate { get; set; }        
         public DateTime? PolicyDueDate { get; set; }        

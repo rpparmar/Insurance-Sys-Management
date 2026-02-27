@@ -1,4 +1,4 @@
-﻿@using Insurancesys.web.Helper
+@using Insurancesys.web.Helper
 @using Insurancesys.web.Models.Common
 @model dynamic
 
@@ -12,6 +12,7 @@
     var index = ViewBag.Index ?? 0;
     var policyType = ViewBag.PolicyType;
     var prefix = $"{policyType}Policies[{index}].PolicyPaymentDetails";
+    ViewData.TemplateInfo.HtmlFieldPrefix = prefix;
 }
 
     <div class="separator-content-wrapper">
@@ -21,7 +22,7 @@
     <div class="form-group row mt-3">
         @Html.TwoColsHorizontalDropdown(
                 label: "Payment Mode",
-        forExpression: $"{prefix}.PaymentMode",
+        forExpression: "PaymentMode",
         new List<SelectListItem>{
         new SelectListItem { Text = "Cash", Value = "CS" },
                 new SelectListItem { Text = "Cheque", Value = "CQ" },
@@ -29,7 +30,7 @@
                 })
         @Html.TwoColsHorizontalFormTextBox(
                 label: "Transaction Referance",
-        forExpression: $"{prefix}.Transactionreferance",
+        forExpression: "Transactionreferance",
         isRequired: false,
                 placeholder: "Enter transaction referance",
                 maxlength: 50)
@@ -38,7 +39,7 @@
     <div class="form-group row mt-3">
         @Html.TwoColsHorizontalFormTextBox(
                 label: "Bank Name",
-        forExpression: $"{prefix}.BankName",
+        forExpression: "BankName",
         isRequired: false,
                 placeholder: "Enter bank name",
                 maxlength: 100)

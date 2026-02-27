@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Html;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Xml.Serialization;
 
@@ -476,8 +476,8 @@ namespace Insurancesys.web.Helper
              bool isRequired = false
         )
         {
-            // Generate unique ID based on field name
-            string uniqueId = $"{forExpression}";
+            var fullName = htmlHelper.ViewContext.ViewData.TemplateInfo.GetFullHtmlFieldName(forExpression);
+            var fullId = TagBuilder.CreateSanitizedId(fullName, htmlHelper.IdAttributeDotReplacement);
 
             // ---- LABEL ----
             var labelTag = new TagBuilder("label");
@@ -490,11 +490,34 @@ namespace Insurancesys.web.Helper
             var input = new TagBuilder("input");
             input.TagRenderMode = TagRenderMode.SelfClosing;
             input.Attributes.Add("type", "text");
-            input.Attributes.Add("id", uniqueId);
-            input.Attributes.Add("name", forExpression);
+            input.Attributes.Add("id", fullId);
+            input.Attributes.Add("name", fullName);
             input.Attributes.Add("placeholder", placeholder);
             input.Attributes.Add("data-date-format", "yyyy-mm-dd");
             input.AddCssClass("form-control kt_datetimepicker_6");
+
+            // ---- VALUE (for edit / prefill) ----
+            string? valueToRender = null;
+            if (htmlHelper.ViewData.ModelState.TryGetValue(fullName, out var entry) && entry != null)
+            {
+                valueToRender = entry.AttemptedValue;
+            }
+            else
+            {
+                var currentValue = htmlHelper.ViewData.Eval(forExpression);
+                if (currentValue is DateTime dt)
+                {
+                    valueToRender = dt.ToString("yyyy/MM/dd");
+                }
+                else if (currentValue != null)
+                {
+                    valueToRender = currentValue.ToString();
+                }
+            }
+            if (!string.IsNullOrWhiteSpace(valueToRender))
+            {
+                input.Attributes["value"] = valueToRender;
+            }
 
             // ---- INPUT GROUP ----
             var appendIcon = new TagBuilder("div");
@@ -546,12 +569,14 @@ namespace Insurancesys.web.Helper
             labelTag.InnerHtml.Append(label);
 
             // ---- DROPDOWN ATTRIBUTES ----
+            var fullName = htmlHelper.ViewContext.ViewData.TemplateInfo.GetFullHtmlFieldName(forExpression);
+            var fullId = TagBuilder.CreateSanitizedId(fullName, htmlHelper.IdAttributeDotReplacement);
             var dropdownAttributes = new Dictionary<string, object>
             {
                 { "class", "form-control selectpicker" },
                 { "data-size", "7" },
                 { "data-live-search", "true" },
-                { "id", $"drp_{forExpression}" }
+                { "id", $"drp_{fullId}" }
             };
 
             // ---- DROPDOWN ----

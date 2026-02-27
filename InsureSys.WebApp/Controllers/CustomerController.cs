@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Insurancesys.web.Helper;
 using Insurancesys.web.Models;
 using Insurancesys.web.Models.Common;
@@ -38,9 +38,16 @@ namespace Insurancesys.web.Controllers
             return View("../Customer/ListOfCustomers");
         }
         [Route("Customer/Policies")]
-        public IActionResult ManagePolicies(int customerId = 0)
+        public async Task<IActionResult> ManagePolicies(int customerId = 0)
         {
-            return View("../Customer/CustomerPolicies");
+            var model = new PolicyDetailsViewModel();
+
+            if (customerId > 0)
+            {
+                model = await BuildPolicyDetailsViewModelAsync(customerId);
+            }
+
+            return View("../Customer/CustomerPolicies", model);
         }
         [HttpPost]
         public async Task<IActionResult> GetData()
@@ -147,36 +154,15 @@ namespace Insurancesys.web.Controllers
             }
             if (model.HealthPolicies != null && model.HealthPolicies.Count > 0)
             {
-                Console.WriteLine($"Saving {model.HealthPolicies.Count} health policies...");
-                foreach (var paymentDetails in model.HealthPolicies)
-                {
-                    if (paymentDetails.PolicyPaymentDetails != null)
-                    {
-                        Console.WriteLine($"health policies at {model.HealthPolicies.IndexOf(paymentDetails)} contains payment details");
-                    }
-                }
+                await SaveHealthPoliciesAsync(customerId, model.HealthPolicies);
             }
             if (model.LifePolicies != null && model.LifePolicies.Count > 0)
             {
-                Console.WriteLine($"Saving {model.LifePolicies.Count} life policies...");
-                foreach (var paymentDetails in model.LifePolicies)
-                {
-                    if (paymentDetails.PolicyPaymentDetails != null)
-                    {
-                        Console.WriteLine($"life policies at {model.LifePolicies.IndexOf(paymentDetails)} contains payment details");
-                    }
-                }
+                await SaveLifePoliciesAsync(customerId, model.LifePolicies);
             }
             if (model.PersonalAccidentPolicies != null && model.PersonalAccidentPolicies.Count > 0)
             {
-                Console.WriteLine($"Saving {model.PersonalAccidentPolicies.Count} personal accident policies...");
-                foreach (var paymentDetails in model.PersonalAccidentPolicies)
-                {
-                    if (paymentDetails.PolicyPaymentDetails != null)
-                    {
-                        Console.WriteLine($"personal accident policies at {model.PersonalAccidentPolicies.IndexOf(paymentDetails)} contains payment details");
-                    }
-                }
+                await SavePersonalAccidentPoliciesAsync(customerId, model.PersonalAccidentPolicies);
             }
             return RedirectToAction("ListOfCustomers");
         }
@@ -269,8 +255,7 @@ namespace Insurancesys.web.Controllers
             }
             else
             {
-                //customer.CustomerID = await _customerService.AddCustomer(customer);                                
-                customer.CustomerID = 1;                                
+                customer.CustomerID = await _customerService.AddCustomer(customer);
             }
             return customer;
         }
@@ -302,10 +287,11 @@ namespace Insurancesys.web.Controllers
                     BasicDetails = new PolicyBasicDetailsViewModel
                     {
                         CustomerID = customerId,
+                        InsuranceTypeID = 1,
                         PolicyNumber = policyDto.BasicDetails.PolicyNumber,
                         PolicyStartDate = policyDto.BasicDetails.PolicyStartDate,
                         PolicyDueDate = policyDto.BasicDetails.PolicyDueDate,
-                        Company = policyDto.BasicDetails.Company,                        
+                        Company = policyDto.BasicDetails.Company,
                         GrosssPremium = policyDto.BasicDetails.GrosssPremium,
                         NetPremium = policyDto.BasicDetails.NetPremium,
                         ODPremium = policyDto.BasicDetails.ODPremium,
@@ -316,20 +302,19 @@ namespace Insurancesys.web.Controllers
                         UpdatedOn = DateTime.UtcNow,
                         IsActive = true
 
-                    }
+                    },
+                    VehicleDetails = policyDto.VehicleDetails,
+                    PolicyPaymentDetails = policyDto.PolicyPaymentDetails
                 };
 
                 var motorPolicyEntity = _mapper.Map<PolicyDetailsEntity>(motorPolicy.BasicDetails);
                 motorPolicyEntity.PolicyId = await _customerService.AddPolicyDetails(motorPolicyEntity);
                 if (motorPolicyEntity.PolicyId > 0)
-                {                    
+                {
                     await SaveVehicleDetailsAsync(motorPolicyEntity.PolicyId, motorPolicy.VehicleDetails);
+                    await SavePolicyPaymentDetailsAsync(motorPolicyEntity.PolicyId, motorPolicy.PolicyPaymentDetails);
                 }
-                //var policyPaymentEntity = _mapper.Map<PolicyPaymentDetailsEntity>(policy.PolicyPaymentDetails);
-                //if (motorPolicyEntity.PolicyId > 0 && policyPaymentEntity != null)
-                //{
 
-                //}
 
             }
         }
@@ -341,10 +326,200 @@ namespace Insurancesys.web.Controllers
                 var policyVehicleEntity = _mapper.Map<PolicyVehicleDetailsEntity>(vehicleDetailsViewModel);
                 if (PolicyId > 0 && policyVehicleEntity != null)
                 {
-
+                    policyVehicleEntity.PolicyId = PolicyId;
+                    await _customerService.AddVehicleDetails(policyVehicleEntity);
                 }
             }
-            
+
+        }
+
+        private async Task SavePolicyPaymentDetailsAsync(int policyId, PolicyPaymentDetailsViewModel? paymentDetailsViewModel)
+        {
+            if (paymentDetailsViewModel != null)
+            {
+                var paymentEntity = _mapper.Map<PolicyPaymentDetailsEntity>(paymentDetailsViewModel);
+                if (policyId > 0 && paymentEntity != null)
+                {
+                    paymentEntity.PolicyId = policyId;
+                    await _customerService.AddPolicyPaymentDetails(paymentEntity);
+                }
+            }
+        }
+
+        private async Task SaveHealthPoliciesAsync(int customerId, List<HealthPolicyViewModel> healthPolicies)
+        {
+            foreach (var policyDto in healthPolicies)
+            {
+                var healthPolicy = new HealthPolicyViewModel
+                {
+                    BasicDetails = new PolicyBasicDetailsViewModel
+                    {
+                        CustomerID = customerId,
+                        InsuranceTypeID = 2,
+                        PolicyNumber = policyDto.BasicDetails.PolicyNumber,
+                        PolicyStartDate = policyDto.BasicDetails.PolicyStartDate,
+                        PolicyDueDate = policyDto.BasicDetails.PolicyDueDate,
+                        Company = policyDto.BasicDetails.Company,
+                        GrosssPremium = policyDto.BasicDetails.GrosssPremium,
+                        NetPremium = policyDto.BasicDetails.NetPremium,
+                        ODPremium = policyDto.BasicDetails.ODPremium,
+                        NCB = policyDto.BasicDetails.NCB,
+                        Dealer = policyDto.BasicDetails.Dealer,
+                        SM = policyDto.BasicDetails.SM,
+                        CreatedOn = DateTime.UtcNow,
+                        UpdatedOn = DateTime.UtcNow,
+                        IsActive = true
+                    },
+                    PolicyPaymentDetails = policyDto.PolicyPaymentDetails
+                };
+
+                var policyEntity = _mapper.Map<PolicyDetailsEntity>(healthPolicy.BasicDetails);
+                policyEntity.PolicyId = await _customerService.AddPolicyDetails(policyEntity);
+                if (policyEntity.PolicyId > 0)
+                {
+                    await SavePolicyPaymentDetailsAsync(policyEntity.PolicyId, healthPolicy.PolicyPaymentDetails);
+                }
+            }
+        }
+
+        private async Task SaveLifePoliciesAsync(int customerId, List<LifePolicyViewModel> lifePolicies)
+        {
+            foreach (var policyDto in lifePolicies)
+            {
+                var lifePolicy = new LifePolicyViewModel
+                {
+                    BasicDetails = new PolicyBasicDetailsViewModel
+                    {
+                        CustomerID = customerId,
+                        InsuranceTypeID = 3,
+                        PolicyNumber = policyDto.BasicDetails.PolicyNumber,
+                        PolicyStartDate = policyDto.BasicDetails.PolicyStartDate,
+                        PolicyDueDate = policyDto.BasicDetails.PolicyDueDate,
+                        Company = policyDto.BasicDetails.Company,
+                        GrosssPremium = policyDto.BasicDetails.GrosssPremium,
+                        NetPremium = policyDto.BasicDetails.NetPremium,
+                        ODPremium = policyDto.BasicDetails.ODPremium,
+                        NCB = policyDto.BasicDetails.NCB,
+                        Dealer = policyDto.BasicDetails.Dealer,
+                        SM = policyDto.BasicDetails.SM,
+                        CreatedOn = DateTime.UtcNow,
+                        UpdatedOn = DateTime.UtcNow,
+                        IsActive = true
+                    },
+                    PolicyPaymentDetails = policyDto.PolicyPaymentDetails
+                };
+
+                var policyEntity = _mapper.Map<PolicyDetailsEntity>(lifePolicy.BasicDetails);
+                policyEntity.PolicyId = await _customerService.AddPolicyDetails(policyEntity);
+                if (policyEntity.PolicyId > 0)
+                {
+                    await SavePolicyPaymentDetailsAsync(policyEntity.PolicyId, lifePolicy.PolicyPaymentDetails);
+                }
+            }
+        }
+
+        private async Task SavePersonalAccidentPoliciesAsync(int customerId, List<PersonalAccidentPolicyViewModel> personalAccidentPolicies)
+        {
+            foreach (var policyDto in personalAccidentPolicies)
+            {
+                var paPolicy = new PersonalAccidentPolicyViewModel
+                {
+                    BasicDetails = new PolicyBasicDetailsViewModel
+                    {
+                        CustomerID = customerId,
+                        InsuranceTypeID = 4,
+                        PolicyNumber = policyDto.BasicDetails.PolicyNumber,
+                        PolicyStartDate = policyDto.BasicDetails.PolicyStartDate,
+                        PolicyDueDate = policyDto.BasicDetails.PolicyDueDate,
+                        Company = policyDto.BasicDetails.Company,
+                        GrosssPremium = policyDto.BasicDetails.GrosssPremium,
+                        NetPremium = policyDto.BasicDetails.NetPremium,
+                        ODPremium = policyDto.BasicDetails.ODPremium,
+                        NCB = policyDto.BasicDetails.NCB,
+                        Dealer = policyDto.BasicDetails.Dealer,
+                        SM = policyDto.BasicDetails.SM,
+                        CreatedOn = DateTime.UtcNow,
+                        UpdatedOn = DateTime.UtcNow,
+                        IsActive = true
+                    },
+                    PolicyPaymentDetails = policyDto.PolicyPaymentDetails
+                };
+
+                var policyEntity = _mapper.Map<PolicyDetailsEntity>(paPolicy.BasicDetails);
+                policyEntity.PolicyId = await _customerService.AddPolicyDetails(policyEntity);
+                if (policyEntity.PolicyId > 0)
+                {
+                    await SavePolicyPaymentDetailsAsync(policyEntity.PolicyId, paPolicy.PolicyPaymentDetails);
+                }
+            }
+        }
+
+        private async Task<PolicyDetailsViewModel> BuildPolicyDetailsViewModelAsync(int customerId)
+        {
+            var model = new PolicyDetailsViewModel
+            {
+                CustomerID = customerId
+            };
+
+            var policies = await _customerService.GetPolicyDetailsByCustomerAsync(customerId);
+            if (policies == null || policies.Count == 0)
+            {
+                return model;
+            }
+
+
+
+            foreach (var policy in policies)
+            {
+                var basicDetails = _mapper.Map<PolicyBasicDetailsViewModel>(policy);
+                var payment = await _customerService.GetPolicyPaymentsByPollicyAsync(policy.PolicyId);
+                var paymentVm = payment != null
+                    ? _mapper.Map<PolicyPaymentDetailsViewModel>(payment)
+                    : null;
+
+                switch (policy.InsuranceTypeID)
+                {
+                    case 1: // Motor Insurance
+                        var vehicle = await _customerService.GetVehicleDetailsByPollicyAsync(policy.PolicyId);
+                        var vehicleVm = vehicle != null
+                    ? _mapper.Map<PolicyVehicleDetailsViewModel>(vehicle)
+                    : null;
+                        var motorVm = new MotorPolicyViewModel
+                        {
+                            BasicDetails = basicDetails,
+                            VehicleDetails = vehicleVm,
+                            PolicyPaymentDetails = paymentVm
+                        };
+                        model.MotorPolicies.Add(motorVm);
+                        break;
+                    case 2: // Health Insurance
+                        var healthVm = new HealthPolicyViewModel
+                        {
+                            BasicDetails = basicDetails,
+                            PolicyPaymentDetails = paymentVm
+                        };
+                        model.HealthPolicies.Add(healthVm);
+                        break;
+                    case 3: // Term / Life Insurance
+                        var lifeVm = new LifePolicyViewModel
+                        {
+                            BasicDetails = basicDetails,
+                            PolicyPaymentDetails = paymentVm
+                        };
+                        model.LifePolicies.Add(lifeVm);
+                        break;
+                    case 4: // Personal Accident
+                        var paVm = new PersonalAccidentPolicyViewModel
+                        {
+                            BasicDetails = basicDetails,
+                            PolicyPaymentDetails = paymentVm
+                        };
+                        model.PersonalAccidentPolicies.Add(paVm);
+                        break;
+                }
+            }
+
+            return model;
         }
 
     }

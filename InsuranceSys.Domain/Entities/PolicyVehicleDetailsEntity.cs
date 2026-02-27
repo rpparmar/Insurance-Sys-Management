@@ -22,7 +22,7 @@ namespace InsuranceSys.Domain.Entities
         public string? Segment { get; set; }
         public string? Fuel { get; set; }
         public string? PlanType { get; set; } = string.Empty;
-        public string? VehicleIDV { get; set; }
+        public decimal? VehicleIDV { get; set; }
         public DateTime? CreatedOn { get; set; }
         public DateTime? UpdatedOn { get; set; }
     }

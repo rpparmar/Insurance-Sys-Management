@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Customer Form - Multi-Policy Support
  * Handles: Motor, Health, Life, Personal Accident insurance
  */
@@ -353,6 +353,9 @@
         },
 
         initializeDecimalInputs: function ($container) {
+            const DECIMAL_REGEX_PATTERN = '^\\d+(\\.\\d{1,2})?$'; // matches PolicyBasicDetailsViewModel regex
+            const DECIMAL_MAX = 10000000.00;
+
             $container.find('input[data-decimal="true"], input.text-right[type="text"]').each(function () {
                 const $input = $(this);
 
@@ -362,8 +365,10 @@
 
                 $input.data('decimal-initialized', true);
 
+                // ----- Formatting behaviour -----
                 $input.on('blur', function () {
-                    const value = parseFloat($(this).val().replace(/,/g, ''));
+                    const raw = ($(this).val() || '').toString().replace(/,/g, '');
+                    const value = parseFloat(raw);
                     if (!isNaN(value) && value > 0) {
                         $(this).val(value.toFixed(2));
                     }
@@ -378,6 +383,41 @@
                         e.preventDefault();
                     }
                 });
+
+                // ----- Client-side validation aligned with PolicyBasicDetailsViewModel -----
+                const name = ($input.attr('name') || '').toString();
+                if (!name) {
+                    return;
+                }
+
+                // Common decimal validation (regex + max range), as per model attributes
+                if (!$input.attr('data-val')) {
+                    $input.attr('data-val', 'true');
+                }
+                if (!$input.attr('data-val-regex')) {
+                    $input.attr('data-val-regex', 'Invalid value entered');
+                }
+                if (!$input.attr('data-val-regex-pattern')) {
+                    $input.attr('data-val-regex-pattern', DECIMAL_REGEX_PATTERN);
+                }
+
+                // Apply range rules based on property, mirroring PolicyBasicDetailsViewModel
+                if (name.endsWith('.GrosssPremium')
+                    || name.endsWith('.NetPremium')
+                    || name.endsWith('.ODPremium')
+                    || name.endsWith('.NCB')
+                ) {
+                    // [Range(0.01, 10000000.00, ErrorMessage = "Premium must be greater than 0")]
+                    if (!$input.attr('data-val-range')) {
+                        $input.attr('data-val-range', 'Value must be greater than 0');
+                    }
+                    if (!$input.attr('data-val-range-min')) {
+                        $input.attr('data-val-range-min', '0.01');
+                    }
+                    if (!$input.attr('data-val-range-max')) {
+                        $input.attr('data-val-range-max', DECIMAL_MAX.toString());
+                    }
+                } 
             });
             console.log('  ✓ Decimal inputs initialized');
         },
@@ -461,23 +501,44 @@
 
         enablePolicyTypeValidation: function (policyType, prefix) {
             $(`.policy-instance[data-policy-type="${policyType}"]`).each(function () {
-                const index = $(this).data('policy-index');
+                const $instance = $(this);
+                const index = $instance.data('policy-index');
+                const instancePrefix = `${prefix}[${index}]`;
 
-                const requiredFields = [
-                    { name: `${prefix}[${index}].BasicDetails.PolicyNumber`, msg: 'Enter policy number' },
-                    { name: `${prefix}[${index}].BasicDetails.Company`, msg: 'Select insurer' },
-                    { name: `${prefix}[${index}].BasicDetails.PolicyStartDate`, msg: 'Select policy start date' },
-                    { name: `${prefix}[${index}].BasicDetails.PolicyDueDate`, msg: 'Select policy due date' },
-                    { name: `${prefix}[${index}].BasicDetails.GrosssPremium`, msg: 'Enter gross premium' }
-                ];
+                // Generic: any field whose label has the "required" marker gets a required rule,
+                // so future required fields don't need JS changes.
+                
+                $instance.find('label.required').each(function () {
+                    const $label = $(this);
 
-                requiredFields.forEach(field => {
-                    const $field = $(`[name="${field.name}"]`);
-                    if ($field.length && !$field.attr('data-val')) {
-                        $field.attr('data-val', 'true')
-                            .attr('data-val-required', field.msg);
+                    // Our helpers render: <label ...></label><div ...><input/select/textarea ...></div>
+                    const $fieldContainer = $label.nextAll('div').first();
+                    if (!$fieldContainer.length) {
+                        return;
+                    }
+
+                    const $field = $fieldContainer.find('input, select, textarea').first();
+                    if (!$field.length) {
+                        return;
+                    }
+
+                    const name = ($field.attr('name') || '').toString();
+                    if (!name || name.indexOf(instancePrefix) !== 0) {
+                        // Not part of this policy instance (or has no name) – skip
+                        return;
+                    }
+
+                    if (!$field.attr('data-val')) {
+                        $field.attr('data-val', 'true');
+                    }
+
+                    if (!$field.attr('data-val-required')) {
+                        const rawLabel = $.trim($label.text().replace('*', ''));
+                        const msg = rawLabel ? `${rawLabel} is required` : 'This field is required';
+                        $field.attr('data-val-required', msg);
                     }
                 });
+                
             });
         },
 

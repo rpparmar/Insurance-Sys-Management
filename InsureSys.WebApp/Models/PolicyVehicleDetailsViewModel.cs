@@ -1,4 +1,6 @@
-﻿namespace Insurancesys.web.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Insurancesys.web.Models
 {
     public class PolicyVehicleDetailsViewModel
     {
@@ -10,7 +12,9 @@
         public string? Chassiseno { get; set; }
         public string? Segment { get; set; }
         public string? Fuel { get; set; }
-        public string? VehicleIDV { get; set; }
+        [RegularExpression(@"^\d+(\.\d{1,2})?$")]
+        [Range(0, 10000000.00)]
+        public decimal? VehicleIDV { get; set; }
         public string? PlanType { get; set; }
     }
 }

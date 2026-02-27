@@ -1,4 +1,4 @@
-﻿@using Insurancesys.web.Helper
+@using Insurancesys.web.Helper
 @using Insurancesys.web.Models.Common
 @model dynamic
 
@@ -17,18 +17,19 @@
     var index = ViewBag.Index ?? 0;
     var policyType = ViewBag.PolicyType;
     var prefix = $"{policyType}Policies[{index}].BasicDetails";
+    ViewData.TemplateInfo.HtmlFieldPrefix = prefix;
 }
 
 
     <div class="form-group row mt-3">
         @Html.TwoColsHorizontalFormTextBox(
         label: "Policy Number",
-        forExpression: $"{prefix}.PolicyNumber",
+        forExpression: "PolicyNumber",
         isRequired: true,
                 placeholder: "Enter policy number")
         @Html.TwoColsHorizontalDropdown(
                 label: "Insurer",
-        forExpression: $"{prefix}.Company",
+        forExpression: "Company",
         new List<SelectListItem>{
                 new SelectListItem { Text = "ICICI Lombard", Value = "1", Selected = Model?.Company == "1" },
                 new SelectListItem { Text = "HDFC ERGO", Value = "2", Selected = Model?.Company == "2" },
@@ -49,12 +50,12 @@
     <div class="form-group row mt-3">
         @Html.TwoColsHorizontalDatePicker(
                 label: "Policy Start Date",
-        forExpression: $"{prefix}.PolicyStartDate",
+        forExpression: "PolicyStartDate",
         placeholder: "Select date",
                 isRequired: true)
         @Html.TwoColsHorizontalDatePicker(
                 label: "Policy Due Date",
-        forExpression: $"{prefix}.PolicyDueDate",
+        forExpression: "PolicyDueDate",
         placeholder: "Select date",
                 isRequired: true)
     </div>
@@ -62,12 +63,12 @@
     <div class="form-group row mt-3">
         @Html.TwoColsHorizontalFormDecimal(
                 label: "Gross Premium(with tax)",
-        forExpression: $"{prefix}.GrosssPremium",
+        forExpression: "GrosssPremium",
                 isRequired: true,
                 placeholder: "0.00")
         @Html.TwoColsHorizontalFormDecimal(
                 label: "Net Premium",
-        forExpression: $"{prefix}.NetPremium",
+        forExpression: "NetPremium",
                 isRequired: false,
                 placeholder: "0.00")
     </div>
@@ -75,12 +76,12 @@
     <div class="form-group row mt-3">
         @Html.TwoColsHorizontalFormDecimal(
                 label: "OD Premium",
-        forExpression: $"{prefix}.ODPremium",
+        forExpression: "ODPremium",
                 isRequired: false,
                 placeholder: "0.00")
         @Html.TwoColsHorizontalFormDecimal(
                 label: "No Claim Bonus",
-        forExpression: $"{prefix}.NCB",
+        forExpression: "NCB",
                 isRequired: false,
                 placeholder: "0.00")
     </div>
@@ -88,13 +89,13 @@
     <div class="form-group row mt-3">
         @Html.TwoColsHorizontalFormTextBox(
                 label: "Dealer",
-        forExpression: $"{prefix}.Dealer",
+        forExpression: "Dealer",
         isRequired: false,
                 placeholder: "Enter dealer",
                 maxlength: 50)
         @Html.TwoColsHorizontalFormTextBox(
                 label: "SM",
-        forExpression: $"{prefix}.SM",
+        forExpression: "SM",
         isRequired: false,
                 placeholder: "Enter SM",
                 maxlength: 50)

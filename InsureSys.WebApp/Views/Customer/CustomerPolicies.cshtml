@@ -1,4 +1,4 @@
-﻿@using Insurancesys.web.Helper
+@using Insurancesys.web.Helper
 @using Insurancesys.web.Models.Common
 @model Insurancesys.web.Models.PolicyDetailsViewModel
 @section Styles {
@@ -69,7 +69,16 @@
 
                                     <!-- Container for dynamic motor policies -->
                                     <div id="motor-policies-container">
-                                        <!-- Motor policies will be added here dynamically -->
+                                        @if (Model.MotorPolicies != null && Model.MotorPolicies.Count > 0)
+                                        {
+                                            for (int i = 0; i < Model.MotorPolicies.Count; i++)
+                                            {
+                                                ViewBag.Index = i;
+                                                ViewBag.PolicyNumber = i + 1;
+                                                ViewBag.PolicyType = "Motor";
+                                                @Html.Partial("_MotorPolicyPartial", Model.MotorPolicies[i])
+                                            }
+                                        }
                                     </div>
 
                                     <button type="button" class="btn-add-another" data-policy-type="motor">
@@ -87,7 +96,16 @@
 
                                     <!-- Container for dynamic health policies -->
                                     <div id="health-policies-container">
-                                        <!-- health policies will be added here dynamically -->
+                                        @if (Model.HealthPolicies != null && Model.HealthPolicies.Count > 0)
+                                        {
+                                            for (int i = 0; i < Model.HealthPolicies.Count; i++)
+                                            {
+                                                ViewBag.Index = i;
+                                                ViewBag.PolicyNumber = i + 1;
+                                                ViewBag.PolicyType = "Health";
+                                                @Html.Partial("_HealthPolicyPartial", Model.HealthPolicies[i])
+                                            }
+                                        }
                                     </div>
 
                                     <button type="button" class="btn-add-another" data-policy-type="health">
@@ -105,10 +123,19 @@
 
                                     <!-- Container for dynamic life policies -->
                                     <div id="life-policies-container">
-                                        <!-- life policies will be added here dynamically -->
+                                        @if (Model.LifePolicies != null && Model.LifePolicies.Count > 0)
+                                        {
+                                            for (int i = 0; i < Model.LifePolicies.Count; i++)
+                                            {
+                                                ViewBag.Index = i;
+                                                ViewBag.PolicyNumber = i + 1;
+                                                ViewBag.PolicyType = "Life";
+                                                @Html.Partial("_LifePolicyPartial", Model.LifePolicies[i])
+                                            }
+                                        }
                                     </div>
 
-                                    <button type="button" class="btn-add-another" data-policy-type="health">
+                                    <button type="button" class="btn-add-another" data-policy-type="life">
                                         <span style="font-size: 18px;">+</span>
                                         Add Another Life Policy
                                     </button>
@@ -123,10 +150,19 @@
 
                                     <!-- Container for dynamic personal accident policies -->
                                     <div id="personalaccident-policies-container">
-                                        <!-- life policies will be added here dynamically -->
+                                        @if (Model.PersonalAccidentPolicies != null && Model.PersonalAccidentPolicies.Count > 0)
+                                        {
+                                            for (int i = 0; i < Model.PersonalAccidentPolicies.Count; i++)
+                                            {
+                                                ViewBag.Index = i;
+                                                ViewBag.PolicyNumber = i + 1;
+                                                ViewBag.PolicyType = "PersonalAccident";
+                                                @Html.Partial("_PersonalAccidentPolicyPartial", Model.PersonalAccidentPolicies[i])
+                                            }
+                                        }
                                     </div>
 
-                                    <button type="button" class="btn-add-another" data-policy-type="health">
+                                    <button type="button" class="btn-add-another" data-policy-type="personalaccident">
                                         <span style="font-size: 18px;">+</span>
                                         Add Another Personal Accident Policy
                                     </button>
