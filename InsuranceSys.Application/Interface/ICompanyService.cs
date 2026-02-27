@@ -12,12 +12,14 @@ namespace InsuranceSys.Application
 {
     public interface ICompanyService
     {
-        Task <DataSet> GetAllAsync(ImmutableDictionary<string, object> paramCollections);
+        #region New
+        Task<DataSet> GetAllAsync(ImmutableDictionary<string, object> paramCollections);
         Task<CompanyEntity?> GetByIdAsync(int CompanyID);
         Task<int> AddAsync(CompanyEntity model);
         Task<int> UpdateAsync(CompanyEntity model);
         Task<int> DeleteAsync(int CompanyID);
         Task<int> UpdateStatusAsync(int CompanyID, bool status);
-        Task<bool> FindByNameAsync(string CompanyName);        
+        Task<bool> FindByNameAsync(string CompanyName, int? excludeId = null);
+        #endregion
     }
 }

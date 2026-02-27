@@ -7,6 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Database\AppDBContext.cs" />
+    <Compile Remove="Database\ConnectionStringProvider.cs" />
+    <Compile Remove="Database\EFdbContextFactory.cs" />
+    <Compile Remove="Database\EfRepositoryBase.cs" />
+    <Compile Remove="Database\Interface\IConnectionStringProvider.cs" />
+    <Compile Remove="Database\Interface\IEFdbContextFactory.cs" />
+    <Compile Remove="Repositories\CompanyRepository_v1.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AutoMapper" Version="13.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">

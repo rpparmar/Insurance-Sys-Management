@@ -32,6 +32,7 @@ namespace InsuranceSys.Domain.Entities
 		public DateTime? UpdatedOn { get; set; }
 		public int? ParentUserID { get; set; }
 		public bool? IsParentUser { get; set; }
-		public string? UserProfilePicture { get; set; }		
-	}
+		public string? ProfilePicPath { get; set; }
+        public int? AgencyID { get; set; }
+    }
 }

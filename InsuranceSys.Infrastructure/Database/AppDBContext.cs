@@ -1,4 +1,6 @@
-﻿using System;
+﻿using InsuranceSys.Infrastructure.Database.Interface;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,13 +10,12 @@ using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 using System.Xml.Linq;
-using InsuranceSys.Infrastructure.Database.Interface;
-using Microsoft.Extensions.Configuration;
 
 namespace InsuranceSys.Infrastructure
 {
-    public sealed class AppDBContext : IAppDBContext, IConnectionStringProvider
+    public sealed class AppDBContext : IAdoNetDBContext, IConnectionStringProvider
     {
         private readonly IConfiguration _configuration;
         public AppDBContext(IConfiguration configuration)
@@ -122,26 +123,26 @@ namespace InsuranceSys.Infrastructure
 			return dt;
 		}
 
-		public async Task<SqlDataReader> GetSqlDataReaderAsync(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, bool masterDBConn = true)
-		{			
-			using (SqlConnection conn = new SqlConnection(await GetConnectionStringAsync(masterDBConn)))
-			{
-				await conn.OpenAsync().ConfigureAwait(false);
-				using (SqlCommand cmd = new SqlCommand(cmdText, conn))
-				{
-					cmd.CommandType = cmdType;
-					if (paramCollection != null && paramCollection.Count > 0)
-					{
-						foreach (var param in paramCollection)
-						{
-							cmd.Parameters.Add(new SqlParameter(param.Key, param.Value ?? DBNull.Value));
-						}
-					}
-					return await cmd.ExecuteReaderAsync().ConfigureAwait(false);
-				}
+		public async Task<List<T>> GetListAsync<T>(ImmutableDictionary<string, object> paramCollection, CommandType cmdType, string cmdText, bool masterDBConn = true) where T : class, new()
+        {
+			using var conn = new SqlConnection(await GetConnectionStringAsync(masterDBConn));
+			using var cmd = new SqlCommand(cmdText, conn);
+			cmd.CommandType = cmdType;
+
+			foreach (var param in paramCollection)
+				cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
+
+			await conn.OpenAsync();
+			using var reader = await cmd.ExecuteReaderAsync();
+
+			var result = new List<T>();
+			while (await reader.ReadAsync())
+			{				
+                result.Add(MappingGenericObject.MapToObject<T>(reader));
 			}
-		}        
-        public Task<string> GetConnectionStringAsync(bool masterDBConn=true)
+			return result;
+		}
+		public Task<string> GetConnectionStringAsync(bool masterDBConn=true)
         {
             // Option 1: From config file
             var connStr = _configuration.GetConnectionString("MasterConnection");
@@ -163,7 +164,7 @@ namespace InsuranceSys.Infrastructure
             var result = await command.ExecuteScalarAsync();
 
             return Convert.ToInt32(result);
-        }
+        }        
     }
 
 }

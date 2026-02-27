@@ -1,0 +1,191 @@
+﻿@using Insurancesys.web.Helper
+@using Insurancesys.web.Models.Common
+@model Insurancesys.web.Models.CustomerViewModel
+
+@{
+    var index = ViewBag.Index ?? 0;
+    var policyNumber = ViewBag.PolicyNumber ?? (index + 1);
+}
+
+<div class="policy-instance" data-policy-type="motor" data-policy-index="@index">
+    <div class="policy-instance-header">
+        <span class="policy-instance-title">Motor Policy #@policyNumber</span>
+        <button type="button" class="btn-remove" data-policy-type="motor">
+            <span>🗑️</span>
+            Remove
+        </button>
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalFormTextBox(
+        label: "Policy Number",
+                forExpression: $"Policies[{index}].PolicyNumber",
+                isRequired: true,
+                placeholder: "Enter policy number",
+                maxlength: 5)
+        @Html.TwoColsHorizontalDropdown(
+                label: "Insurer",
+                forExpression: $"Policies[{index}].Company",
+                new List<SelectListItem>{                
+                new SelectListItem { Text = "Comp 1", Value = "1" },
+                new SelectListItem { Text = "Comp 2", Value = "2" },
+                new SelectListItem { Text = "Comp 3", Value = "3" },
+                new SelectListItem { Text = "Comp 4", Value = "4" }
+                },
+                isRequired: true)
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalDatePicker(
+                label: "Policy Start Date",
+                forExpression: $"Policies[{index}].PolicyStartDate",
+                placeholder: "Select date",
+                isRequired: true)
+        @Html.TwoColsHorizontalDatePicker(
+                label: "Policy Due Date",
+                forExpression: $"Policies[{index}].PolicyDueDate",
+                placeholder: "Select date",
+                isRequired: true)
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalFormDecimal(
+                label: "Gross Premium(with tax)",
+                forExpression: $"Policies[{index}].GrosssPremium",
+                isRequired: true,
+                placeholder: "0.00")
+        @Html.TwoColsHorizontalFormDecimal(
+                label: "Net Premium",
+                forExpression: $"Policies[{index}].NetPremium",
+                isRequired: false,
+                placeholder: "0.00")
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalFormDecimal(
+                label: "OD Premium",
+                forExpression: $"Policies[{index}].ODPremium",
+                isRequired: false,
+                placeholder: "0.00")
+        @Html.TwoColsHorizontalFormDecimal(
+                label: "No Claim Bonus",
+                forExpression: $"Policies[{index}].NCB",
+                isRequired: false,
+                placeholder: "0.00")
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalFormTextBox(
+                label: "Dealer",
+                forExpression: $"Policies[{index}].Dealer",
+                isRequired: false,
+                placeholder: "Enter dealer",
+                maxlength: 50)
+        @Html.TwoColsHorizontalFormTextBox(
+                label: "SM",
+                forExpression: $"Policies[{index}].SM",
+                isRequired: false,
+                placeholder: "Enter SM",
+                maxlength: 50)
+    </div>
+    
+    <div class="separator-content-wrapper">
+        <span class="separator-content">🚙 Vehicle Details</span>
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalFormTextBox(
+                label: "Vehicle No",
+                forExpression: $"Policies[{index}].Vehicleno",
+                isRequired: false,
+                placeholder: "Enter vehicle no",
+                maxlength: 100)
+        @Html.TwoColsHorizontalFormTextBox(
+                label: "Chassise No",
+                forExpression: $"Policies[{index}].Chassiseno",
+                isRequired: false,
+                placeholder: "Enter chassise no",
+                maxlength: 100)
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalFormTextBox(
+                label: "Make",
+                forExpression: $"Policies[{index}].Make",
+                isRequired: false,
+                placeholder: "Enter make details",
+                maxlength: 100)
+        @Html.TwoColsHorizontalFormTextBox(
+                label: "Model",
+                forExpression: $"Policies[{index}].VehicleModel",
+                isRequired: false,
+                placeholder: "Enter model detail",
+                maxlength: 100)
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalFormTextBox(
+                label: "Segment",
+                forExpression: $"Policies[{index}].Segment",
+                isRequired: false,
+                placeholder: "Enter segment",
+                maxlength: 50)
+        @Html.TwoColsHorizontalDropdown(
+                label: "Fuel Type",
+                forExpression: $"Policies[{index}].Fuel",
+                new List<SelectListItem>{                
+                new SelectListItem { Text = "Petrol", Value = "PT" },
+                new SelectListItem { Text = "Diesel", Value = "DS" },
+                new SelectListItem { Text = "Petrol/CNG", Value = "PT_CNG" }
+                })
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalFormTextBox(
+                label: "Vehicle IDV",
+                forExpression: $"Policies[{index}].VehicleIDV",
+                isRequired: false,
+                placeholder: "Enter idv",
+                maxlength: 10)
+        @Html.TwoColsHorizontalDropdown(
+                label: "Plan Type",
+                forExpression: $"Policies[{index}].PlanType",
+                new List<SelectListItem>{                
+                new SelectListItem { Text = "FULL", Value = "FULL" },
+                new SelectListItem { Text = "T.P", Value = "TP" },
+                new SelectListItem { Text = "Own Damage", Value = "OF" },
+                new SelectListItem { Text = "Comprehensive", Value = "COMP" }
+                })
+    </div>
+
+    <div class="separator-content-wrapper">
+        <span class="separator-content">💳 Bank/Payment Details</span>
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalDropdown(
+                label: "Payment Mode",
+                forExpression: $"Policies[{index}].PaymentMode",
+                new List<SelectListItem>{                
+                new SelectListItem { Text = "Cash", Value = "CS" },
+                new SelectListItem { Text = "Cheque", Value = "CQ" },
+                new SelectListItem { Text = "Online", Value = "ONLN" }
+                })
+        @Html.TwoColsHorizontalFormTextBox(
+                label: "Transaction Referance",
+                forExpression: $"Policies[{index}].Transactionreferance",
+                isRequired: false,
+                placeholder: "Enter transaction referance",
+                maxlength: 50)
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalFormTextBox(
+                label: "Bank Name",
+                forExpression: $"Policies[{index}].BankName",
+                isRequired: false,
+                placeholder: "Enter bank name",
+                maxlength: 100)
+    </div>
+    
+</div>

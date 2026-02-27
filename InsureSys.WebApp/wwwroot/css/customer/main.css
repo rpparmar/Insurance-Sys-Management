@@ -1,0 +1,277 @@
+﻿/* Hint Box */
+.hint-box {
+    background: #fff4de;
+    border-left: 4px solid #ffa800;
+    padding: 15px;
+    margin: 20px 0;
+    border-radius: 4px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+    .hint-box i {
+        color: #ffa800;
+        font-size: 20px;
+        font-style: normal;
+    }
+
+.hint-text {
+    color: #7e8299;
+    font-size: 14px;
+    line-height: 1.6;
+}
+
+    .hint-text strong {
+        color: #3f4254;
+    }
+
+/* Policy Selector Title */
+.policy-selector-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #3f4254;
+    margin-bottom: 20px;
+    margin-top: 30px;
+}
+
+/* Policy Type Grid */
+.policy-type-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+@media (max-width: 992px) {
+    .policy-type-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .policy-type-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Policy Card */
+.policy-card {
+    border: 2px dashed #e5eaee;
+    border-radius: 8px;
+    padding: 25px 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: white;
+    position: relative;
+}
+
+    .policy-card:hover {
+        border-color: #3699ff;
+        background: #f3f6f9;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 10px rgba(54, 153, 255, 0.1);
+    }
+
+    .policy-card.active {
+        border-style: solid;
+        border-color: #3699ff;
+        background: #e1f0ff;
+    }
+
+.policy-icon {
+    font-size: 40px;
+    margin-bottom: 12px;
+    font-style: normal;
+}
+
+.policy-title {
+    font-weight: 600;
+    color: #3f4254;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.policy-badge {
+    background: #3699ff;
+    color: white;
+    border-radius: 12px;
+    padding: 3px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    display: inline-block;
+    min-width: 24px;
+}
+
+    .policy-badge.inactive {
+        background: #e5eaee;
+        color: #7e8299;
+    }
+
+/* Policy Section */
+.policy-section {
+    margin-top: 30px;
+    display: none; /* Hidden by default */
+}
+
+    .policy-section.active {
+        display: block;
+    }
+
+.policy-section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+    .policy-section-header i {
+        font-size: 24px;
+        font-style: normal;
+    }
+
+    .policy-section-header h4 {
+        font-size: 18px;
+        font-weight: 600;
+        color: #3f4254;
+        margin: 0;
+    }
+
+/* Policy Instance */
+.policy-instance {
+    background: #f8f9fa;
+    border-left: 4px solid #3699ff;
+    border-radius: 0 8px 8px 0;
+    padding: 20px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.policy-instance-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e5eaee;
+}
+
+.policy-instance-title {
+    font-weight: 600;
+    color: #3f4254;
+    font-size: 16px;
+}
+
+.btn-remove {
+    background: #f64e60;
+    color: white;
+    border: none;
+    padding: 6px 15px;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s;
+}
+
+    .btn-remove:hover {
+        background: #d63649;
+        transform: scale(1.05);
+    }
+
+    .btn-remove span {
+        font-style: normal;
+    }
+
+/* Add Another Button */
+.btn-add-another {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    background: white;
+    border: 2px dashed #3699ff;
+    border-radius: 6px;
+    color: #3699ff;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: all 0.3s;
+}
+
+    .btn-add-another:hover {
+        background: #e1f0ff;
+        border-style: solid;
+    }
+
+    .btn-add-another:active {
+        transform: scale(0.98);
+    }
+
+/* Separator with Content */
+.separator-content-wrapper {
+    text-align: center;
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin: 2.5rem 0;
+}
+
+    .separator-content-wrapper::before,
+    .separator-content-wrapper::after {
+        content: '';
+        flex: 1;
+        border-top: 1px dashed #e5eaee;
+    }
+
+.separator-content {
+    padding: 0 15px;
+    font-weight: 500;
+    color: #3f4254;
+    font-size: 14px;
+}
+
+/* Animation for adding/removing policies */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.policy-instance {
+    animation: fadeInUp 0.3s ease-out;
+}
+
+    /* Validation Error Styling */
+    .policy-instance .field-validation-error {
+        display: block;
+        margin-top: 5px;
+    }
+
+    .policy-instance .input-validation-error {
+        border-color: #f64e60;
+    }
+
+/* Empty State */
+.policy-section-empty {
+    text-align: center;
+    padding: 40px;
+    color: #7e8299;
+    font-style: italic;
+}
+
+    .policy-section-empty i {
+        font-size: 48px;
+        margin-bottom: 10px;
+        display: block;
+        opacity: 0.3;
+    }

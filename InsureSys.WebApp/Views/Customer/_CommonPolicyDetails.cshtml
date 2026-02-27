@@ -1,0 +1,101 @@
+﻿@using Insurancesys.web.Helper
+@using Insurancesys.web.Models.Common
+@model dynamic
+
+@*
+    Common Policy Details - Reused across ALL insurance types
+    Supports: Motor, Health, Life, PersonalAccident
+    
+    ViewBag.PolicyType determines the prefix:
+    - Motor → MotorPolicies[0]
+    - Health → HealthPolicies[0]
+    - Life → LifePolicies[0]
+    - PersonalAccident → PersonalAccidentPolicies[0]
+*@
+
+@{
+    var index = ViewBag.Index ?? 0;
+    var policyType = ViewBag.PolicyType;
+    var prefix = $"{policyType}Policies[{index}].BasicDetails";
+}
+
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalFormTextBox(
+        label: "Policy Number",
+        forExpression: $"{prefix}.PolicyNumber",
+        isRequired: true,
+                placeholder: "Enter policy number")
+        @Html.TwoColsHorizontalDropdown(
+                label: "Insurer",
+        forExpression: $"{prefix}.Company",
+        new List<SelectListItem>{
+                new SelectListItem { Text = "ICICI Lombard", Value = "1", Selected = Model?.Company == "1" },
+                new SelectListItem { Text = "HDFC ERGO", Value = "2", Selected = Model?.Company == "2" },
+                new SelectListItem { Text = "Bajaj Allianz", Value = "3", Selected = Model?.Company == "3" },
+                new SelectListItem { Text = "Reliance General", Value = "4", Selected = Model?.Company == "4" },
+                new SelectListItem { Text = "TATA AIG", Value = "5", Selected = Model?.Company == "5" },
+                new SelectListItem { Text = "New India Assurance", Value = "6", Selected = Model?.Company == "6" },
+                new SelectListItem { Text = "Oriental Insurance", Value = "7", Selected = Model?.Company == "7" },
+                new SelectListItem { Text = "United India", Value = "8", Selected = Model?.Company == "8" },
+                new SelectListItem { Text = "National Insurance", Value = "9", Selected = Model?.Company == "9" },
+                new SelectListItem { Text = "LIC", Value = "10", Selected = Model?.Company == "10" },
+                new SelectListItem { Text = "SBI Life", Value = "11", Selected = Model?.Company == "11" },
+                new SelectListItem { Text = "Max Life", Value = "12", Selected = Model?.Company == "12" }
+                },
+                isRequired: true)
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalDatePicker(
+                label: "Policy Start Date",
+        forExpression: $"{prefix}.PolicyStartDate",
+        placeholder: "Select date",
+                isRequired: true)
+        @Html.TwoColsHorizontalDatePicker(
+                label: "Policy Due Date",
+        forExpression: $"{prefix}.PolicyDueDate",
+        placeholder: "Select date",
+                isRequired: true)
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalFormDecimal(
+                label: "Gross Premium(with tax)",
+        forExpression: $"{prefix}.GrosssPremium",
+                isRequired: true,
+                placeholder: "0.00")
+        @Html.TwoColsHorizontalFormDecimal(
+                label: "Net Premium",
+        forExpression: $"{prefix}.NetPremium",
+                isRequired: false,
+                placeholder: "0.00")
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalFormDecimal(
+                label: "OD Premium",
+        forExpression: $"{prefix}.ODPremium",
+                isRequired: false,
+                placeholder: "0.00")
+        @Html.TwoColsHorizontalFormDecimal(
+                label: "No Claim Bonus",
+        forExpression: $"{prefix}.NCB",
+                isRequired: false,
+                placeholder: "0.00")
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalFormTextBox(
+                label: "Dealer",
+        forExpression: $"{prefix}.Dealer",
+        isRequired: false,
+                placeholder: "Enter dealer",
+                maxlength: 50)
+        @Html.TwoColsHorizontalFormTextBox(
+                label: "SM",
+        forExpression: $"{prefix}.SM",
+        isRequired: false,
+                placeholder: "Enter SM",
+                maxlength: 50)
+    </div>

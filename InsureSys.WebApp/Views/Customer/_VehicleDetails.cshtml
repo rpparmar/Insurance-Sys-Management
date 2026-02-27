@@ -1,0 +1,83 @@
+﻿@using Insurancesys.web.Helper
+@using Insurancesys.web.Models.Common
+@model Insurancesys.web.Models.PolicyVehicleDetailsViewModel
+@*
+    Vehicle Details - Reused across Motor insurance type
+    Supports: Motor
+    
+    ViewBag.PolicyType determines the prefix
+*@
+@{
+    var index = ViewBag.Index ?? 0;
+    var policyType = ViewBag.PolicyType;
+    var prefix = $"{policyType}Policies[{index}].VehicleDetails";
+}
+
+<div class="separator-content-wrapper">
+    <span class="separator-content">🚙 Vehicle Details</span>
+</div>
+
+<div class="form-group row mt-3">
+    @Html.TwoColsHorizontalFormTextBox(
+    label: "Vehicle No",
+        forExpression: $"{prefix}.Vehicleno",
+        isRequired: false,
+        placeholder: "Enter vehicle no",
+        maxlength: 100)
+    @Html.TwoColsHorizontalFormTextBox(
+        label: "Chassise No",
+        forExpression: $"{prefix}.Chassiseno",
+        isRequired: false,
+        placeholder: "Enter chassise no",
+        maxlength: 100)
+</div>
+
+<div class="form-group row mt-3">
+    @Html.TwoColsHorizontalFormTextBox(
+        label: "Make",
+        forExpression: $"{prefix}.Make",
+        isRequired: false,
+        placeholder: "Enter make details",
+        maxlength: 100)
+    @Html.TwoColsHorizontalFormTextBox(
+        label: "Model",
+        forExpression: $"{prefix}.VehicleModel",
+        isRequired: false,
+        placeholder: "Enter model detail",
+        maxlength: 100)
+</div>
+
+<div class="form-group row mt-3">
+    @Html.TwoColsHorizontalFormTextBox(
+        label: "Segment",
+        forExpression: $"{prefix}.Segment",
+        isRequired: false,
+        placeholder: "Enter segment",
+        maxlength: 50)
+    @Html.TwoColsHorizontalDropdown(
+        label: "Fuel Type",
+        forExpression: $"{prefix}.Fuel",
+        new List<SelectListItem>{
+        new SelectListItem { Text = "Petrol", Value = "PT" },
+        new SelectListItem { Text = "Diesel", Value = "DS" },
+        new SelectListItem { Text = "Petrol/CNG", Value = "PT_CNG" }
+        })
+</div>
+
+<div class="form-group row mt-3">
+    @Html.TwoColsHorizontalFormTextBox(
+        label: "Vehicle IDV",
+        forExpression: $"{prefix}.VehicleIDV",
+        isRequired: false,
+        placeholder: "Enter idv",
+        maxlength: 10)
+    @Html.TwoColsHorizontalDropdown(
+        label: "Plan Type",
+        forExpression: $"{prefix}.PlanType",
+        new List<SelectListItem>{
+        new SelectListItem { Text = "FULL", Value = "FULL" },
+        new SelectListItem { Text = "T.P", Value = "TP" },
+        new SelectListItem { Text = "Own Damage", Value = "OF" },
+        new SelectListItem { Text = "Comprehensive", Value = "COMP" }
+        })
+</div>

@@ -14,14 +14,22 @@ namespace Insurancesys.web.Utility
             CreateMap<CompanyViewModel, CompanyEntity>();
             CreateMap<InsuranceTypeViewModel, InsuranceTypeEntity>();
             CreateMap<LeadStatusViewModel, LeadStatusEntity>();
+            CreateMap<CustomerViewModel, CustomerEntity>();
+            CreateMap<PolicyBasicDetailsViewModel, PolicyDetailsEntity>();
+            CreateMap<PolicyVehicleDetailsViewModel, PolicyVehicleDetailsEntity>();
+            CreateMap<PolicyPaymentDetailsViewModel, PolicyPaymentDetailsEntity>();
             #endregion
 
             #region DTO to ViewModel
-            CreateMap<UsersEntity, UsersViewModel>(); 
-            CreateMap<CompanyEntity, CompanyViewModel>();             
+            CreateMap<UsersEntity, UsersViewModel>();
+            CreateMap<CompanyEntity, CompanyViewModel>();
             CreateMap<LeadEntity, LeadViewModel>();
             CreateMap<InsuranceTypeEntity, InsuranceTypeViewModel>();
             CreateMap<LeadStatusEntity, LeadStatusViewModel>();
+            CreateMap<CustomerEntity, CustomerViewModel>();
+            CreateMap<PolicyDetailsEntity, PolicyBasicDetailsViewModel>();
+            CreateMap<PolicyVehicleDetailsEntity, PolicyVehicleDetailsViewModel>();
+            CreateMap<PolicyPaymentDetailsEntity, PolicyPaymentDetailsViewModel>();
             #endregion
         }
     }

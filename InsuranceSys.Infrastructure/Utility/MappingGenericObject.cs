@@ -2,13 +2,17 @@
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace InsuranceSys.Infrastructure
 {
+    /// <summary>
+    /// Generic object mapper for SqlDataReader with improved type handling and performance
+    /// </summary>
     public static class MappingGenericObject
-    {
+    {        
         public static List<T> MapToList<T>(SqlDataReader reader) where T : new()
         {
             var results = new List<T>();
@@ -56,7 +60,7 @@ namespace InsuranceSys.Infrastructure
                 }
             }
             return false;
-        }
+        }        
 
-    }
+    }    
 }

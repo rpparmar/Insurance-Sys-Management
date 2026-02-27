@@ -43,10 +43,10 @@ namespace Insurancesys.web
                         restrictedToMinimumLevel: LogEventLevel.Error)
                     .CreateLogger();
 
-            builder.Host.UseSerilog(); 
+            builder.Host.UseSerilog();
             #endregion
 
-            builder.Services.AddControllersWithViews();//.AddRazorRuntimeCompilation(); // Optional - Add services to the container - used to have cshtml changes runtime.
+            builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation(); // Optional - Add services to the container - used to have cshtml changes runtime.
             builder.Services.AddControllers();
 
             // Add session services
@@ -67,10 +67,11 @@ namespace Insurancesys.web
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
-            builder.Services.AddScoped<IAppDBContext, AppDBContext>(provider =>
-            {                
-                return new AppDBContext(configuration);
-            });            
+            //builder.Services.AddScoped<IAppDBContext, AppDBContext>(provider =>
+            //{
+            //    return new AppDBContext(configuration);
+            //});
+
             builder.Services.AddDbContext<EfdbContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("MasterConnection") ?? string.Empty));
 
@@ -136,15 +137,19 @@ namespace Insurancesys.web
         }
 
         private static void RegisterDependency(WebApplicationBuilder builder)
-        {            
-            builder.Services.AddScoped<IConnectionStringProvider, ConnectionStringProvider>();            
-            builder.Services.AddScoped<IEFdbContextFactory, EFdbContextFactory>();            
+        {
+            // CRITICAL: Register EFdbContextProvider,SqlConnectionProvider,AdoNetDBContext as SCOPED (one per request)
+            builder.Services.AddScoped<IEFdbContextProvider, EFdbContextProvider>();
+            builder.Services.AddScoped<ISqlConnectionProvider, SqlConnectionProvider>();
+            builder.Services.AddScoped<IAdoNetDBContext, AdoNetDBContext>();
+            
             builder.Services.AddScoped<ICompanyService, CompanyRepository>();            
             builder.Services.AddScoped<ILeadService, LeadRepository>();            
             builder.Services.AddScoped<ILoginService, LoginRepository>();
             builder.Services.AddScoped<IInsuranceTypeService, InsuranceTypeRepository>();
             builder.Services.AddScoped<IDropDownBinderService, DropDownBinderRepository>();
             builder.Services.AddScoped<ILeadStatusService, LeadStatusRepository>();
+            builder.Services.AddScoped<ICustomerService, CustomerRepository>();
         }
     }
 }

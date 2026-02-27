@@ -14,18 +14,13 @@ using System.Threading.Tasks;
 
 namespace InsuranceSys.Infrastructure.Repositories
 {
-    public class LeadStatusRepository: EfRepositoryBase, ILeadStatusService
+    public class LeadStatusRepository: SharedEFdbContextRepositoryBase, ILeadStatusService
     {
-        private readonly IAppDBContext _dbcontext;
-        private readonly IMapper _mapper;
+        private readonly IAdoNetDBContext _dbcontext;        
         public LeadStatusRepository(
-            IAppDBContext dbcontext
-            , IMapper mapper
-            , IEFdbContextFactory efdbContextFactory
-            , IConnectionStringProvider connStringProvider) : base(efdbContextFactory, connStringProvider)
+            IEFdbContextProvider contextProvider, IAdoNetDBContext dbcontext) : base(contextProvider)
         {
             _dbcontext = dbcontext;
-            _mapper = mapper;
         }
         public async Task<DataSet> GetAllAsync(ImmutableDictionary<string, object> paramCollections)
         {
@@ -33,51 +28,119 @@ namespace InsuranceSys.Infrastructure.Repositories
         }
         public async Task<LeadStatusEntity?> GetByIdAsync(int LeadStatusID)
         {
-            using var _efdbcontext = await CreateContextAsync();
-            return await _efdbcontext.EFLeadStatus
-                            .FirstOrDefaultAsync(c => c.LeadStatusID == LeadStatusID);
+            #region Old
+            //using var _efdbcontext = await CreateContextAsync();
+            //return await _efdbcontext.EFLeadStatus
+            //                .FirstOrDefaultAsync(c => c.LeadStatusID == LeadStatusID); 
+            #endregion
+
+            return await ExecuteReadAsync(async context =>
+            {
+                // AsNoTracking for read operations (better performance)
+                return await context.EFLeadStatus
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.LeadStatusID == LeadStatusID);
+            });
         }
         public async Task<int> AddAsync(LeadStatusEntity leadstatus)
         {
-            using var _efdbcontext = await CreateContextAsync();
-            leadstatus.CreatedOn = DateTime.UtcNow;
-            leadstatus.UpdatedOn = DateTime.UtcNow;
-            await _efdbcontext.EFLeadStatus.AddAsync(leadstatus);
-            return await _efdbcontext.SaveChangesAsync();
+            #region Old
+            //using var _efdbcontext = await CreateContextAsync();
+            //leadstatus.CreatedOn = DateTime.UtcNow;
+            //leadstatus.UpdatedOn = DateTime.UtcNow;
+            //await _efdbcontext.EFLeadStatus.AddAsync(leadstatus);
+            //return await _efdbcontext.SaveChangesAsync(); 
+            #endregion
+
+            return await ExecuteWriteAsync(async context =>
+            {
+                leadstatus.CreatedOn = DateTime.UtcNow;
+                leadstatus.UpdatedOn = DateTime.UtcNow;
+
+                await context.EFLeadStatus.AddAsync(leadstatus);
+                return await context.SaveChangesAsync();
+            });
         }
         public async Task<int> UpdateAsync(LeadStatusEntity leadstatus)
         {
-            using var _efdbcontext = await CreateContextAsync();
-            leadstatus.UpdatedOn = DateTime.UtcNow;
-            _efdbcontext.EFLeadStatus.Update(leadstatus);
-            return await _efdbcontext.SaveChangesAsync();
+            #region Old
+            //using var _efdbcontext = await CreateContextAsync();
+            //leadstatus.UpdatedOn = DateTime.UtcNow;
+            //_efdbcontext.EFLeadStatus.Update(leadstatus);
+            //return await _efdbcontext.SaveChangesAsync(); 
+            #endregion
+
+            return await ExecuteWriteAsync(async context =>
+            {
+                leadstatus.UpdatedOn = DateTime.UtcNow;
+                context.EFLeadStatus.Update(leadstatus);
+                return await context.SaveChangesAsync();
+            });
         }
         public async Task<int> DeleteAsync(int LeadStatusID)
         {
-            using var _efdbcontext = await CreateContextAsync();
-            var _leadstatus = await _efdbcontext.EFLeadStatus.FindAsync(LeadStatusID);
-            if (_leadstatus != null)
+            #region Old
+            //using var _efdbcontext = await CreateContextAsync();
+            //var _leadstatus = await _efdbcontext.EFLeadStatus.FindAsync(LeadStatusID);
+            //if (_leadstatus != null)
+            //{
+            //    _leadstatus.UpdatedOn = DateTime.UtcNow;
+            //    _leadstatus.IsDeleted = true;
+            //}
+            //return await _efdbcontext.SaveChangesAsync(); 
+            #endregion
+
+            return await ExecuteWriteAsync(async context =>
             {
-                _leadstatus.UpdatedOn = DateTime.UtcNow;
-                _leadstatus.IsDeleted = true;
-            }
-            return await _efdbcontext.SaveChangesAsync();
+                var leadstatus = await context.EFLeadStatus.FindAsync(LeadStatusID);
+
+                if (leadstatus != null)
+                {
+                    leadstatus.UpdatedOn = DateTime.UtcNow;
+                    leadstatus.IsDeleted = true;
+                }
+
+                return await context.SaveChangesAsync();
+            });
         }
         public async Task<int> UpdateStatusAsync(int LeadStatusID, bool status)
         {
-            using var _efdbcontext = await CreateContextAsync();
-            var _leadstatus = await _efdbcontext.EFLeadStatus.FindAsync(LeadStatusID);
-            if (_leadstatus != null)
+            #region Old
+            //using var _efdbcontext = await CreateContextAsync();
+            //var _leadstatus = await _efdbcontext.EFLeadStatus.FindAsync(LeadStatusID);
+            //if (_leadstatus != null)
+            //{
+            //    _leadstatus.UpdatedOn = DateTime.UtcNow;
+            //    _leadstatus.IsActive = status;
+            //}
+            //return await _efdbcontext.SaveChangesAsync(); 
+            #endregion
+
+            return await ExecuteWriteAsync(async context =>
             {
-                _leadstatus.UpdatedOn = DateTime.UtcNow;
-                _leadstatus.IsActive = status;
-            }
-            return await _efdbcontext.SaveChangesAsync();
+                var leadstatus = await context.EFLeadStatus.FindAsync(LeadStatusID);
+
+                if (leadstatus != null)
+                {
+                    leadstatus.UpdatedOn = DateTime.UtcNow;
+                    leadstatus.IsActive = status;
+                }            
+                return await context.SaveChangesAsync();
+            });
         }
         public async Task<bool> FindByNameAsync(string LeadStatus)
         {
-            using var _efdbcontext = await CreateContextAsync();
-            return await _efdbcontext.EFLeadStatus.AnyAsync(c => c.LeadStatus == LeadStatus && !c.IsDeleted);
+            #region Old
+            //using var _efdbcontext = await CreateContextAsync();
+            //return await _efdbcontext.EFLeadStatus.AnyAsync(c => c.LeadStatus == LeadStatus && !c.IsDeleted); 
+            #endregion
+
+            return await ExecuteReadAsync(async context =>
+            {
+                return await context.EFLeadStatus
+                    .AsNoTracking()
+                    .AnyAsync(c => c.LeadStatus == LeadStatus && !c.IsDeleted);
+            });
         }
     }
 }

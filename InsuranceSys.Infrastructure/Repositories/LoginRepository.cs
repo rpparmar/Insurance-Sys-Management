@@ -7,22 +7,28 @@ using Microsoft.EntityFrameworkCore;
 
 namespace InsuranceSys.Infrastructure.Repositories
 {
-    public class LoginRepository : EfRepositoryBase,ILoginService
+    public class LoginRepository : SharedEFdbContextRepositoryBase, ILoginService
     {
-        private readonly IAppDBContext _dbcontext;
-        public LoginRepository(IAppDBContext dbcontext
-            , IEFdbContextFactory efdbContextFactory
-            , IConnectionStringProvider connStringProvider
-            ) : base(efdbContextFactory, connStringProvider)
+        private readonly IAdoNetDBContext _dbcontext;
+        public LoginRepository(IEFdbContextProvider contextProvider, IAdoNetDBContext dbcontext) : base(contextProvider)
         {
             _dbcontext = dbcontext;
         }
 
         public async Task<UsersEntity?> GetUser(string username, string password)
         {
-            using var _efdbcontext = await CreateContextAsync();
-            return await _efdbcontext.EFUsers
-                            .FirstOrDefaultAsync(c => c.UserName == username && c.Password == password);
+            #region Old
+            //using var _efdbcontext = await CreateContextAsync();
+            //return await _efdbcontext.EFUsers
+            //                .FirstOrDefaultAsync(c => c.UserName == username && c.Password == password); 
+            #endregion
+
+            return await ExecuteReadAsync(async context =>
+            {
+                return await context.EFUsers
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.UserName == username && c.Password == password);
+            });
         }
     }
 }

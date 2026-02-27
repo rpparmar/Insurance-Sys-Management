@@ -1,0 +1,35 @@
+﻿@using Insurancesys.web.Helper
+@using Insurancesys.web.Models
+@model Insurancesys.web.Models.LifePolicyViewModel
+
+
+@*
+    Life Policy Partial - Container
+    Uses: Common Policy Details + Payment Details    
+*@
+
+@{
+    var index = ViewBag.Index ?? 0;
+    var policyNumber = ViewBag.PolicyNumber ?? (index + 1);
+    var policyType = "Life";
+
+    // Set ViewBag for child partials
+    ViewBag.Index = index;
+    ViewBag.PolicyType = policyType;
+}
+
+<div class="policy-instance" data-policy-type="life" data-policy-index="@index">
+    <div class="policy-instance-header">
+        <span class="policy-instance-title">Life Policy #@policyNumber</span>
+        <button type="button" class="btn-remove" data-policy-type="life">
+            <span>🗑️</span>
+            Remove
+        </button>
+    </div>
+
+    @* Common Policy Details - Shared component *@
+    @await Html.PartialAsync("_CommonPolicyDetails", Model.BasicDetails)
+
+    @* Payment Details - Shared component *@
+    @await Html.PartialAsync("_PolicyPaymentDetails", Model.PolicyPaymentDetails)
+</div>

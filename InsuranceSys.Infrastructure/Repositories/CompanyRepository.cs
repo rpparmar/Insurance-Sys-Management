@@ -6,75 +6,104 @@ using InsuranceSys.Infrastructure.Database;
 using InsuranceSys.Infrastructure.Database.Interface;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
+using System.ComponentModel.Design;
 using System.Data;
 
 namespace InsuranceSys.Infrastructure.Repositories
 {
-    public class CompanyRepository : EfRepositoryBase,ICompanyService
+    public class CompanyRepository : SharedEFdbContextRepositoryBase, ICompanyService
     {
-        private readonly IAppDBContext _dbcontext;
-        private readonly IMapper _mapper;
-        public CompanyRepository(
-            IAppDBContext dbcontext
-            , IMapper mapper
-            , IEFdbContextFactory efdbContextFactory
-            , IConnectionStringProvider connStringProvider) : base(efdbContextFactory, connStringProvider)
+        private readonly IAdoNetDBContext _dbcontext;        
+        public CompanyRepository(IEFdbContextProvider contextProvider, IAdoNetDBContext dbcontext) : base(contextProvider)
         {
             _dbcontext = dbcontext;
-            _mapper = mapper;
         }
         public async Task<DataSet> GetAllAsync(ImmutableDictionary<string, object> paramCollections)
-        {
+        {            
             return await _dbcontext.GetDataSetAsync(paramCollections, CommandType.StoredProcedure, "CompanyMaster_GetAll");
         }
-        public async Task<CompanyEntity?> GetByIdAsync(int CompanyID)
+        
+        public async Task<CompanyEntity?> GetByIdAsync(int companyId)
         {
-            using var _efdbcontext = await CreateContextAsync();
-            return await _efdbcontext.EFCompanies
-                            .FirstOrDefaultAsync(c => c.CompanyID == CompanyID);
-        }
+            return await ExecuteReadAsync(async context =>
+            {
+                // AsNoTracking for read operations (better performance)
+                return await context.EFCompanies
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.CompanyID == companyId && !c.IsDeleted);
+            });
+        }        
         public async Task<int> AddAsync(CompanyEntity company)
         {
-            using var _efdbcontext = await CreateContextAsync();
-            company.CreatedOn = DateTime.UtcNow;
-            company.UpdatedOn = DateTime.UtcNow;
-            await _efdbcontext.EFCompanies.AddAsync(company);
-            return await _efdbcontext.SaveChangesAsync();
-        }
+            return await ExecuteWriteAsync(async context =>
+            {
+                company.CreatedOn = DateTime.UtcNow;
+                company.UpdatedOn = DateTime.UtcNow;
+
+                await context.EFCompanies.AddAsync(company);
+                return await context.SaveChangesAsync();
+            });
+        }        
         public async Task<int> UpdateAsync(CompanyEntity company)
         {
-            using var _efdbcontext = await CreateContextAsync();
-            company.UpdatedOn = DateTime.UtcNow;
-            _efdbcontext.EFCompanies.Update(company);
-            return await _efdbcontext.SaveChangesAsync();
-        }
-        public async Task<int> DeleteAsync(int CompanyID)
-        {
-            using var _efdbcontext = await CreateContextAsync();
-            var _company = await _efdbcontext.EFCompanies.FindAsync(CompanyID);
-            if (_company != null)
+            return await ExecuteWriteAsync(async context =>
             {
-                _company.UpdatedOn = DateTime.UtcNow;
-                _company.IsDeleted = true;
-            }
-            return await _efdbcontext.SaveChangesAsync();
+                company.UpdatedOn = DateTime.UtcNow;
+
+                context.EFCompanies.Update(company);
+                return await context.SaveChangesAsync();
+
+            });
+        }                
+        public async Task<int> DeleteAsync(int companyId)
+        {
+            return await ExecuteWriteAsync(async context =>
+            {
+                var company = await context.EFCompanies
+                    .FirstOrDefaultAsync(c => c.CompanyID == companyId);
+
+                if (company != null)
+                {
+                    company.IsDeleted = true;
+                    company.UpdatedOn = DateTime.UtcNow;                                        
+                }
+                return await context.SaveChangesAsync();
+            });
+        }        
+        public async Task<bool> FindByNameAsync(string companyName, int? excludeId = null)
+        {
+            return await ExecuteReadAsync(async context =>
+            {
+                var query = context.EFCompanies
+                    .AsNoTracking()
+                    .Where(c => c.CompanyName == companyName && !c.IsDeleted);
+
+                if (excludeId.HasValue)
+                {
+                    query = query.Where(c => c.CompanyID != excludeId.Value);
+                }
+
+                return await query.AnyAsync();
+            });
         }
+
         public async Task<int> UpdateStatusAsync(int CompanyID, bool status)
         {
-            using var _efdbcontext = await CreateContextAsync();
-            var _company = await _efdbcontext.EFCompanies.FindAsync(CompanyID);
-            if (_company != null)
+            return await ExecuteWriteAsync(async context =>
             {
-                _company.UpdatedOn = DateTime.UtcNow;
-                _company.IsActive = status;
-            }
-            return await _efdbcontext.SaveChangesAsync();
+                var company = await context.EFCompanies.FindAsync(CompanyID);
+
+                if (company != null)
+                {
+                    company.UpdatedOn = DateTime.UtcNow;
+                    company.IsActive = status;
+                }
+
+                return await context.SaveChangesAsync();
+            });
+
         }
-        public async Task<bool> FindByNameAsync(string CompanyName)
-        {
-            using var _efdbcontext = await CreateContextAsync();
-            return await _efdbcontext.EFCompanies.AnyAsync(c => c.CompanyName == CompanyName && !c.IsDeleted);
-        }        
     }
 }

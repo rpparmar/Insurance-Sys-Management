@@ -1,0 +1,46 @@
+﻿@using Insurancesys.web.Helper
+@using Insurancesys.web.Models.Common
+@model dynamic
+
+@*
+    Payment Details - Reused across ALL insurance types
+    Supports: Motor, Health, Life, PersonalAccident
+    
+    ViewBag.PolicyType determines the prefix
+*@
+@{
+    var index = ViewBag.Index ?? 0;
+    var policyType = ViewBag.PolicyType;
+    var prefix = $"{policyType}Policies[{index}].PolicyPaymentDetails";
+}
+
+    <div class="separator-content-wrapper">
+        <span class="separator-content">💳 Bank/Payment Details</span>
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalDropdown(
+                label: "Payment Mode",
+        forExpression: $"{prefix}.PaymentMode",
+        new List<SelectListItem>{
+        new SelectListItem { Text = "Cash", Value = "CS" },
+                new SelectListItem { Text = "Cheque", Value = "CQ" },
+                new SelectListItem { Text = "Online", Value = "ONLN" }
+                })
+        @Html.TwoColsHorizontalFormTextBox(
+                label: "Transaction Referance",
+        forExpression: $"{prefix}.Transactionreferance",
+        isRequired: false,
+                placeholder: "Enter transaction referance",
+                maxlength: 50)
+    </div>
+
+    <div class="form-group row mt-3">
+        @Html.TwoColsHorizontalFormTextBox(
+                label: "Bank Name",
+        forExpression: $"{prefix}.BankName",
+        isRequired: false,
+                placeholder: "Enter bank name",
+                maxlength: 100)
+    </div>
+

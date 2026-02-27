@@ -6,31 +6,38 @@ using InsuranceSys.Infrastructure.Database.Interface;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace InsuranceSys.Infrastructure.Repositories
 {
-    public class DropDownBinderRepository: EfRepositoryBase, IDropDownBinderService
-    {
-        private readonly IAppDBContext _dbcontext;
-        private readonly IMapper _mapper;
+    public class DropDownBinderRepository: SharedEFdbContextRepositoryBase, IDropDownBinderService
+    {        
         public DropDownBinderRepository(
-            IAppDBContext dbcontext
-            , IMapper mapper
-            , IEFdbContextFactory efdbContextFactory
-            , IConnectionStringProvider connStringProvider
-            ) : base(efdbContextFactory, connStringProvider)
-        {
-            _dbcontext = dbcontext;
-            _mapper = mapper;
+            IEFdbContextProvider contextProvider
+            ) : base(contextProvider)
+        {            
         }
         public async Task<List<DropdownItemDto>> GetCompanyDropdownAsync()
         {
-            using var _efdbcontext = await CreateContextAsync();
+            //using var _efdbcontext = await CreateContextAsync();
+            //return await _efdbcontext.EFCompanies
+            //    .AsNoTracking()
+            //    .Where(c => c.IsActive && !c.IsDeleted)
+            //    .OrderBy(c => c.CompanyName)
+            //    .Select(c => new DropdownItemDto
+            //    {
+            //        Value = c.CompanyID.ToString(),
+            //        Text = c.CompanyName
+            //    })
+            //    .ToListAsync();
 
-            return await _efdbcontext.EFCompanies
+            return await ExecuteReadAsync(async context =>
+            {
+                // AsNoTracking for read operations (better performance)
+                return await context.EFCompanies
                 .AsNoTracking()
                 .Where(c => c.IsActive && !c.IsDeleted)
                 .OrderBy(c => c.CompanyName)
@@ -40,54 +47,97 @@ namespace InsuranceSys.Infrastructure.Repositories
                     Text = c.CompanyName
                 })
                 .ToListAsync();
+            });
         }
         public async Task<List<DropdownItemDto>> GetCompanyMappedWithInsuranceType(int policyTypeID)
         {
-            using var _efdbcontext = await CreateContextAsync();
+            //using var _efdbcontext = await CreateContextAsync();
+            //var result = await (from b in _efdbcontext.EFMappingCompanyInsuranceType
+            //                    join a in _efdbcontext.EFCompanies
+            //                        on b.CompanyID equals a.CompanyID into companyGroup
+            //                    from a in companyGroup.DefaultIfEmpty()
+            //                    where b.InsuranceTypeId == policyTypeID
+            //                          && (b.IsActive)
+            //                          && (a != null && !a.IsDeleted)
+            //                    select new DropdownItemDto
+            //                    {
+            //                        Value = a.CompanyID.ToString(),
+            //                        Text = a.CompanyName
+            //                    }).Distinct().ToListAsync();
+            //return result;
 
-            var result = await (from b in _efdbcontext.EFMappingCompanyInsuranceType
-                                join a in _efdbcontext.EFCompanies
-                                    on b.CompanyID equals a.CompanyID into companyGroup
-                                from a in companyGroup.DefaultIfEmpty()
-                                where b.InsuranceTypeId == policyTypeID
-                                      && (b.IsActive)
-                                      && (a != null && !a.IsDeleted)
-                                select new DropdownItemDto
-                                {
-                                    Value = a.CompanyID.ToString(),
-                                    Text = a.CompanyName
-                                }).Distinct().ToListAsync();
-            return result;
+            return await ExecuteReadAsync(async context =>
+            {
+                return await (from b in context.EFMappingCompanyInsuranceType
+                                    join a in context.EFCompanies
+                                        on b.CompanyID equals a.CompanyID into companyGroup
+                                    from a in companyGroup.DefaultIfEmpty()
+                                    where b.InsuranceTypeId == policyTypeID
+                                          && (b.IsActive)
+                                          && (a != null && !a.IsDeleted)
+                                    select new DropdownItemDto
+                                    {
+                                        Value = a.CompanyID.ToString(),
+                                        Text = a.CompanyName
+                                    }).Distinct().ToListAsync();
+            });
         }
         public async Task<List<DropdownItemDto>> GetInsuranceTypeDropdownAsync()
         {
-            using var _efdbcontext = await CreateContextAsync();
+            //using var _efdbcontext = await CreateContextAsync();
+            //return await _efdbcontext.EFInsuranceTypes
+            //    .AsNoTracking()
+            //    .Where(c => c.IsActive && !c.IsDeleted)
+            //    .OrderBy(c => c.InsuranceType)
+            //    .Select(c => new DropdownItemDto
+            //    {
+            //        Value = c.InsuranceTypeId.ToString(),
+            //        Text = c.InsuranceType
+            //    })
+            //    .ToListAsync();
 
-            return await _efdbcontext.EFInsuranceTypes
-                .AsNoTracking()
-                .Where(c => c.IsActive && !c.IsDeleted)
-                .OrderBy(c => c.InsuranceType)
-                .Select(c => new DropdownItemDto
-                {
-                    Value = c.InsuranceTypeId.ToString(),
-                    Text = c.InsuranceType
-                })
-                .ToListAsync();
+            return await ExecuteReadAsync(async context =>
+            {
+                // AsNoTracking for read operations (better performance)
+                return await context.EFInsuranceTypes
+                    .AsNoTracking()
+                    .Where(c => c.IsActive && !c.IsDeleted)
+                    .OrderBy(c => c.InsuranceType)
+                    .Select(c => new DropdownItemDto
+                    {
+                        Value = c.InsuranceTypeId.ToString(),
+                        Text = c.InsuranceType
+                    })
+                    .ToListAsync();
+            });
         }
         public async Task<List<DropdownItemDto>> GetLeadStatusDropdownAsync()
         {
-            using var _efdbcontext = await CreateContextAsync();
-
-            return await _efdbcontext.EFLeadStatus
-                .AsNoTracking()
-                .Where(c => c.IsActive && !c.IsDeleted)
-                .OrderBy(c => c.LeadStatus)
-                .Select(c => new DropdownItemDto
-                {
-                    Value = c.LeadStatusID.ToString(),
-                    Text = c.LeadStatus
-                })
-                .ToListAsync();
+            //using var _efdbcontext = await CreateContextAsync();
+            //return await _efdbcontext.EFLeadStatus
+            //    .AsNoTracking()
+            //    .Where(c => c.IsActive && !c.IsDeleted)
+            //    .OrderBy(c => c.LeadStatus)
+            //    .Select(c => new DropdownItemDto
+            //    {
+            //        Value = c.LeadStatusID.ToString(),
+            //        Text = c.LeadStatus
+            //    })
+            //    .ToListAsync();
+            return await ExecuteReadAsync(async context =>
+            {
+                // AsNoTracking for read operations (better performance)
+                return await context.EFLeadStatus
+                    .AsNoTracking()
+                    .Where(c => c.IsActive && !c.IsDeleted)
+                    .OrderBy(c => c.LeadStatus)
+                    .Select(c => new DropdownItemDto
+                    {
+                        Value = c.LeadStatusID.ToString(),
+                        Text = c.LeadStatus
+                    })
+                    .ToListAsync();
+            });
         }
     }
 }

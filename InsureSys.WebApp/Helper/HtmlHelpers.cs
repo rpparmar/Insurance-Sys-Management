@@ -1,10 +1,12 @@
 ﻿using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Xml.Serialization;
 
 namespace Insurancesys.web.Helper
 {
     public static class HtmlHelpers
     {
+        #region Simple form inputs
         public static IHtmlContent SimpleFormTextBox(this IHtmlHelper htmlHelper, string label, string forExpression, bool isRequired = false, string placeholder = "", int maxlength = 0, bool isRegExpression = false)
         {
             // Create label element
@@ -96,7 +98,7 @@ namespace Insurancesys.web.Helper
 
             return formGroupRow;
         }
-        
+
         public static IHtmlContent SimpleFormMuliSelectDropdown(this IHtmlHelper htmlHelper,
             string label,
             string selectId,
@@ -148,7 +150,10 @@ namespace Insurancesys.web.Helper
 
             return formGroup;
         }
-        public static IHtmlContent AccordianBaseTextBox(this IHtmlHelper htmlHelper, string label, string forExpression, bool isRequired = false, string placeholder = "", int maxlength = 0,bool isRegExpression = false)
+        #endregion
+
+        #region Accordian based inputs
+        public static IHtmlContent AccordianBaseTextBox(this IHtmlHelper htmlHelper, string label, string forExpression, bool isRequired = false, string placeholder = "", int maxlength = 0, bool isRegExpression = false)
         {
             // Create label element
             var labelContent = new TagBuilder("label");
@@ -190,46 +195,46 @@ namespace Insurancesys.web.Helper
 
         public static IHtmlContent AccordianBaseDropdown(this IHtmlHelper htmlHelper, string label, string forExpression, IEnumerable<SelectListItem> selectList, bool isRequired = false, string placeholder = "", bool isRegExpression = false)
         {
-			// Create label element
-			var labelContent = new TagBuilder("label");
-			labelContent.InnerHtml.Append(label);
-			labelContent.AddCssClass("col-form-label");
-			if (isRequired)
-				labelContent.AddCssClass("required");
+            // Create label element
+            var labelContent = new TagBuilder("label");
+            labelContent.InnerHtml.Append(label);
+            labelContent.AddCssClass("col-form-label");
+            if (isRequired)
+                labelContent.AddCssClass("required");
 
-			// Create dropdown with extra attributes
-			var dropdownAttributes = new Dictionary<string, object>
-	        {
-	        	{ "class", "form-control selectpicker" },
-	        	{ "data-size", "7" },
-	        	{ "data-live-search", "true" },
-	        	{ "id", $"drp{forExpression}" }
-	        };
-			var dropdownContent = htmlHelper.DropDownList(forExpression, selectList, "Select", dropdownAttributes);
+            // Create dropdown with extra attributes
+            var dropdownAttributes = new Dictionary<string, object>
+            {
+                { "class", "form-control selectpicker" },
+                { "data-size", "7" },
+                { "data-live-search", "true" },
+                { "id", $"drp{forExpression}" }
+            };
+            var dropdownContent = htmlHelper.DropDownList(forExpression, selectList, "Select", dropdownAttributes);
 
-			// Create input column container
-			var inputColumn = new TagBuilder("div");
-			inputColumn.AddCssClass("col-md-4 col-xs-12");
-			inputColumn.InnerHtml.AppendHtml(dropdownContent);
+            // Create input column container
+            var inputColumn = new TagBuilder("div");
+            inputColumn.AddCssClass("col-md-4 col-xs-12");
+            inputColumn.InnerHtml.AppendHtml(dropdownContent);
 
-			if (isRequired || isRegExpression)
-			{
-				var validationMessage = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
-				inputColumn.InnerHtml.AppendHtml(validationMessage);
-			}
-			// Create label column container
-			var labelColumn = new TagBuilder("div");
-			labelColumn.AddCssClass("col-md-5 col-xs-12 text-md-right");
-			labelColumn.InnerHtml.AppendHtml(labelContent);
+            if (isRequired || isRegExpression)
+            {
+                var validationMessage = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
+                inputColumn.InnerHtml.AppendHtml(validationMessage);
+            }
+            // Create label column container
+            var labelColumn = new TagBuilder("div");
+            labelColumn.AddCssClass("col-md-5 col-xs-12 text-md-right");
+            labelColumn.InnerHtml.AppendHtml(labelContent);
 
-			// Create form-group row
-			var formGroupRow = new TagBuilder("div");
-			formGroupRow.AddCssClass("form-group row");
-			formGroupRow.InnerHtml.AppendHtml(labelColumn);
-			formGroupRow.InnerHtml.AppendHtml(inputColumn);
+            // Create form-group row
+            var formGroupRow = new TagBuilder("div");
+            formGroupRow.AddCssClass("form-group row");
+            formGroupRow.InnerHtml.AppendHtml(labelColumn);
+            formGroupRow.InnerHtml.AppendHtml(inputColumn);
 
-			return formGroupRow;
-		}
+            return formGroupRow;
+        }
 
         public static IHtmlContent AccordianBaseDateTimePicker(this IHtmlHelper htmlHelper,
             string label,
@@ -261,7 +266,7 @@ namespace Insurancesys.web.Helper
 
             // Get the model object and its type            
             string? formattedValue = GetFormattedDateTime(forExpression, htmlHelper.ViewData.Model);
-            var inputElement = htmlHelper.TextBox(forExpression, formattedValue , inputAttributes);
+            var inputElement = htmlHelper.TextBox(forExpression, formattedValue, inputAttributes);
 
             // Calendar icon
             var calendarIcon = new TagBuilder("i");
@@ -301,8 +306,7 @@ namespace Insurancesys.web.Helper
             int rows = 2,
             int maxLength = 255,
             string placeholder = "Enter text",
-            bool isRequired = false,
-            bool isRegExpression = false)
+            bool isRequired = false)
         {
             // Label
             var labelContent = new TagBuilder("label");
@@ -332,7 +336,7 @@ namespace Insurancesys.web.Helper
             inputColumn.AddCssClass("col-md-4 col-xs-12");
             inputColumn.InnerHtml.AppendHtml(textarea);
 
-            if (isRequired || isRegExpression)
+            if (isRequired)
             {
                 var validationMessage = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
                 inputColumn.InnerHtml.AppendHtml(validationMessage);
@@ -346,8 +350,726 @@ namespace Insurancesys.web.Helper
 
             return formGroupRow;
         }
+        #endregion
 
-        private static string? GetFormattedDateTime(string forExpression,object? model)
+        #region 2 Columns Horizontal Form inputs
+        public static IHtmlContent TwoColsHorizontalFormTextBox(
+            this IHtmlHelper htmlHelper,
+            string label,
+            string forExpression,
+            bool isRequired = false,
+            string placeholder = "",
+            int maxlength = 0,
+            bool isRegExpression = false
+        )
+        {
+            // ---- LABEL ----
+            var labelTag = new TagBuilder("label");
+            labelTag.AddCssClass("col-lg-2 col-form-label text-right");
+            if (isRequired)
+                labelTag.AddCssClass("required");
+            labelTag.InnerHtml.Append(label);
+
+            // ---- INPUT ATTRIBUTES ----
+
+            // Create input element
+            var htmlAttributes = maxlength > 0
+                ? (object)new { @class = "form-control maximum-length-setup", maxlength, placeholder }
+                : (object)new { @class = "form-control", placeholder };
+
+            var inputTag = htmlHelper.TextBox(forExpression, null, htmlAttributes);
+
+            // ---- COLUMN WITH INPUT ----
+            var inputColumn = new TagBuilder("div");
+            inputColumn.AddCssClass("col-lg-3");
+
+            inputColumn.InnerHtml.AppendHtml(inputTag);
+
+            // ---- Validation Message ----
+            if (isRequired || isRegExpression)
+            {
+                // Create validation message
+                var validationMessage = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
+                inputColumn.InnerHtml.AppendHtml(validationMessage);
+            }
+
+            // ---- FINAL OUTPUT (Label + Column) ----
+            var container = new HtmlContentBuilder();
+            container.AppendHtml(labelTag);
+            container.AppendHtml(inputColumn);
+
+            return container;
+        }
+        public static IHtmlContent TwoColsHorizontalPhoneNumberWithCode(
+    this IHtmlHelper htmlHelper,
+    string label,
+    string forExpression,
+    bool isRequired = false,
+    string placeholder = "Enter 10-digit phone number"
+)
+        {
+
+            // ---- LABEL ----
+            var labelTag = new TagBuilder("label");
+            labelTag.AddCssClass("col-lg-2 col-form-label text-right");
+            if (isRequired)
+                labelTag.AddCssClass("required");
+            labelTag.InnerHtml.Append(label);
+
+            // ---- INPUT GROUP ----
+            var inputGroup = new TagBuilder("div");
+            inputGroup.AddCssClass("input-group");
+
+            // ---- COUNTRY CODE PREPEND ----
+            var prependDiv = new TagBuilder("div");
+            prependDiv.AddCssClass("input-group-prepend");
+            prependDiv.InnerHtml.AppendHtml("<span class='input-group-text'>+91</span>");
+            inputGroup.InnerHtml.AppendHtml(prependDiv);
+
+            // ---- INPUT ATTRIBUTES ----
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                { "class", "form-control" },
+                { "placeholder", placeholder },
+                { "maxlength", 10 },
+                { "pattern", "[6-9][0-9]{9}" },
+                { "type", "tel" },
+                { "inputmode", "numeric" }
+            };
+
+            if (isRequired)
+            {
+                htmlAttributes.Add("data-val", "true");
+                htmlAttributes.Add("data-val-required", $"{label} is required");
+                htmlAttributes.Add("data-val-regex", "Please enter a valid 10-digit phone number");
+                htmlAttributes.Add("data-val-regex-pattern", "^[6-9][0-9]{9}$");
+            }
+
+            // ---- INPUT TEXTBOX ----
+            var inputTag = htmlHelper.TextBox(forExpression, null, htmlAttributes);
+            inputGroup.InnerHtml.AppendHtml(inputTag);
+
+            // ---- COLUMN WITH INPUT GROUP ----
+            var inputColumn = new TagBuilder("div");
+            inputColumn.AddCssClass("col-lg-3");
+            inputColumn.InnerHtml.AppendHtml(inputGroup);
+
+            // ---- VALIDATION MESSAGE ----
+            if (isRequired)
+            {
+                var validationMessage = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
+                inputColumn.InnerHtml.AppendHtml(validationMessage);
+            }
+
+            // ---- FINAL OUTPUT (Label + Column) ----
+            var container = new HtmlContentBuilder();
+            container.AppendHtml(labelTag);
+            container.AppendHtml(inputColumn);
+
+            return container;
+        }
+        public static IHtmlContent TwoColsHorizontalDatePicker(
+            this IHtmlHelper htmlHelper,
+             string label,
+             string forExpression,
+             string placeholder = "Select Date",
+             bool isRequired = false
+        )
+        {
+            // Generate unique ID based on field name
+            string uniqueId = $"{forExpression}";
+
+            // ---- LABEL ----
+            var labelTag = new TagBuilder("label");
+            labelTag.AddCssClass("col-lg-2 col-form-label text-right");
+            if (isRequired)
+                labelTag.AddCssClass("required");
+            labelTag.InnerHtml.Append(label);
+
+            // ---- INPUT ----
+            var input = new TagBuilder("input");
+            input.TagRenderMode = TagRenderMode.SelfClosing;
+            input.Attributes.Add("type", "text");
+            input.Attributes.Add("id", uniqueId);
+            input.Attributes.Add("name", forExpression);
+            input.Attributes.Add("placeholder", placeholder);
+            input.Attributes.Add("data-date-format", "yyyy-mm-dd");
+            input.AddCssClass("form-control kt_datetimepicker_6");
+
+            // ---- INPUT GROUP ----
+            var appendIcon = new TagBuilder("div");
+            appendIcon.AddCssClass("input-group-append");
+            appendIcon.InnerHtml.AppendHtml(
+                "<span class='input-group-text'><i class='la la-calendar glyphicon-th'></i></span>"
+            );
+
+            var inputGroup = new TagBuilder("div");
+            inputGroup.AddCssClass("input-group date");
+            inputGroup.InnerHtml.AppendHtml(input);
+            inputGroup.InnerHtml.AppendHtml(appendIcon);
+
+            // ---- COLUMN (col-lg-3) ----
+            var inputColumn = new TagBuilder("div");
+            inputColumn.AddCssClass("col-lg-3");
+            inputColumn.InnerHtml.AppendHtml(inputGroup);
+
+            // ---- VALIDATION MESSAGE ----
+            if (isRequired)
+            {
+                var validation = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
+                inputColumn.InnerHtml.AppendHtml(validation);
+            }
+
+            // ---- RETURN (label + column) ----
+            var wrapper = new HtmlContentBuilder();
+            wrapper.AppendHtml(labelTag);
+            wrapper.AppendHtml(inputColumn);
+
+            return wrapper;
+        }
+
+        public static IHtmlContent TwoColsHorizontalDropdown(
+            this IHtmlHelper htmlHelper,
+            string label,
+            string forExpression,
+            IEnumerable<SelectListItem> selectList,
+            bool isRequired = false,
+            string placeholder = "Select",
+            bool isRegExpression = false
+        )
+        {
+            // ---- LABEL ----
+            var labelTag = new TagBuilder("label");
+            labelTag.AddCssClass("col-lg-2 col-form-label text-right");
+            if (isRequired)
+                labelTag.AddCssClass("required");
+            labelTag.InnerHtml.Append(label);
+
+            // ---- DROPDOWN ATTRIBUTES ----
+            var dropdownAttributes = new Dictionary<string, object>
+            {
+                { "class", "form-control selectpicker" },
+                { "data-size", "7" },
+                { "data-live-search", "true" },
+                { "id", $"drp_{forExpression}" }
+            };
+
+            // ---- DROPDOWN ----
+            var dropdown = htmlHelper.DropDownList(
+                forExpression,
+                selectList,
+                placeholder,
+                dropdownAttributes
+            );
+
+            // ---- INPUT COLUMN (col-lg-3) ----
+            var inputColumn = new TagBuilder("div");
+            inputColumn.AddCssClass("col-lg-3");
+            inputColumn.InnerHtml.AppendHtml(dropdown);
+
+            // ---- VALIDATION MESSAGE ----
+            if (isRequired || isRegExpression)
+            {
+                var validation = htmlHelper.ValidationMessage(
+                    forExpression,
+                    null,
+                    new { @class = "text-danger" }
+                );
+                inputColumn.InnerHtml.AppendHtml(validation);
+            }
+
+            // ---- RETURN (label + dropdown) ----
+            var wrapper = new HtmlContentBuilder();
+            wrapper.AppendHtml(labelTag);
+            wrapper.AppendHtml(inputColumn);
+
+            return wrapper;
+        }
+
+        public static IHtmlContent TwoColsHorizontalTextArea(this IHtmlHelper htmlHelper,
+            string label,
+            string forExpression,
+            int rows = 2,
+            int maxLength = 255,
+            string placeholder = "Enter text",
+            bool isRequired = false)
+
+        {
+            // ---- LABEL ----
+            var labelTag = new TagBuilder("label");
+            labelTag.AddCssClass("col-lg-2 col-form-label text-right");
+            if (isRequired)
+                labelTag.AddCssClass("required");
+            labelTag.InnerHtml.Append(label);
+
+            // Create input element
+
+            // TextArea Attributes
+            var textareaAttributes = new Dictionary<string, object>
+            {
+                { "class", "form-control maximum-length-setup" },
+                { "rows", rows },
+                { "maxlength", maxLength },
+                { "placeholder", placeholder }
+            };
+
+            var textarea = htmlHelper.TextArea(forExpression, textareaAttributes);
+
+            // ---- COLUMN WITH INPUT ----
+            var inputColumn = new TagBuilder("div");
+            inputColumn.AddCssClass("col-lg-3");
+
+            inputColumn.InnerHtml.AppendHtml(textarea);
+
+            // ---- Validation Message ----
+            if (isRequired)
+            {
+                // Create validation message
+                var validationMessage = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
+                inputColumn.InnerHtml.AppendHtml(validationMessage);
+            }
+
+            // ---- FINAL OUTPUT (Label + Column) ----
+            var container = new HtmlContentBuilder();
+            container.AppendHtml(labelTag);
+            container.AppendHtml(inputColumn);
+
+            return container;
+        }
+
+        public static IHtmlContent TwoColsHorizontalFormDecimal_obsolete(
+     this IHtmlHelper htmlHelper,
+     string label,
+     string forExpression,
+     bool isRequired = false,
+     string placeholder = "0.00"
+ )
+        {
+            // ---- LABEL ----
+            var labelTag = new TagBuilder("label");
+            labelTag.AddCssClass("col-lg-2 col-form-label text-right");
+            if (isRequired)
+                labelTag.AddCssClass("required");
+            labelTag.InnerHtml.Append(label);
+
+            // ---- INPUT ATTRIBUTES ----
+            var htmlAttributes = new Dictionary<string, object>
+    {
+        { "class", "form-control text-right" },
+        { "placeholder", placeholder },
+        { "type", "text" },
+        { "data-decimal", "true" },
+        // ALWAYS add validation for numeric format only
+        { "data-val", "true" },        
+        // Add range validation for max 10 lakh
+        { "data-val-range", $"{label} must not exceed 10,00,000.00" },
+        { "data-val-range-min", "0" },
+        { "data-val-range-max", "1000000.00" }
+    };
+
+            // Add required validation only if isRequired is true
+            if (isRequired)
+            {
+                htmlAttributes.Add("data-val-required", $"{label} is required");
+            }
+
+            // ---- INPUT TEXTBOX ----
+            var inputTag = htmlHelper.TextBox(forExpression, null, htmlAttributes);
+
+            // ---- COLUMN WITH INPUT ----
+            var inputColumn = new TagBuilder("div");
+            inputColumn.AddCssClass("col-lg-3");
+            inputColumn.InnerHtml.AppendHtml(inputTag);
+
+            // ---- VALIDATION MESSAGE (Always show) ----
+            var validationMessage = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
+            inputColumn.InnerHtml.AppendHtml(validationMessage);
+
+            // ---- FINAL OUTPUT (Label + Column) ----
+            var container = new HtmlContentBuilder();
+            container.AppendHtml(labelTag);
+            container.AppendHtml(inputColumn);
+
+            return container;
+        }
+
+        public static IHtmlContent TwoColsHorizontalFormDecimal(
+            this IHtmlHelper htmlHelper,
+            string label,
+            string forExpression,
+            bool isRequired = false,
+            string placeholder = "0.00",
+            string value = null)
+        {
+            var labelTag = new TagBuilder("label");
+            labelTag.AddCssClass("col-lg-2 col-form-label text-right");
+            if (isRequired)
+                labelTag.AddCssClass("required");
+            labelTag.InnerHtml.Append(label);
+
+            // Only styling attributes
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                { "class", "form-control text-right" },
+                { "placeholder", placeholder },
+                { "type", "text" },
+                { "data-decimal", "true" }  // For decimal formatting only
+            };
+
+            if (!string.IsNullOrEmpty(value))
+                htmlAttributes.Add("value", value);
+
+            var inputTag = htmlHelper.TextBox(forExpression, null, htmlAttributes);
+
+            var inputColumn = new TagBuilder("div");
+            inputColumn.AddCssClass("col-lg-3");
+            inputColumn.InnerHtml.AppendHtml(inputTag);
+
+            var validationMessage = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
+            inputColumn.InnerHtml.AppendHtml(validationMessage);
+
+            var container = new HtmlContentBuilder();
+            container.AppendHtml(labelTag);
+            container.AppendHtml(inputColumn);
+
+            return container;
+        }
+        #endregion
+
+        #region 3 Columns Vertical Form inputs
+        public static IHtmlContent ThreeColsVerticalFormTextBox(
+            this IHtmlHelper htmlHelper,
+            string label,
+            string forExpression,
+            bool isRequired = false,
+            string placeholder = "",
+            int maxlength = 0,
+            bool isRegExpression = false
+        )
+        {
+            // ---- COLUMN WRAPPER (col-lg-4) ----
+            var col = new TagBuilder("div");
+            col.AddCssClass("col-lg-4");
+
+            // ---- LABEL ----
+            var labelTag = new TagBuilder("label");
+            if (isRequired)
+                labelTag.AddCssClass("required");
+            labelTag.InnerHtml.Append(label);
+            col.InnerHtml.AppendHtml(labelTag);
+
+            // ---- INPUT ATTRIBUTES ----            
+            var htmlAttributes = maxlength > 0
+                ? (object)new { @class = "form-control maximum-length-setup", maxlength, placeholder }
+                : (object)new { @class = "form-control maximum-length-setup", placeholder };
+
+            // ---- INPUT TEXTBOX ----
+            var input = htmlHelper.TextBox(forExpression, null, htmlAttributes);
+            col.InnerHtml.AppendHtml(input);
+
+            // ---- VALIDATION ----
+            if (isRequired || isRegExpression)
+            {
+                var validation = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
+                col.InnerHtml.AppendHtml(validation);
+            }
+
+            // Return only the column; the caller wraps row if needed
+            return col;
+        }
+
+        public static IHtmlContent ThreeColsVerticalDatePicker(
+    this IHtmlHelper htmlHelper,
+    string label,
+    string forExpression,
+    string placeholder = "Select Date",
+    bool isRequired = false
+)
+        {
+            // ---- OUTER COLUMN (col-lg-4) ----
+            var col = new TagBuilder("div");
+            col.AddCssClass("col-lg-4");
+
+            // ---- LABEL ----
+            var labelTag = new TagBuilder("label");
+            if (isRequired)
+                labelTag.AddCssClass("required");
+            labelTag.InnerHtml.Append(label);
+            col.InnerHtml.AppendHtml(labelTag);
+
+            // ---- INPUT GROUP ----
+            var inputGroup = new TagBuilder("div");
+            inputGroup.AddCssClass("input-group date");
+
+            // ---- INPUT ----
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                { "class", "form-control kt_datetimepicker_6" },
+                { "placeholder", placeholder },
+                { "autocomplete", "off" }
+            };
+
+            var input = htmlHelper.TextBox(forExpression, null, htmlAttributes);
+            inputGroup.InnerHtml.AppendHtml(input);
+
+            // ---- INPUT APPEND ICON ----
+            var appendIcon = new TagBuilder("div");
+            appendIcon.AddCssClass("input-group-append");
+            appendIcon.InnerHtml.AppendHtml(
+                "<span class='input-group-text'><i class='la la-calendar glyphicon-th'></i></span>"
+            );
+            inputGroup.InnerHtml.AppendHtml(appendIcon);
+
+            // Add input group to column
+            col.InnerHtml.AppendHtml(inputGroup);
+
+            // ---- VALIDATION ----
+            if (isRequired)
+            {
+                var validation = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
+                col.InnerHtml.AppendHtml(validation);
+            }
+
+            return col;
+        }
+        public static IHtmlContent ThreeColsVerticalDropdown(
+    this IHtmlHelper htmlHelper,
+    string label,
+    string forExpression,
+    IEnumerable<SelectListItem> selectList,
+    bool isRequired = false,
+    bool isRegExpression = false
+)
+        {
+            // ---- COLUMN WRAPPER (col-lg-4) ----
+            var col = new TagBuilder("div");
+            col.AddCssClass("col-lg-4");
+
+            // ---- LABEL ----
+            var labelTag = new TagBuilder("label");
+            if (isRequired)
+                labelTag.AddCssClass("required");
+            labelTag.InnerHtml.Append(label);
+            col.InnerHtml.AppendHtml(labelTag);
+
+            // ---- DROPDOWN ----
+            var dropdown = htmlHelper.DropDownList(
+                forExpression,
+                selectList,
+                new { @class = "form-control" }
+            );
+            col.InnerHtml.AppendHtml(dropdown);
+
+            // ---- VALIDATION ----
+            if (isRequired || isRegExpression)
+            {
+                var validation = htmlHelper.ValidationMessage(
+                    forExpression,
+                    null,
+                    new { @class = "text-danger" }
+                );
+                col.InnerHtml.AppendHtml(validation);
+            }
+
+            // Return only the column
+            return col;
+        }
+
+        public static IHtmlContent ThreeColsVerticalFormFileUpload(
+    this IHtmlHelper htmlHelper,
+    string label,
+    string forExpression,
+    bool isRequired = false,
+    string acceptedFileTypes = "",
+    string chooserText = "Choose file",
+    bool allowMultiple = false
+)
+        {
+            // ---- COLUMN WRAPPER (col-lg-4) ----
+            var col = new TagBuilder("div");
+            col.AddCssClass("col-lg-4");
+
+            // ---- LABEL ----
+            var labelTag = new TagBuilder("label");
+            if (isRequired)
+                labelTag.AddCssClass("required");
+            labelTag.InnerHtml.Append(label);
+            col.InnerHtml.AppendHtml(labelTag);
+
+            // ---- CUSTOM FILE DIV ----
+            var customFileDiv = new TagBuilder("div");
+            customFileDiv.AddCssClass("custom-file");
+
+            // ---- FILE INPUT ATTRIBUTES ----
+            var htmlAttributes = new Dictionary<string, object>
+    {
+        { "class", "custom-file-input" },
+        { "id", forExpression },
+                { "type","file"}
+    };
+
+            if (!string.IsNullOrEmpty(acceptedFileTypes))
+                htmlAttributes.Add("accept", acceptedFileTypes);
+            if (allowMultiple)
+                htmlAttributes.Add("multiple", "multiple");
+            // ---- FILE INPUT ----
+            var fileInput = htmlHelper.TextBox(
+                forExpression,
+                null,
+                htmlAttributes
+            // "file" 
+            );
+
+            customFileDiv.InnerHtml.AppendHtml(fileInput);
+
+            // ---- CUSTOM FILE LABEL ----
+            var fileLabel = new TagBuilder("label");
+            fileLabel.AddCssClass("custom-file-label");
+            fileLabel.Attributes.Add("for", forExpression);
+            fileLabel.InnerHtml.Append(chooserText);
+            customFileDiv.InnerHtml.AppendHtml(fileLabel);
+
+            // Append custom-file div to column
+            col.InnerHtml.AppendHtml(customFileDiv);
+
+            // ---- VALIDATION ----
+            if (isRequired)
+            {
+                var validation = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
+                col.InnerHtml.AppendHtml(validation);
+            }
+
+            return col;
+        }
+
+        public static IHtmlContent ThreeColsVerticalPhoneNumberWithCode(
+    this IHtmlHelper htmlHelper,
+    string label,
+    string forExpression,
+    bool isRequired = false,
+    string placeholder = "Enter 10-digit phone number"
+)
+        {
+            // ---- COLUMN WRAPPER (col-lg-4) ----
+            var col = new TagBuilder("div");
+            col.AddCssClass("col-lg-4");
+
+            // ---- LABEL ----
+            var labelTag = new TagBuilder("label");
+            if (isRequired)
+                labelTag.AddCssClass("required");
+            labelTag.InnerHtml.Append(label);
+            col.InnerHtml.AppendHtml(labelTag);
+
+            // ---- INPUT GROUP ----
+            var inputGroup = new TagBuilder("div");
+            inputGroup.AddCssClass("input-group");
+
+            // ---- COUNTRY CODE PREPEND ----
+            var prependDiv = new TagBuilder("div");
+            prependDiv.AddCssClass("input-group-prepend");
+            prependDiv.InnerHtml.AppendHtml("<span class='input-group-text'>+91</span>");
+            inputGroup.InnerHtml.AppendHtml(prependDiv);
+
+            // ---- INPUT ATTRIBUTES ----
+            var htmlAttributes = new Dictionary<string, object>
+    {
+        { "class", "form-control" },
+        { "placeholder", placeholder },
+        { "maxlength", 10 },
+        { "pattern", "[6-9][0-9]{9}" },
+        { "type", "tel" },
+        { "inputmode", "numeric" }
+    };
+
+            if (isRequired)
+            {
+                htmlAttributes.Add("data-val", "true");
+                htmlAttributes.Add("data-val-required", $"{label} is required");
+                htmlAttributes.Add("data-val-regex", "Please enter a valid 10-digit phone number");
+                htmlAttributes.Add("data-val-regex-pattern", "^[6-9][0-9]{9}$");
+            }
+
+            // ---- INPUT TEXTBOX ----
+            var input = htmlHelper.TextBox(forExpression, null, htmlAttributes);
+            inputGroup.InnerHtml.AppendHtml(input);
+
+            col.InnerHtml.AppendHtml(inputGroup);
+
+            // ---- VALIDATION ----
+            if (isRequired)
+            {
+                var validation = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
+                col.InnerHtml.AppendHtml(validation);
+            }
+
+            return col;
+        }
+
+        public static IHtmlContent ThreeColsVerticalFormDecimal(
+    this IHtmlHelper htmlHelper,
+    string label,
+    string forExpression,
+    bool isRequired = false,
+    string placeholder = "0.00"
+)
+        {
+            // ---- COLUMN WRAPPER (col-lg-4) ----
+            var col = new TagBuilder("div");
+            col.AddCssClass("col-lg-4");
+
+            // ---- LABEL ----
+            var labelTag = new TagBuilder("label");
+            if (isRequired)
+                labelTag.AddCssClass("required");
+            labelTag.InnerHtml.Append(label);
+            col.InnerHtml.AppendHtml(labelTag);
+
+            // ---- INPUT GROUP ----
+            var inputGroup = new TagBuilder("div");
+            inputGroup.AddCssClass("input-group");
+
+            // ---- ₹ PREPEND ----
+            var prependDiv = new TagBuilder("div");
+            prependDiv.AddCssClass("input-group-prepend");
+            prependDiv.InnerHtml.AppendHtml("<span class='input-group-text'>₹</span>");
+            inputGroup.InnerHtml.AppendHtml(prependDiv);
+
+            // ---- INPUT ATTRIBUTES ----
+            var htmlAttributes = new Dictionary<string, object>
+    {
+        { "class", "form-control text-right" },
+        { "placeholder", placeholder },
+        { "type", "text" },
+        { "data-decimal", "true" },
+        // ALWAYS add validation for numeric format only
+        { "data-val", "true" },        
+        // Add range validation for max 10 lakh
+        { "data-val-range", $"{label} must not exceed 10,00,000.00" },
+        { "data-val-range-min", "0" },
+        { "data-val-range-max", "1000000.00" }
+    };
+
+            // Add required validation only if isRequired is true
+            if (isRequired)
+            {
+                htmlAttributes.Add("data-val-required", $"{label} is required");
+            }
+
+            // ---- INPUT TEXTBOX ----
+            var input = htmlHelper.TextBox(forExpression, null, htmlAttributes);
+            inputGroup.InnerHtml.AppendHtml(input);
+
+            col.InnerHtml.AppendHtml(inputGroup);
+
+            // ---- VALIDATION (Always show validation message) ----
+            var validation = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
+            col.InnerHtml.AppendHtml(validation);
+
+            return col;
+        }
+        #endregion
+        private static string? GetFormattedDateTime(string forExpression, object? model)
         {
             if (model != null && !string.IsNullOrEmpty(forExpression))
             {

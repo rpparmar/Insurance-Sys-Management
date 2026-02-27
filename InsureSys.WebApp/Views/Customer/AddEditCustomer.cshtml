@@ -1,5 +1,160 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@using Insurancesys.web.Helper
+@using Insurancesys.web.Models.Common
+@model Insurancesys.web.Models.CustomerViewModel
+@section Styles {
+    <link href="~/css/common.css" rel="stylesheet" type="text/css" />
+    <link href="~/css/customer/main.css" rel="stylesheet" type="text/css" />
+}
 @{
+    Layout = "_Layout";
+    if (!Model.IsEditMode)
+        ViewData["Title"] = "New Customer";
+    else
+        ViewData["Title"] = "Edit Customer";
+}
+
+<!--begin::Subheader-->
+<div class="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader">
+    <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
+        <div class="d-flex align-items-center flex-wrap mr-1">
+            <div class="d-flex align-items-baseline mr-5">
+                <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
+                    <li class="breadcrumb-item">
+                        <a href="" class="text-muted">Business</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <h5 class="text-dark font-weight-bold my-2 mr-5">@ViewData["Title"]</h5>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<!--end::Subheader-->
+
+<div class="container-fluid">
+    <form id="frmCustomer" class="form fv-plugins-bootstrap fv-plugins-framework" asp-action="SaveCustomer" asp-controller="Customer" method="post" enctype="multipart/form-data">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-custom card-sticky" id="kt_page_sticky_card">
+                    @Html.HiddenFor(x => x.IsEditMode)
+                    @Html.HiddenFor(x => x.CustomerID)
+                    @Html.HiddenFor(x => x.SubmitType, new { id = "hdnSubmitType" })
+
+                    <div class="card-header">
+                        <div class="card-title"></div>
+                        <div class="card-toolbar">
+                            <a asp-controller="Customer" asp-action="ListOfCustomers" class="btn btn-danger font-weight-bolder mr-2">
+                                <i class="ki ki-long-arrow-back icon-sm"></i>Back
+                            </a>
+                            <div class="btn-group">
+                                @*<button type="submit" name="SubmitType" value="Customer" class="btn btn-primary font-weight-bolder">
+                                    <i class="ki ki-check icon-sm"></i>
+                                    Save
+                                </button>*@
+
+                                <button type="button" class="btn btn-primary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Save
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-sm dropdown-menu-right">
+                                    <ul class="nav nav-hover flex-column">
+                                        <li class="nav-item">
+                                            <a href="#" class="nav-link submit-option" data-submit-type="customeronly">
+                                                <i class="nav-icon flaticon2-reload"></i>
+                                                <span class="nav-text">Customer Only</span>
+                                            </a>
+                                        </li>
+                                        <li class="nav-item">
+                                            <a href="#" class="nav-link submit-option" data-submit-type="customerwithpolicies">
+                                                <i class="nav-icon flaticon2-power"></i>
+                                                <span class="nav-text">Customer With Policies</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row justify-content-center align-items-center">
+                            <div class="col-md-12">
+                                <!-- Customer Details Accordion -->
+                                <div class="accordion accordion-solid" id="accordionExample6">
+                                    <div class="card" style="display: block;">
+                                        <div class="card-header card-head" id="headingOne6">
+                                            <div class="card-title">
+                                                <i class="far fa-user"></i>
+                                                Customer Details
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="form-group row">
+                                                @Html.TwoColsHorizontalFormTextBox(label: "First Name", forExpression: nameof(Model.FirstName), isRequired: true, placeholder: "Enter first name", maxlength: 50)
+                                                @Html.TwoColsHorizontalFormTextBox(label: "Last Name", forExpression: nameof(Model.LastName), isRequired: false, placeholder: "Enter last name", maxlength: 50)
+                                            </div>
+                                            <div class="form-group row">
+                                                @Html.TwoColsHorizontalPhoneNumberWithCode(
+                                                label: "Phone Number",
+                                                                                                forExpression: nameof(Model.Phone),
+                                                                                                isRequired: true,
+                                                                                                placeholder: "Enter 10-digit phone number"
+                                                                                                )
+                                                @Html.TwoColsHorizontalFormTextBox(label: "Email", forExpression: nameof(Model.Email), isRequired: false, placeholder: "Enter email", maxlength: 100, isRegExpression: true)
+                                            </div>
+                                            <div class="form-group row">
+                                                @Html.TwoColsHorizontalDatePicker(label: "Date Of Birth", forExpression: nameof(Model.DOB), placeholder: "Select DOB")
+                                                @Html.TwoColsHorizontalDatePicker(label: "Anniversary Date", forExpression: nameof(Model.AnniversaryDate), placeholder: "Select Anniversary Date")
+                                            </div>
+                                            <div class="form-group row">
+                                                @Html.TwoColsHorizontalTextArea("Address Line 1", nameof(Model.AddressLine1), rows: 2, maxLength: 250, placeholder: "Enter house no/shop no/block/building name", isRequired: false)
+                                                @Html.TwoColsHorizontalTextArea("Address Line 2", nameof(Model.AddressLine2), rows: 2, maxLength: 250, placeholder: "Enter landmark", isRequired: false)
+                                            </div>
+                                            <div class="form-group row">
+                                                @Html.TwoColsHorizontalFormTextBox(label: "City", forExpression: nameof(Model.City), isRequired: false, placeholder: "Enter city", maxlength: 100)
+                                                @Html.TwoColsHorizontalFormTextBox(label: "Zipcode", forExpression: nameof(Model.ZipCode), isRequired: false, placeholder: "Enter zipcode", maxlength: 10)
+                                            </div>
+                                            <div class="form-group row">
+                                                @Html.TwoColsHorizontalDropdown("State", nameof(Model.State)
+                                                                                                , new List<SelectListItem>{
+                                                                                                new SelectListItem { Text = "Gujarat", Value = "GJ" },
+                                                                                                new SelectListItem { Text = "Rajasthan", Value = "RJ" },
+                                                                                                new SelectListItem { Text = "Maharashtra", Value = "MH" }}
+                                                                                                , isRequired: false, isRegExpression: false)
+                                                @Html.TwoColsHorizontalDropdown("Country", nameof(Model.Country)
+                                                                                                , new List<SelectListItem>{
+                                                                                                new SelectListItem { Text = "India", Value = "IN" },
+                                                                                                new SelectListItem { Text = "USA", Value = "USA" },
+                                                                                                new SelectListItem { Text = "Canada", Value = "CN" }}
+                                                                                                , isRequired: false, isRegExpression: false)
+                                            </div>
+                                            <div class="form-group row">
+                                                @Html.TwoColsHorizontalDropdown("Gender", nameof(Model.Gender)
+                                                                                                , new List<SelectListItem>{
+                                                                                                new SelectListItem { Text = "Male", Value = "M" },
+                                                                                                new SelectListItem { Text = "Female", Value = "F" },
+                                                                                                new SelectListItem { Text = "Other", Value = "O" }}
+                                                                                                , isRequired: false, isRegExpression: false)
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Hidden message container for toastr -->
+@if (TempData["Message"] != null)
+{
+    <div class="toastr-message" data-message="@TempData["Message"]" data-type="@(TempData["RowsAffected"]?.ToString() == "1" ? "success" : "error")" style="display:none;"></div>
+}
+
+@section Scripts {
+    <script src="~/assets/js/bootstrap-datetimepicker.js"></script>
+    <script src="~/js/pages/customer/customer-form.js"></script>
 }

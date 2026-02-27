@@ -105,6 +105,16 @@ var KTBootstrapDatetimepicker = function () {
             forceParse: 0,
             pickerPosition: 'bottom-left'
         });
+
+        
+        $('.kt_datetimepicker_6').datetimepicker({
+            todayHighlight: true,
+            autoclose: true,
+            pickerPosition: 'bottom-left',
+            todayBtn: true,
+            format: 'yyyy/mm/dd',
+            minView: 2
+        });
     }
 
     return {

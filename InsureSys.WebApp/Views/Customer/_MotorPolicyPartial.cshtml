@@ -1,0 +1,21 @@
+﻿@using Insurancesys.web.Helper
+@using Insurancesys.web.Models.Common
+@model Insurancesys.web.Models.MotorPolicyViewModel
+
+@{
+    var index = ViewBag.Index ?? 0;
+    var policyNumber = ViewBag.PolicyNumber ?? (index + 1);    
+}
+
+<div class="policy-instance" data-policy-type="motor" data-policy-index="@index">
+    <div class="policy-instance-header">
+        <span class="policy-instance-title">Motor Policy #@policyNumber</span>
+        <button type="button" class="btn-remove" data-policy-type="motor">
+            <span>🗑️</span>
+            Remove
+        </button>
+    </div>
+    @await Html.PartialAsync("_CommonPolicyDetails", Model.BasicDetails)
+    @await Html.PartialAsync("_VehicleDetails", Model.VehicleDetails)
+    @await Html.PartialAsync("_PolicyPaymentDetails", Model.PolicyPaymentDetails)
+</div>

@@ -118,6 +118,14 @@
                                     <span class="menu-text">My Leads</span>
                                 </a>
                             </li>
+                            <li class="menu-item menu-item-minimize-hover @SetActiveClassOnLink("Customer", "ListOfCustomers,AddEditCustomer,ManagePolicies")" aria-haspopup="true" data-menu-toggle="hover">
+                                <a asp-controller="Customer" asp-action="ListOfCustomers" class="menu-link">
+                                    <span class="svg-icon menu-icon">
+                                        <span class="fas fa-users"></span>
+                                    </span>
+                                    <span class="menu-text">My Customers</span>
+                                </a>                                
+                            </li>
                             <!--end::Business-->
                             <!--begin::Masters-->
                             <li class="menu-section">
