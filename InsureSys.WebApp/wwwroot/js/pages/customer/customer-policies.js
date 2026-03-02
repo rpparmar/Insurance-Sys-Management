@@ -187,6 +187,20 @@
             }
 
             $instance.fadeOut(300, function () {
+                // Track removed existing policies so server can soft-delete
+                const $policyIdInput = $instance.find('input[name$=".BasicDetails.PolicyId"]');
+                const existingIdRaw = ($policyIdInput.val() || '').toString();
+                const existingId = parseInt(existingIdRaw, 10);
+                if (!isNaN(existingId) && existingId > 0) {
+                    $('#removed-policies-container').append(
+                        $('<input>', {
+                            type: 'hidden',
+                            name: 'RemovedPolicyIds',
+                            value: existingId
+                        })
+                    );
+                }
+
                 $(this).remove();
 
                 const policyArray = self.getPolicyArray(policyType);
