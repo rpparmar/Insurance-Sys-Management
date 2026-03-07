@@ -106,6 +106,14 @@
             }
 
             this.updateAllPolicyCounts();
+
+            // Apply custom decimal messages to server-rendered existing policies            
+            ['motor', 'health', 'life', 'personalaccident'].forEach(function (policyType) {
+                $(`#${policyType}-policies-container .policy-instance`).each(function () {
+                    self.initializeDecimalInputs($(this));
+                });
+            });
+            this.refreshValidation();
         },
 
         togglePolicySection: function (policyType) {
@@ -404,34 +412,34 @@
                     return;
                 }
 
-                // Common decimal validation (regex + max range), as per model attributes
+                // Ensure data-val is active
                 if (!$input.attr('data-val')) {
                     $input.attr('data-val', 'true');
                 }
-                if (!$input.attr('data-val-regex')) {
-                    $input.attr('data-val-regex', 'Invalid value entered');
-                }
-                if (!$input.attr('data-val-regex-pattern')) {
-                    $input.attr('data-val-regex-pattern', DECIMAL_REGEX_PATTERN);
-                }
 
-                // Apply range rules based on property, mirroring PolicyBasicDetailsViewModel
-                if (name.endsWith('.GrosssPremium')
-                    || name.endsWith('.NetPremium')
-                    || name.endsWith('.ODPremium')
-                    || name.endsWith('.NCB')
+                // Remove the generic number validator — it fires before regex and shows
+                // "must be a number" for invalid input, hiding the regex message.
+                // The regex fully covers numeric format validation.
+                $input.removeAttr('data-val-number');
+
+                // Always override regex message (replaces server-generated default)
+                $input.attr('data-val-regex', 'Invalid amount');
+                $input.attr('data-val-regex-pattern', DECIMAL_REGEX_PATTERN);
+
+                // Apply field-specific range rules
+                if (name.endsWith('.GrosssPremium')) {
+                    $input.attr('data-val-range', 'Gross Premium must be greater than 0');
+                    $input.attr('data-val-range-min', '0.01');
+                    $input.attr('data-val-range-max', DECIMAL_MAX.toString());
+                } else if (
+                    name.endsWith('.NetPremium') ||
+                    name.endsWith('.ODPremium') ||
+                    name.endsWith('.NCB')
                 ) {
-                    // [Range(0.01, 10000000.00, ErrorMessage = "Premium must be greater than 0")]
-                    if (!$input.attr('data-val-range')) {
-                        $input.attr('data-val-range', 'Value must be greater than 0');
-                    }
-                    if (!$input.attr('data-val-range-min')) {
-                        $input.attr('data-val-range-min', '0.01');
-                    }
-                    if (!$input.attr('data-val-range-max')) {
-                        $input.attr('data-val-range-max', DECIMAL_MAX.toString());
-                    }
-                } 
+                    $input.attr('data-val-range', 'Value must be between 0.01 and 10,000,000');
+                    $input.attr('data-val-range-min', '0.01');
+                    $input.attr('data-val-range-max', DECIMAL_MAX.toString());
+                }
             });
             console.log('  ✓ Decimal inputs initialized');
         },
