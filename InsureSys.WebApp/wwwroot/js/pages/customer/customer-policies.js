@@ -69,8 +69,8 @@
             const existingMotor = $('.policy-instance[data-policy-type="motor"]');
             if (existingMotor.length > 0) {
                 this.motorPolicyCount = existingMotor.length;
-                existingMotor.each((index, element) => {
-                    this.motorPolicies.push(index);                    
+                existingMotor.each((i, element) => {
+                    this.motorPolicies.push($(element).data('policy-index'));
                 });
                 this.showPolicySection('motor');
             }
@@ -79,8 +79,8 @@
             const existingHealth = $('.policy-instance[data-policy-type="health"]');
             if (existingHealth.length > 0) {
                 this.healthPolicyCount = existingHealth.length;
-                existingHealth.each((index, element) => {
-                    this.healthPolicies.push(index);
+                existingHealth.each((i, element) => {
+                    this.healthPolicies.push($(element).data('policy-index'));
                 });
                 this.showPolicySection('health');
             }
@@ -89,8 +89,8 @@
             const existingLife = $('.policy-instance[data-policy-type="life"]');
             if (existingLife.length > 0) {
                 this.lifePolicyCount = existingLife.length;
-                existingLife.each((index, element) => {
-                    this.lifePolicies.push(index);
+                existingLife.each((i, element) => {
+                    this.lifePolicies.push($(element).data('policy-index'));
                 });
                 this.showPolicySection('life');
             }
@@ -99,8 +99,8 @@
             const existingPA = $('.policy-instance[data-policy-type="personalaccident"]');
             if (existingPA.length > 0) {
                 this.personalAccidentPolicyCount = existingPA.length;
-                existingPA.each((index, element) => {
-                    this.personalAccidentPolicies.push(index);
+                existingPA.each((i, element) => {
+                    this.personalAccidentPolicies.push($(element).data('policy-index'));
                 });
                 this.showPolicySection('personalaccident');
             }
@@ -187,28 +187,76 @@
         removePolicy: function (policyType, $instance, index) {
             const self = this;
 
-            const hasData = this.policyHasData($instance);
-            if (hasData) {
-                if (!confirm('This policy has data. Are you sure you want to remove it?')) {
-                    return;
+            // Resolve the PolicyId before opening the dialog so we know
+            // whether this is a saved (existing) or unsaved (new) policy.
+            const exactFieldName = `${self.getPolicyPrefix(policyType)}[${index}].BasicDetails.PolicyId`;
+            const $policyIdInput = $instance.find(`input[name="${exactFieldName}"]`);
+            const existingId = parseInt(($policyIdInput.val() || '0'), 10);
+            const isExisting = !isNaN(existingId) && existingId > 0;
+
+            const confirmText = isExisting
+                ? 'This will permanently delete this policy record.'
+                : 'This policy has not been saved yet and will be discarded.';
+
+            Swal.fire({
+                title: 'Remove Policy?',
+                text: confirmText,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, remove it',
+                cancelButtonText: 'Cancel',
+                buttonsStyling: false,
+                customClass: {
+                    confirmButton: 'btn btn-danger font-weight-bold',
+                    cancelButton: 'btn btn-secondary font-weight-bold mr-3'
+                },
+                reverseButtons: true
+            }).then(function (result) {                
+                if (!result.value) return;                
+                if (isExisting) {
+                    // Server-side soft-delete first, then remove from DOM on success
+                    self.deleteExistingPolicy(existingId, policyType, $instance, index);
+                } else {
+                    // Unsaved policy — just remove from DOM
+                    self.removePolicyFromDom(policyType, $instance, index);
                 }
-            }
+            });
+        },
+
+        deleteExistingPolicy: function (policyId, policyType, $instance, index) {
+            const self = this;
+            const token = $('input[name="__RequestVerificationToken"]').val();
+            const customerId = parseInt($('input[name="CustomerID"]').val() || '0', 10);
+
+            $.ajax({
+                url: '/Customer/DeletePolicy',
+                type: 'POST',
+                data: { policyId: policyId, customerId: customerId },
+                headers: { 'RequestVerificationToken': token },
+                success: function (response) {
+                    if (response && response.success) {
+                        self.removePolicyFromDom(policyType, $instance, index);
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success('Policy removed successfully.');
+                        }
+                    } else {
+                        if (typeof toastr !== 'undefined') {
+                            toastr.error(response.message || 'Failed to remove policy. Please try again.');
+                        }
+                    }
+                },
+                error: function () {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('An error occurred while removing the policy. Please try again.');
+                    }
+                }
+            });
+        },
+
+        removePolicyFromDom: function (policyType, $instance, index) {
+            const self = this;
 
             $instance.fadeOut(300, function () {
-                // Track removed existing policies so server can soft-delete
-                const $policyIdInput = $instance.find('input[name$=".BasicDetails.PolicyId"]');
-                const existingIdRaw = ($policyIdInput.val() || '').toString();
-                const existingId = parseInt(existingIdRaw, 10);
-                if (!isNaN(existingId) && existingId > 0) {
-                    $('#removed-policies-container').append(
-                        $('<input>', {
-                            type: 'hidden',
-                            name: 'RemovedPolicyIds',
-                            value: existingId
-                        })
-                    );
-                }
-
                 $(this).remove();
 
                 const policyArray = self.getPolicyArray(policyType);
@@ -217,6 +265,7 @@
                     policyArray.splice(idx, 1);
                 }
 
+                self.decrementPolicyCount(policyType);
                 self.updatePolicyCount(policyType);
 
                 if (policyArray.length === 0) {
@@ -226,20 +275,6 @@
 
                 self.renumberPolicies(policyType);
             });
-        },
-
-        policyHasData: function ($instance) {
-            let hasData = false;
-
-            $instance.find('input[type="text"], input[type="number"], input[type="date"], select').each(function () {
-                const val = $(this).val();
-                if (val && val !== '' && val !== 'Select') {
-                    hasData = true;
-                    return false;
-                }
-            });
-
-            return hasData;
         },
 
         renumberPolicies: function (policyType) {
@@ -588,6 +623,25 @@
                 case 'health': this.healthPolicyCount++; break;
                 case 'life': this.lifePolicyCount++; break;
                 case 'personalaccident': this.personalAccidentPolicyCount++; break;
+            }
+        },
+
+        decrementPolicyCount: function (policyType) {
+            switch (policyType) {
+                case 'motor': if (this.motorPolicyCount > 0) this.motorPolicyCount--; break;
+                case 'health': if (this.healthPolicyCount > 0) this.healthPolicyCount--; break;
+                case 'life': if (this.lifePolicyCount > 0) this.lifePolicyCount--; break;
+                case 'personalaccident': if (this.personalAccidentPolicyCount > 0) this.personalAccidentPolicyCount--; break;
+            }
+        },
+
+        getPolicyPrefix: function (policyType) {
+            switch (policyType) {
+                case 'motor': return 'MotorPolicies';
+                case 'health': return 'HealthPolicies';
+                case 'life': return 'LifePolicies';
+                case 'personalaccident': return 'PersonalAccidentPolicies';
+                default: return '';
             }
         },
 

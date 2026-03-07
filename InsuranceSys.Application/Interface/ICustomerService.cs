@@ -20,5 +20,10 @@ namespace InsuranceSys.Application.Interface
         Task<List<PolicyDetailsEntity>> GetPolicyDetailsByCustomerAsync(int customerId);
         Task<PolicyVehicleDetailsEntity?> GetVehicleDetailsByPollicyAsync(int policyId);
         Task<PolicyPaymentDetailsEntity?> GetPolicyPaymentsByPollicyAsync(int policyId);
+        Task<int> UpdatePolicyDetailsAsync(PolicyDetailsEntity policyDetails);
+        Task<int> UpdateVehicleDetailsAsync(PolicyVehicleDetailsEntity vehicleDetails);
+        Task<int> UpdatePolicyPaymentDetailsAsync(PolicyPaymentDetailsEntity policyPayment);
+        //Task SoftDeletePoliciesAsync(List<int> policyIds);
+        Task<bool> SoftDeletePolicyAsync(int policyId, int customerId);
     }
 }

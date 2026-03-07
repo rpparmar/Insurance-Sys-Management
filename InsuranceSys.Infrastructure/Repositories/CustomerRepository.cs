@@ -134,5 +134,118 @@ namespace InsuranceSys.Infrastructure.Repositories
                     .FirstOrDefaultAsync();
             });
         }
+
+        public async Task<int> UpdatePolicyDetailsAsync(PolicyDetailsEntity policyDetails)
+        {
+            return await ExecuteWriteAsync(async context =>
+            {
+                var existing = await context.EFPolicyDetails
+                    .FirstOrDefaultAsync(p => p.PolicyId == policyDetails.PolicyId);
+
+                if (existing == null)
+                {
+                    return 0;
+                }
+                existing.PolicyNumber= policyDetails.PolicyNumber;
+                existing.Company= policyDetails.Company;
+                existing.PolicyStartDate= policyDetails.PolicyStartDate;
+                existing.PolicyDueDate= policyDetails.PolicyDueDate;
+                existing.GrosssPremium= policyDetails.GrosssPremium;
+                existing.NetPremium= policyDetails.NetPremium;
+                existing.ODPremium= policyDetails.ODPremium;
+                existing.NCB= policyDetails.NCB;
+                existing.Dealer= policyDetails.Dealer;
+                existing.SM= policyDetails.SM;
+                existing.UpdatedOn = DateTime.UtcNow;
+
+                await context.SaveChangesAsync();
+                return existing.PolicyId;
+            });
+        }
+
+        public async Task<int> UpdateVehicleDetailsAsync(PolicyVehicleDetailsEntity vehicleDetails)
+        {
+            return await ExecuteWriteAsync(async context =>
+            {
+                var existing = await context.EFVehicleDetails
+                    .FirstOrDefaultAsync(v => v.PolicyId == vehicleDetails.PolicyId);
+
+                if (existing == null)
+                {
+                    return 0;
+                }
+
+                existing.Vehicleno= vehicleDetails.Vehicleno;
+                existing.Chassiseno= vehicleDetails.Chassiseno;
+                existing.Make= vehicleDetails.Make;
+                existing.VehicleModel= vehicleDetails.VehicleModel;
+                existing.Segment= vehicleDetails.Segment;
+                existing.Fuel= vehicleDetails.Fuel;
+                existing.VehicleIDV= vehicleDetails.VehicleIDV;
+                existing.PlanType= vehicleDetails.PlanType;
+                existing.UpdatedOn = DateTime.UtcNow;
+
+                await context.SaveChangesAsync();
+                return existing.VehicleId;
+            });
+        }
+
+        public async Task<int> UpdatePolicyPaymentDetailsAsync(PolicyPaymentDetailsEntity policyPayment)
+        {
+            return await ExecuteWriteAsync(async context =>
+            {
+                var existing = await context.EFPolicyPayment
+                    .FirstOrDefaultAsync(pp => pp.PolicyId == policyPayment.PolicyId);
+
+                if (existing == null)
+                {
+                    return 0;
+                }
+
+                existing.PaymentMode= policyPayment.PaymentMode;
+                existing.Transactionreferance= policyPayment.Transactionreferance;
+                existing.BankName= policyPayment.BankName;
+                existing.UpdatedOn = DateTime.UtcNow;
+                
+                await context.SaveChangesAsync();
+                return existing.PolicyId;
+            });
+        }
+
+        //public async Task SoftDeletePoliciesAsync(List<int> policyIds)
+        //{
+        //    await ExecuteWriteAsync(async context =>
+        //    {
+        //        var policies = await context.EFPolicyDetails
+        //            .Where(p => policyIds.Contains(p.PolicyId) && !p.IsDeleted)
+        //            .ToListAsync();
+
+        //        foreach (var policy in policies)
+        //        {
+        //            policy.IsDeleted = true;
+        //            policy.UpdatedOn = DateTime.UtcNow;
+        //        }
+
+        //        await context.SaveChangesAsync();
+        //        return 0;
+        //    });
+        //}
+
+        public async Task<bool> SoftDeletePolicyAsync(int policyId, int customerId)
+        {
+            return await ExecuteWriteAsync(async context =>
+            {
+                var policy = await context.EFPolicyDetails
+                    .FirstOrDefaultAsync(p => p.PolicyId == policyId && p.CustomerID == customerId && !p.IsDeleted);
+
+                if (policy == null)
+                    return false;
+
+                policy.IsDeleted = true;
+                policy.UpdatedOn = DateTime.UtcNow;
+                await context.SaveChangesAsync();
+                return true;
+            });
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using static InsuranceSys.Domain.Constants;
 
 namespace Insurancesys.web.Models
