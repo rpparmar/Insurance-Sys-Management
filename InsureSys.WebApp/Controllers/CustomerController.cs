@@ -2,6 +2,7 @@ using AutoMapper;
 using Insurancesys.web.Helper;
 using Insurancesys.web.Models;
 using Insurancesys.web.Models.Common;
+using Insurancesys.web.Utility;
 using InsuranceSys.Application;
 using InsuranceSys.Application.Interface;
 using InsuranceSys.Domain;
@@ -27,10 +28,12 @@ namespace Insurancesys.web.Controllers
     {
         private readonly IMapper _mapper;
         private readonly ICustomerService _customerService;
-        public CustomerController(IMapper mapper, ICustomerService customerService)
+        private readonly IQueryStringProtector _protector;
+        public CustomerController(IMapper mapper, ICustomerService customerService, IQueryStringProtector protector)
         {
             _mapper = mapper;
             _customerService = customerService;
+            _protector = protector;
         }
         [Route("Customers")]
         public IActionResult ListOfCustomers()
@@ -38,13 +41,19 @@ namespace Insurancesys.web.Controllers
             return View("../Customer/ListOfCustomers");
         }
         [Route("Customer/Policies")]
-        public async Task<IActionResult> ManagePolicies(int customerId = 0)
-        {
+        public async Task<IActionResult> ManagePolicies(string? cid = null)
+        {            
             var model = new PolicyDetailsViewModel();
 
-            if (customerId > 0)
+            if (!string.IsNullOrWhiteSpace(cid))
             {
-                model = await BuildPolicyDetailsViewModelAsync(customerId);
+                var customerId = _protector.UnprotectInt(cid);
+                if (customerId == null || customerId <= 0)
+                {
+                    ViewBag.InvalidRequest = true;
+                    return View("../Customer/CustomerPolicies", model);
+                }
+                model = await BuildPolicyDetailsViewModelAsync(customerId.Value);
             }
 
             return View("../Customer/CustomerPolicies", model);
@@ -130,7 +139,7 @@ namespace Insurancesys.web.Controllers
             }
             if (model.SubmitType.Equals("customerwithpolicies", StringComparison.OrdinalIgnoreCase))
             {
-                return RedirectToAction("ManagePolicies", new { customerId = customer.CustomerID });
+                return RedirectToAction("ManagePolicies", new { cid = _protector.ProtectInt(customer.CustomerID) });
             }
             return RedirectToAction("ListOfCustomers");
 
