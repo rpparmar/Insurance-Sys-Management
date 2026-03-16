@@ -3,46 +3,30 @@ using Insurancesys.web.Helper;
 using Insurancesys.web.Models;
 using Insurancesys.web.Models.Common;
 using Insurancesys.web.Utility;
-using InsuranceSys.Application;
 using InsuranceSys.Application.Interface;
-using InsuranceSys.Domain;
 using InsuranceSys.Domain.Entities;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Primitives;
-using System.Collections.Immutable;
-using System.Data;
-using System.Diagnostics.Metrics;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Xml.Linq;
 
 namespace Insurancesys.web.Controllers
 {
-    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)] // Use cookie authentication
-    public class CustomerController : Controller
+    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+    public class CustomerController(IMapper mapper, ICustomerService customerService, IQueryStringProtector protector) : Controller
     {
-        private readonly IMapper _mapper;
-        private readonly ICustomerService _customerService;
-        private readonly IQueryStringProtector _protector;
-        public CustomerController(IMapper mapper, ICustomerService customerService, IQueryStringProtector protector)
-        {
-            _mapper = mapper;
-            _customerService = customerService;
-            _protector = protector;
-        }
+        private readonly IMapper _mapper = mapper;
+        private readonly ICustomerService _customerService = customerService;
+        private readonly IQueryStringProtector _protector = protector;
+
         [Route("Customers")]
         public IActionResult ListOfCustomers()
         {
             return View("../Customer/ListOfCustomers");
         }
+
         [Route("Customer/Policies")]
         public async Task<IActionResult> ManagePolicies(string? cid = null)
-        {            
+        {
             var model = new PolicyDetailsViewModel();
 
             if (!string.IsNullOrWhiteSpace(cid))
@@ -58,6 +42,7 @@ namespace Insurancesys.web.Controllers
 
             return View("../Customer/CustomerPolicies", model);
         }
+
         [HttpPost]
         public async Task<IActionResult> GetData()
         {
@@ -65,42 +50,15 @@ namespace Insurancesys.web.Controllers
             return Json(result);
         }
 
-        //[HttpGet]
-        //public IActionResult GetMotorPolicyPartial(int index, int policyNumber = 1)
-        //{
-        //    #region Old Working
-        //    // Create an empty model for the partial view
-        //    var model = new CustomerViewModel();
-
-        //    // Pass index and policy number to the partial view
-        //    ViewBag.Index = index;
-        //    ViewBag.PolicyNumber = policyNumber;
-
-        //    // Return partial view            
-        //    return PartialView("_MotorPolicyDetailsPartial_working", model);
-        //    #endregion
-        //}
-
         [HttpGet("Customer/Add")]
         [HttpGet("Customer/Edit/{id}")]
-        public async Task<ActionResult> AddEditCustomer(string id = "")
+        public IActionResult AddEditCustomer(string id = "")
         {
-            CustomerViewModel model = new();
-
-            //if (id.HasValue && id.Value > 0)
-            //{
-            //    var customer = _context.Customers
-            //        .Include(c => c.MotorPolicies)
-            //        .FirstOrDefault(c => c.CustomerID == id.Value);
-
-            //    if (customer != null)
-            //    {
-            //        model = MapCustomerToViewModel(customer);
-            //    }
-            //}
-
-            model.IsEditMode = false;
-            model.IsActive = true;
+            var model = new CustomerViewModel
+            {
+                IsEditMode = false,
+                IsActive = true
+            };
             return View("../Customer/AddEditCustomer", model);
         }
 
@@ -108,16 +66,13 @@ namespace Insurancesys.web.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveCustomer(CustomerViewModel model)
         {
-
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 TempData["Message"] = "Please correct the errors and try again.";
                 TempData["RowsAffected"] = "0";
                 return View("AddEditCustomer", model);
             }
 
-            //// Save or update customer
             var customer = await SaveOrUpdateCustomer(model);
             if (customer == null || customer.CustomerID <= 0)
             {
@@ -126,7 +81,6 @@ namespace Insurancesys.web.Controllers
                 return View("AddEditCustomer", model);
             }
 
-            // Success message
             TempData["Message"] = "Customer saved successfully.";
             TempData["RowsAffected"] = "1";
 
@@ -134,15 +88,12 @@ namespace Insurancesys.web.Controllers
                 return RedirectToAction("ListOfCustomers");
 
             if (model.SubmitType.Equals("customeronly", StringComparison.OrdinalIgnoreCase))
-            {
                 return RedirectToAction("ListOfCustomers");
-            }
-            if (model.SubmitType.Equals("customerwithpolicies", StringComparison.OrdinalIgnoreCase))
-            {
-                return RedirectToAction("ManagePolicies", new { cid = _protector.ProtectInt(customer.CustomerID) });
-            }
-            return RedirectToAction("ListOfCustomers");
 
+            if (model.SubmitType.Equals("customerwithpolicies", StringComparison.OrdinalIgnoreCase))
+                return RedirectToAction("ManagePolicies", new { cid = _protector.ProtectInt(customer.CustomerID) });
+
+            return RedirectToAction("ListOfCustomers");
         }
 
         [HttpPost]
@@ -150,30 +101,26 @@ namespace Insurancesys.web.Controllers
         public async Task<IActionResult> SavePolicies(PolicyDetailsViewModel model)
         {
             int customerId = model.CustomerID;
+
             if (!ModelState.IsValid)
             {
-                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
                 TempData["Message"] = "Please correct the errors and try again.";
                 TempData["RowsAffected"] = "0";
                 return View("CustomerPolicies", model);
             }
 
             if (model.MotorPolicies != null && model.MotorPolicies.Count > 0)
-            {
                 await SaveMotorPoliciesAsync(model.CustomerID, model.MotorPolicies);
-            }
+
             if (model.HealthPolicies != null && model.HealthPolicies.Count > 0)
-            {
                 await SaveHealthPoliciesAsync(customerId, model.HealthPolicies);
-            }
+
             if (model.LifePolicies != null && model.LifePolicies.Count > 0)
-            {
                 await SaveLifePoliciesAsync(customerId, model.LifePolicies);
-            }
+
             if (model.PersonalAccidentPolicies != null && model.PersonalAccidentPolicies.Count > 0)
-            {
                 await SavePersonalAccidentPoliciesAsync(customerId, model.PersonalAccidentPolicies);
-            }
+
             return RedirectToAction("ListOfCustomers");
         }
 
@@ -197,13 +144,6 @@ namespace Insurancesys.web.Controllers
             return Json(new { success = true });
         }
 
-        /// <summary>
-        /// Returns a partial view for a single motor policy form
-        /// This is called via AJAX when adding a new policy
-        /// </summary>
-        /// <param name="index"></param>
-        /// <param name="policyNumber"></param>
-        /// <returns></returns>
         [HttpGet]
         public IActionResult GetMotorPolicyPartial(int index, int policyNumber = 1)
         {
@@ -211,20 +151,10 @@ namespace Insurancesys.web.Controllers
             ViewBag.PolicyNumber = policyNumber;
             ViewBag.PolicyType = "Motor";
 
-            var model = new MotorPolicyViewModel
-            {
-                BasicDetails = new PolicyBasicDetailsViewModel()
-            };
+            var model = new MotorPolicyViewModel { BasicDetails = new PolicyBasicDetailsViewModel() };
             return PartialView("_MotorPolicyPartial", model);
         }
 
-        /// <summary>
-        /// Returns a partial view for a single health policy form
-        /// This is called via AJAX when adding a new policy
-        /// </summary>
-        /// <param name="index"></param>
-        /// <param name="policyNumber"></param>
-        /// <returns></returns>
         [HttpGet]
         public IActionResult GetHealthPolicyPartial(int index, int policyNumber = 1)
         {
@@ -232,20 +162,10 @@ namespace Insurancesys.web.Controllers
             ViewBag.PolicyNumber = policyNumber;
             ViewBag.PolicyType = "Health";
 
-            var model = new HealthPolicyViewModel
-            {
-                BasicDetails = new PolicyBasicDetailsViewModel()
-            };
+            var model = new HealthPolicyViewModel { BasicDetails = new PolicyBasicDetailsViewModel() };
             return PartialView("_HealthPolicyPartial", model);
         }
 
-        /// <summary>
-        /// Returns a partial view for a single life policy form
-        /// This is called via AJAX when adding a new policy
-        /// </summary>
-        /// <param name="index"></param>
-        /// <param name="policyNumber"></param>
-        /// <returns></returns>
         [HttpGet]
         public IActionResult GetLifePolicyPartial(int index, int policyNumber = 1)
         {
@@ -253,20 +173,10 @@ namespace Insurancesys.web.Controllers
             ViewBag.PolicyNumber = policyNumber;
             ViewBag.PolicyType = "Life";
 
-            var model = new LifePolicyViewModel
-            {
-                BasicDetails = new PolicyBasicDetailsViewModel()
-            };
+            var model = new LifePolicyViewModel { BasicDetails = new PolicyBasicDetailsViewModel() };
             return PartialView("_LifePolicyPartial", model);
         }
 
-        /// <summary>
-        /// Returns a partial view for a single accident policy form
-        /// This is called via AJAX when adding a new policy
-        /// </summary>
-        /// <param name="index"></param>
-        /// <param name="policyNumber"></param>
-        /// <returns></returns>
         [HttpGet]
         public IActionResult GetPersonalAccidentPolicyPartial(int index, int policyNumber = 1)
         {
@@ -274,10 +184,7 @@ namespace Insurancesys.web.Controllers
             ViewBag.PolicyNumber = policyNumber;
             ViewBag.PolicyType = "PersonalAccident";
 
-            var model = new PersonalAccidentPolicyViewModel
-            {
-                BasicDetails = new PolicyBasicDetailsViewModel()
-            };
+            var model = new PersonalAccidentPolicyViewModel { BasicDetails = new PolicyBasicDetailsViewModel() };
             return PartialView("_PersonalAccidentPolicyPartial", model);
         }
 
@@ -285,41 +192,16 @@ namespace Insurancesys.web.Controllers
 
         private async Task<CustomerEntity> SaveOrUpdateCustomer(CustomerViewModel model)
         {
-
             var customer = _mapper.Map<CustomerEntity>(model);
 
-            if (model.IsEditMode && model.CustomerID > 0)
-            {
-                //UpdateCustomerProperties(customer, model);
-                //customer.UpdatedOn = DateTime.UtcNow;
-            }
-            else
-            {
+            if (!model.IsEditMode || model.CustomerID <= 0)
                 customer.CustomerID = await _customerService.AddCustomer(customer);
-            }
+
             return customer;
         }
 
-        //private void UpdateCustomerProperties(CustomerEntity customer, CustomerViewModel model)
-        //{
-        //    customer.FirstName = model.FirstName;
-        //    customer.LastName = model.LastName;
-        //    customer.Phone = model.Phone;
-        //    customer.Email = model.Email;
-        //    customer.DOB = model.DOB;
-        //    customer.AnniversaryDate = model.AnniversaryDate;
-        //    customer.Gender = model.Gender;
-        //    customer.AddressLine1 = model.AddressLine1;
-        //    customer.AddressLine2 = model.AddressLine2;
-        //    customer.Country = model.Country;
-        //    customer.State = model.State;
-        //    customer.City = model.City;
-        //    customer.ZipCode = model.ZipCode;
-        //}
-
         private async Task SaveMotorPoliciesAsync(int customerId, List<MotorPolicyViewModel> motorPolicies)
         {
-
             foreach (var policyDto in motorPolicies)
             {
                 var isExisting = policyDto.BasicDetails != null && policyDto.BasicDetails.PolicyId > 0;
@@ -344,7 +226,6 @@ namespace Insurancesys.web.Controllers
                         CreatedOn = DateTime.UtcNow,
                         UpdatedOn = DateTime.UtcNow,
                         IsActive = true
-
                     },
                     VehicleDetails = policyDto.VehicleDetails,
                     PolicyPaymentDetails = policyDto.PolicyPaymentDetails
@@ -366,51 +247,40 @@ namespace Insurancesys.web.Controllers
                     await SaveVehicleDetailsAsync(motorPolicyEntity.PolicyId, motorPolicy.VehicleDetails);
                     await SavePolicyPaymentDetailsAsync(motorPolicyEntity.PolicyId, motorPolicy.PolicyPaymentDetails);
                 }
-
-
             }
         }
 
-        private async Task SaveVehicleDetailsAsync(int PolicyId, PolicyVehicleDetailsViewModel? vehicleDetailsViewModel)
+        private async Task SaveVehicleDetailsAsync(int policyId, PolicyVehicleDetailsViewModel? vehicleDetailsViewModel)
         {
-            if (vehicleDetailsViewModel != null)
-            {
-                var policyVehicleEntity = _mapper.Map<PolicyVehicleDetailsEntity>(vehicleDetailsViewModel);
-                if (PolicyId > 0 && policyVehicleEntity != null)
-                {
-                    policyVehicleEntity.PolicyId = PolicyId;
-                    var existing = await _customerService.GetVehicleDetailsByPollicyAsync(PolicyId);
-                    if (existing != null)
-                    {
-                        await _customerService.UpdateVehicleDetailsAsync(policyVehicleEntity);
-                    }
-                    else
-                    {
-                        await _customerService.AddVehicleDetails(policyVehicleEntity);
-                    }
-                }
-            }
+            if (vehicleDetailsViewModel == null)
+                return;
 
+            var policyVehicleEntity = _mapper.Map<PolicyVehicleDetailsEntity>(vehicleDetailsViewModel);
+            if (policyId > 0 && policyVehicleEntity != null)
+            {
+                policyVehicleEntity.PolicyId = policyId;
+                var existing = await _customerService.GetVehicleDetailsByPollicyAsync(policyId);
+                if (existing != null)
+                    await _customerService.UpdateVehicleDetailsAsync(policyVehicleEntity);
+                else
+                    await _customerService.AddVehicleDetails(policyVehicleEntity);
+            }
         }
 
         private async Task SavePolicyPaymentDetailsAsync(int policyId, PolicyPaymentDetailsViewModel? paymentDetailsViewModel)
         {
-            if (paymentDetailsViewModel != null)
+            if (paymentDetailsViewModel == null)
+                return;
+
+            var paymentEntity = _mapper.Map<PolicyPaymentDetailsEntity>(paymentDetailsViewModel);
+            if (policyId > 0 && paymentEntity != null)
             {
-                var paymentEntity = _mapper.Map<PolicyPaymentDetailsEntity>(paymentDetailsViewModel);
-                if (policyId > 0 && paymentEntity != null)
-                {
-                    paymentEntity.PolicyId = policyId;
-                    var existing = await _customerService.GetPolicyPaymentsByPollicyAsync(policyId);
-                    if (existing != null)
-                    {
-                        await _customerService.UpdatePolicyPaymentDetailsAsync(paymentEntity);
-                    }
-                    else
-                    {
-                        await _customerService.AddPolicyPaymentDetails(paymentEntity);
-                    }
-                }
+                paymentEntity.PolicyId = policyId;
+                var existing = await _customerService.GetPolicyPaymentsByPollicyAsync(policyId);
+                if (existing != null)
+                    await _customerService.UpdatePolicyPaymentDetailsAsync(paymentEntity);
+                else
+                    await _customerService.AddPolicyPaymentDetails(paymentEntity);
             }
         }
 
@@ -454,10 +324,9 @@ namespace Insurancesys.web.Controllers
                     policyEntity.PolicyId = await _customerService.AddPolicyDetails(policyEntity);
                     healthPolicy.BasicDetails.PolicyId = policyEntity.PolicyId;
                 }
+
                 if (policyEntity.PolicyId > 0)
-                {
                     await SavePolicyPaymentDetailsAsync(policyEntity.PolicyId, healthPolicy.PolicyPaymentDetails);
-                }
             }
         }
 
@@ -501,10 +370,9 @@ namespace Insurancesys.web.Controllers
                     policyEntity.PolicyId = await _customerService.AddPolicyDetails(policyEntity);
                     lifePolicy.BasicDetails.PolicyId = policyEntity.PolicyId;
                 }
+
                 if (policyEntity.PolicyId > 0)
-                {
                     await SavePolicyPaymentDetailsAsync(policyEntity.PolicyId, lifePolicy.PolicyPaymentDetails);
-                }
             }
         }
 
@@ -548,80 +416,63 @@ namespace Insurancesys.web.Controllers
                     policyEntity.PolicyId = await _customerService.AddPolicyDetails(policyEntity);
                     paPolicy.BasicDetails.PolicyId = policyEntity.PolicyId;
                 }
+
                 if (policyEntity.PolicyId > 0)
-                {
                     await SavePolicyPaymentDetailsAsync(policyEntity.PolicyId, paPolicy.PolicyPaymentDetails);
-                }
             }
         }
 
         private async Task<PolicyDetailsViewModel> BuildPolicyDetailsViewModelAsync(int customerId)
         {
-            var model = new PolicyDetailsViewModel
-            {
-                CustomerID = customerId
-            };
+            var model = new PolicyDetailsViewModel { CustomerID = customerId };
 
             var policies = await _customerService.GetPolicyDetailsByCustomerAsync(customerId);
             if (policies == null || policies.Count == 0)
-            {
                 return model;
-            }
-
-
 
             foreach (var policy in policies)
             {
                 var basicDetails = _mapper.Map<PolicyBasicDetailsViewModel>(policy);
                 var payment = await _customerService.GetPolicyPaymentsByPollicyAsync(policy.PolicyId);
-                var paymentVm = payment != null
-                    ? _mapper.Map<PolicyPaymentDetailsViewModel>(payment)
-                    : null;
+                var paymentVm = payment != null ? _mapper.Map<PolicyPaymentDetailsViewModel>(payment) : null;
 
                 switch (policy.InsuranceTypeID)
                 {
                     case 1: // Motor Insurance
                         var vehicle = await _customerService.GetVehicleDetailsByPollicyAsync(policy.PolicyId);
-                        var vehicleVm = vehicle != null
-                    ? _mapper.Map<PolicyVehicleDetailsViewModel>(vehicle)
-                    : null;
-                        var motorVm = new MotorPolicyViewModel
+                        var vehicleVm = vehicle != null ? _mapper.Map<PolicyVehicleDetailsViewModel>(vehicle) : null;
+                        model.MotorPolicies.Add(new MotorPolicyViewModel
                         {
                             BasicDetails = basicDetails,
                             VehicleDetails = vehicleVm,
                             PolicyPaymentDetails = paymentVm
-                        };
-                        model.MotorPolicies.Add(motorVm);
+                        });
                         break;
                     case 2: // Health Insurance
-                        var healthVm = new HealthPolicyViewModel
+                        model.HealthPolicies.Add(new HealthPolicyViewModel
                         {
                             BasicDetails = basicDetails,
                             PolicyPaymentDetails = paymentVm
-                        };
-                        model.HealthPolicies.Add(healthVm);
+                        });
                         break;
-                    case 3: // Term / Life Insurance
-                        var lifeVm = new LifePolicyViewModel
+                    case 3: // Life Insurance
+                        model.LifePolicies.Add(new LifePolicyViewModel
                         {
                             BasicDetails = basicDetails,
                             PolicyPaymentDetails = paymentVm
-                        };
-                        model.LifePolicies.Add(lifeVm);
+                        });
                         break;
                     case 4: // Personal Accident
-                        var paVm = new PersonalAccidentPolicyViewModel
+                        model.PersonalAccidentPolicies.Add(new PersonalAccidentPolicyViewModel
                         {
                             BasicDetails = basicDetails,
                             PolicyPaymentDetails = paymentVm
-                        };
-                        model.PersonalAccidentPolicies.Add(paVm);
+                        });
                         break;
                 }
             }
 
             return model;
         }
-
     }
 }
