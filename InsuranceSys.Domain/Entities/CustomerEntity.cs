@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -13,6 +13,12 @@ namespace InsuranceSys.Domain.Entities
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int CustomerID { get; set; }
+        /// <summary>
+        /// Deterministic AES-256-GCM token for this customer's ID.
+        /// Generated once on insert via <c>IQueryStringProtector.ProtectIntDeterministic</c>
+        /// and stored here so query-string links can reuse it without re-encrypting.
+        /// </summary>        
+        public string? EncryptedCustomerId { get; set; }
         public int? LeadID { get; set; }
 
         #region Customer Details        
@@ -31,8 +37,10 @@ namespace InsuranceSys.Domain.Entities
         public string? ZipCode { get; set; }
         #endregion
        
+        
+
         public DateTime CreatedOn { get; set; }
-        public DateTime UpdatedOn { get; set; }        
+        public DateTime UpdatedOn { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
 

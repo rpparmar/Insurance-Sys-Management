@@ -135,101 +135,76 @@ namespace InsuranceSys.Infrastructure.Repositories
             });
         }
 
-        public async Task<int> UpdatePolicyDetailsAsync(PolicyDetailsEntity policyDetails)
+        public async Task<CustomerEntity?> GetCustomerByIdAsync(int customerId)
         {
-            return await ExecuteWriteAsync(async context =>
+            return await ExecuteReadAsync(async context =>
             {
-                var existing = await context.EFPolicyDetails
-                    .FirstOrDefaultAsync(p => p.PolicyId == policyDetails.PolicyId);
-
-                if (existing == null)
-                {
-                    return 0;
-                }
-                existing.PolicyNumber= policyDetails.PolicyNumber;
-                existing.Company= policyDetails.Company;
-                existing.PolicyStartDate= policyDetails.PolicyStartDate;
-                existing.PolicyDueDate= policyDetails.PolicyDueDate;
-                existing.GrosssPremium= policyDetails.GrosssPremium;
-                existing.NetPremium= policyDetails.NetPremium;
-                existing.ODPremium= policyDetails.ODPremium;
-                existing.NCB= policyDetails.NCB;
-                existing.Dealer= policyDetails.Dealer;
-                existing.SM= policyDetails.SM;
-                existing.UpdatedOn = DateTime.UtcNow;
-
-                await context.SaveChangesAsync();
-                return existing.PolicyId;
+                return await context.EFCustomers.AsNoTracking()
+                    .FirstOrDefaultAsync(c => c.CustomerID == customerId && !c.IsDeleted);
             });
         }
 
-        public async Task<int> UpdateVehicleDetailsAsync(PolicyVehicleDetailsEntity vehicleDetails)
+        public async Task<CustomerEntity?> UpdateCustomerAsync(CustomerEntity incoming)
         {
             return await ExecuteWriteAsync(async context =>
             {
-                var existing = await context.EFVehicleDetails
-                    .FirstOrDefaultAsync(v => v.PolicyId == vehicleDetails.PolicyId);
-
+                var existing = await context.EFCustomers
+                    .FirstOrDefaultAsync(c => c.CustomerID == incoming.CustomerID && !c.IsDeleted);
                 if (existing == null)
-                {
-                    return 0;
-                }
+                    return null;
 
-                existing.Vehicleno= vehicleDetails.Vehicleno;
-                existing.Chassiseno= vehicleDetails.Chassiseno;
-                existing.Make= vehicleDetails.Make;
-                existing.VehicleModel= vehicleDetails.VehicleModel;
-                existing.Segment= vehicleDetails.Segment;
-                existing.Fuel= vehicleDetails.Fuel;
-                existing.VehicleIDV= vehicleDetails.VehicleIDV;
-                existing.PlanType= vehicleDetails.PlanType;
+                existing.LeadID = incoming.LeadID;
+                existing.FirstName = incoming.FirstName;
+                existing.LastName = incoming.LastName;
+                existing.DOB = incoming.DOB;
+                existing.AnniversaryDate = incoming.AnniversaryDate;
+                existing.Gender = incoming.Gender;
+                existing.Phone = incoming.Phone;
+                existing.Email = incoming.Email;
+                existing.AddressLine1 = incoming.AddressLine1;
+                existing.AddressLine2 = incoming.AddressLine2;
+                existing.Country = incoming.Country;
+                existing.State = incoming.State;
+                existing.City = incoming.City;
+                existing.ZipCode = incoming.ZipCode;
+                existing.IsActive = incoming.IsActive;
                 existing.UpdatedOn = DateTime.UtcNow;
 
                 await context.SaveChangesAsync();
-                return existing.VehicleId;
+                context.Entry(existing).State = EntityState.Detached;
+                return existing;
             });
         }
 
-        public async Task<int> UpdatePolicyPaymentDetailsAsync(PolicyPaymentDetailsEntity policyPayment)
+        public async Task UpdateEncryptedIdAsync(int customerId, string encryptedCustomerId)
+        {
+            await ExecuteAsync(async context =>
+            {
+                var customer = await context.EFCustomers
+                    .FirstOrDefaultAsync(c => c.CustomerID == customerId);
+                if (customer == null)
+                    return;
+
+                customer.EncryptedCustomerId = encryptedCustomerId;
+                customer.UpdatedOn = DateTime.UtcNow;
+                await context.SaveChangesAsync();
+            });
+        }
+
+        public async Task<int> DeleteAsync(int customerId)
         {
             return await ExecuteWriteAsync(async context =>
             {
-                var existing = await context.EFPolicyPayment
-                    .FirstOrDefaultAsync(pp => pp.PolicyId == policyPayment.PolicyId);
-
-                if (existing == null)
-                {
+                var customer = await context.EFCustomers
+                    .FirstOrDefaultAsync(c => c.CustomerID == customerId && !c.IsDeleted);
+                if (customer == null)
                     return 0;
-                }
 
-                existing.PaymentMode= policyPayment.PaymentMode;
-                existing.Transactionreferance= policyPayment.Transactionreferance;
-                existing.BankName= policyPayment.BankName;
-                existing.UpdatedOn = DateTime.UtcNow;
-                
-                await context.SaveChangesAsync();
-                return existing.PolicyId;
+                customer.IsDeleted = true;
+                customer.UpdatedOn = DateTime.UtcNow;
+                return await context.SaveChangesAsync();
             });
         }
-
-        //public async Task SoftDeletePoliciesAsync(List<int> policyIds)
-        //{
-        //    await ExecuteWriteAsync(async context =>
-        //    {
-        //        var policies = await context.EFPolicyDetails
-        //            .Where(p => policyIds.Contains(p.PolicyId) && !p.IsDeleted)
-        //            .ToListAsync();
-
-        //        foreach (var policy in policies)
-        //        {
-        //            policy.IsDeleted = true;
-        //            policy.UpdatedOn = DateTime.UtcNow;
-        //        }
-
-        //        await context.SaveChangesAsync();
-        //        return 0;
-        //    });
-        //}
 
         public async Task<bool> SoftDeletePolicyAsync(int policyId, int customerId)
         {
@@ -237,7 +212,6 @@ namespace InsuranceSys.Infrastructure.Repositories
             {
                 var policy = await context.EFPolicyDetails
                     .FirstOrDefaultAsync(p => p.PolicyId == policyId && p.CustomerID == customerId && !p.IsDeleted);
-
                 if (policy == null)
                     return false;
 
@@ -245,6 +219,74 @@ namespace InsuranceSys.Infrastructure.Repositories
                 policy.UpdatedOn = DateTime.UtcNow;
                 await context.SaveChangesAsync();
                 return true;
+            });
+        }
+
+        public async Task UpdatePolicyDetailsAsync(PolicyDetailsEntity policyDetails)
+        {
+            await ExecuteAsync(async context =>
+            {
+                var existing = await context.EFPolicyDetails
+                    .FirstOrDefaultAsync(p => p.PolicyId == policyDetails.PolicyId && p.CustomerID == policyDetails.CustomerID);
+                if (existing == null)
+                    return;
+
+                existing.InsuranceTypeID = policyDetails.InsuranceTypeID;
+                existing.PolicyNumber = policyDetails.PolicyNumber;
+                existing.PolicyStartDate = policyDetails.PolicyStartDate;
+                existing.PolicyDueDate = policyDetails.PolicyDueDate;
+                existing.Company = policyDetails.Company;
+                existing.GrosssPremium = policyDetails.GrosssPremium;
+                existing.NetPremium = policyDetails.NetPremium;
+                existing.ODPremium = policyDetails.ODPremium;
+                existing.NCB = policyDetails.NCB;
+                existing.Dealer = policyDetails.Dealer;
+                existing.SM = policyDetails.SM;
+                existing.IsActive = policyDetails.IsActive;
+                existing.UpdatedOn = DateTime.UtcNow;
+
+                await context.SaveChangesAsync();
+            });
+        }
+
+        public async Task UpdateVehicleDetailsAsync(PolicyVehicleDetailsEntity vehicleDetails)
+        {
+            await ExecuteAsync(async context =>
+            {
+                var existing = await context.EFVehicleDetails
+                    .FirstOrDefaultAsync(v => v.VehicleId == vehicleDetails.VehicleId && v.PolicyId == vehicleDetails.PolicyId);
+                if (existing == null)
+                    return;
+
+                existing.Vehicleno = vehicleDetails.Vehicleno;
+                existing.Make = vehicleDetails.Make;
+                existing.VehicleModel = vehicleDetails.VehicleModel;
+                existing.Chassiseno = vehicleDetails.Chassiseno;
+                existing.Segment = vehicleDetails.Segment;
+                existing.Fuel = vehicleDetails.Fuel;
+                existing.PlanType = vehicleDetails.PlanType;
+                existing.VehicleIDV = vehicleDetails.VehicleIDV;
+                existing.UpdatedOn = DateTime.UtcNow;
+
+                await context.SaveChangesAsync();
+            });
+        }
+
+        public async Task UpdatePolicyPaymentDetailsAsync(PolicyPaymentDetailsEntity policyPayment)
+        {
+            await ExecuteAsync(async context =>
+            {
+                var existing = await context.EFPolicyPayment
+                    .FirstOrDefaultAsync(p => p.PolicyId == policyPayment.PolicyId);
+                if (existing == null)
+                    return;
+
+                existing.PaymentMode = policyPayment.PaymentMode;
+                existing.Transactionreferance = policyPayment.Transactionreferance;
+                existing.BankName = policyPayment.BankName;
+                existing.UpdatedOn = DateTime.UtcNow;
+
+                await context.SaveChangesAsync();
             });
         }
     }

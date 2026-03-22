@@ -10,19 +10,11 @@
 }
 
 <div class="container-fluid">
-    @if (ViewBag.InvalidRequest == true)
-    {
-        <div class="alert alert-danger" role="alert">
-            <div class="alert-icon"><i class="flaticon-warning"></i></div>
-            <div class="alert-text">No record found. The link may be invalid or has been tampered with.</div>
-        </div>
-    }
-    @{ var formStyle = ViewBag.InvalidRequest == true ? "display:none;" : ""; }
-    <form id="frmCustomerPolicies" class="form fv-plugins-bootstrap fv-plugins-framework" asp-action="SavePolicies" asp-controller="Customer" method="post" enctype="multipart/form-data" style="@formStyle">
+    <form id="frmCustomerPolicies" class="form fv-plugins-bootstrap fv-plugins-framework" asp-action="SavePolicies" asp-controller="Customer" method="post" enctype="multipart/form-data">
         <div class="row">
             <div class="col-md-12">
                 <div class="card card-custom card-sticky" id="kt_page_sticky_card">                    
-                    @Html.HiddenFor(x => x.CustomerID)
+                    @Html.HiddenFor(x => x.CustomerID)                    
                     <div class="card-header">
                         <div class="card-title"></div>
                         <div class="card-toolbar">
@@ -84,7 +76,7 @@
                                                 ViewBag.Index = i;
                                                 ViewBag.PolicyNumber = i + 1;
                                                 ViewBag.PolicyType = "Motor";
-                                                @await Html.PartialAsync("_MotorPolicyPartial", Model.MotorPolicies[i])
+                                                @Html.Partial("_MotorPolicyPartial", Model.MotorPolicies[i])
                                             }
                                         }
                                     </div>
@@ -111,7 +103,7 @@
                                                 ViewBag.Index = i;
                                                 ViewBag.PolicyNumber = i + 1;
                                                 ViewBag.PolicyType = "Health";
-                                                @await Html.PartialAsync("_HealthPolicyPartial", Model.HealthPolicies[i])
+                                                @Html.Partial("_HealthPolicyPartial", Model.HealthPolicies[i])
                                             }
                                         }
                                     </div>
@@ -138,7 +130,7 @@
                                                 ViewBag.Index = i;
                                                 ViewBag.PolicyNumber = i + 1;
                                                 ViewBag.PolicyType = "Life";
-                                                @await Html.PartialAsync("_LifePolicyPartial", Model.LifePolicies[i])
+                                                @Html.Partial("_LifePolicyPartial", Model.LifePolicies[i])
                                             }
                                         }
                                     </div>
@@ -165,7 +157,7 @@
                                                 ViewBag.Index = i;
                                                 ViewBag.PolicyNumber = i + 1;
                                                 ViewBag.PolicyType = "PersonalAccident";
-                                                @await Html.PartialAsync("_PersonalAccidentPolicyPartial", Model.PersonalAccidentPolicies[i])
+                                                @Html.Partial("_PersonalAccidentPolicyPartial", Model.PersonalAccidentPolicies[i])
                                             }
                                         }
                                     </div>

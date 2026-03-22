@@ -1,4 +1,4 @@
-﻿function DeleteConfirmation(ID, controllerName, strMessage) {
+function DeleteConfirmation(ID, controllerName, strMessage) {
     Swal.fire({
         title: globalconst.deleteConfirmMsg,
         text: globalconst.deleteConscentMsg,
@@ -9,7 +9,7 @@
     }).then(
         function (result) {
             if (result.value) {
-                let _dynamicURL = '/' + controllerName + '/Delete?Id=' + ID;
+                let _dynamicURL = '/' + controllerName + '/Delete?Id=' + encodeURIComponent(ID);
                 $.ajax({
                     type: "POST",
                     url: _dynamicURL,
@@ -41,7 +41,7 @@ function DeleteConfirmationWithTypeDelete(ID, controllerName, strMessage) {
     }).then(
         function (result) {
             if (result.value) {
-                let _dynamicURL = '/' + controllerName + '/Delete?Id=' + ID;
+                let _dynamicURL = '/' + controllerName + '/Delete?Id=' + encodeURIComponent(ID);
                 $.ajax({
                     type: "DELETE",
                     url: _dynamicURL,

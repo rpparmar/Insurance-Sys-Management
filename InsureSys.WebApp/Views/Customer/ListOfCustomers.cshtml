@@ -65,17 +65,19 @@
                 </div>
                 <div class="theme-default-table-wrapper">
                     <!--begin: Datatable-->
-                    @* <table class="table table-separate table-head-custom table-checkable" id="dt_customers">
+                    <table class="table table-separate table-head-custom table-checkable" id="dt_customers">
                         <thead>
                             <tr>
                                 <th>First Name</th>
                                 <th>Last Name</th>
                                 <th>Email</th>
                                 <th>Phone Number</th>                                
+                                <th>DOB</th>                                
+                                <th>No Of Policies</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>                        
-                    </table> *@
+                    </table>
                     <!--end: Datatable-->
                 </div>
             </div>
@@ -88,22 +90,22 @@
 @section Scripts {
     @await Html.PartialAsync("_DataTableEssentials")
     <script>
-        // var globalvar = {
-        //     listingURL: "@Html.Raw(Url.Action("GetData", "Lead"))",
-        //     IsformView: false,
-        //     tostarMsg: "@TempData["Message"]",
-        //     rowsaffected: "@TempData["RowsAffected"]",
-        // }
-        // var globalconst = {
-        //     activateRecord: "@Constants.ScriptMessages.MsgActivateRecords",
-        //     deactivateRecord: "@Constants.ScriptMessages.MsgDeActivateRecords",
-        //     statusChangeMsg: "@Constants.ScriptMessages.MsgStatusChangeSuccess",
-        //     deleteConfirmMsg: "@string.Format(Constants.ScriptMessages.MsgDeleteConfirmation, "lead")",
-        //     deleteConscentMsg: "@Constants.ScriptMessages.MsgDeleteConscent",
-        //     deleteSuccessMsg: "@Constants.ScriptMessages.MsgDeleteSuccess",
-        //     cancelBtnTitle: "@Constants.ScriptMessages.CancelBtnTitle",
-        //     cancelBtnInnerText: "@Constants.ScriptMessages.CancelBtnInnerText",
-        // }
+        var globalvar = {
+            listingURL: "@Html.Raw(Url.Action("GetData", "Customer"))",
+            IsformView: false,
+            tostarMsg: "@TempData["Message"]",
+            rowsaffected: "@TempData["RowsAffected"]",
+        }
+        var globalconst = {
+            activateRecord: "@Constants.ScriptMessages.MsgActivateRecords",
+            deactivateRecord: "@Constants.ScriptMessages.MsgDeActivateRecords",
+            statusChangeMsg: "@Constants.ScriptMessages.MsgStatusChangeSuccess",
+            deleteConfirmMsg: "@string.Format(Constants.ScriptMessages.MsgDeleteConfirmation, "lead")",
+            deleteConscentMsg: "@Constants.ScriptMessages.MsgDeleteConscent",
+            deleteSuccessMsg: "@Constants.ScriptMessages.MsgDeleteSuccess",
+            cancelBtnTitle: "@Constants.ScriptMessages.CancelBtnTitle",
+            cancelBtnInnerText: "@Constants.ScriptMessages.CancelBtnInnerText",
+        }
     </script>
-    
+    <script src="~/js/pages/customer/_customer.js"></script>
 }

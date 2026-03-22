@@ -1,10 +1,10 @@
 using AutoMapper;
 using Insurancesys.web.Helper;
 using Insurancesys.web.Models;
-using Insurancesys.web.Models.Common;
 using Insurancesys.web.Utility;
 using InsuranceSys.Application.Interface;
 using InsuranceSys.Domain.Entities;
+using InsuranceSys.Infrastructure.Utility;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,11 +12,10 @@ using Microsoft.AspNetCore.Mvc;
 namespace Insurancesys.web.Controllers
 {
     [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
-    public class CustomerController(IMapper mapper, ICustomerService customerService, IQueryStringProtector protector) : Controller
+    public class CustomerController(IMapper mapper, ICustomerService customerService) : Controller
     {
         private readonly IMapper _mapper = mapper;
         private readonly ICustomerService _customerService = customerService;
-        private readonly IQueryStringProtector _protector = protector;
 
         [Route("Customers")]
         public IActionResult ListOfCustomers()
@@ -31,13 +30,13 @@ namespace Insurancesys.web.Controllers
 
             if (!string.IsNullOrWhiteSpace(cid))
             {
-                var customerId = _protector.UnprotectInt(cid);
-                if (customerId == null || customerId <= 0)
+                _ = int.TryParse(Cryptography.DecryptUtf16(cid), out int customerId);
+                if (customerId <= 0)
                 {
                     ViewBag.InvalidRequest = true;
                     return View("../Customer/CustomerPolicies", model);
                 }
-                model = await BuildPolicyDetailsViewModelAsync(customerId.Value);
+                model = await BuildPolicyDetailsViewModelAsync(customerId);
             }
 
             return View("../Customer/CustomerPolicies", model);
@@ -50,15 +49,64 @@ namespace Insurancesys.web.Controllers
             return Json(result);
         }
 
+        /// <summary>
+        /// Soft-deletes a customer. <paramref name="id"/> is the encrypted token (same as <c>EncryptedCustomerId</c>).
+        /// </summary>
+        [HttpDelete]
+        public async Task<IActionResult> Delete(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+                return new JsonResult(false);
+
+            string? plain;
+            try
+            {
+                plain = Cryptography.DecryptUtf16(id);
+            }
+            catch
+            {
+                return new JsonResult(false);
+            }
+
+            if (string.IsNullOrEmpty(plain) || !int.TryParse(plain, out var customerId) || customerId <= 0)
+                return new JsonResult(false);
+
+            var rows = await _customerService.DeleteAsync(customerId);
+            return new JsonResult(Convert.ToBoolean(rows));
+        }
+
         [HttpGet("Customer/Add")]
         [HttpGet("Customer/Edit/{id}")]
-        public IActionResult AddEditCustomer(string id = "")
+        public async Task<IActionResult> AddEditCustomer(string? id = null)
         {
-            var model = new CustomerViewModel
+            if (string.IsNullOrWhiteSpace(id))
             {
-                IsEditMode = false,
-                IsActive = true
-            };
+                var newModel = new CustomerViewModel
+                {
+                    IsEditMode = false,
+                    IsActive = true
+                };
+                return View("../Customer/AddEditCustomer", newModel);
+            }
+            
+            _ = int.TryParse(Cryptography.DecryptUtf16(id), out int customerId);
+            if (customerId <= 0)
+            {
+                TempData["Message"] = "Invalid customer reference.";
+                TempData["RowsAffected"] = "0";
+                return RedirectToAction(nameof(ListOfCustomers));
+            }
+
+            var entity = await _customerService.GetCustomerByIdAsync(customerId);
+            if (entity == null)
+            {
+                TempData["Message"] = "Customer not found.";
+                TempData["RowsAffected"] = "0";
+                return RedirectToAction(nameof(ListOfCustomers));
+            }
+
+            var model = _mapper.Map<CustomerViewModel>(entity);
+            model.IsEditMode = true;
             return View("../Customer/AddEditCustomer", model);
         }
 
@@ -74,14 +122,17 @@ namespace Insurancesys.web.Controllers
             }
 
             var customer = await SaveOrUpdateCustomer(model);
-            if (customer == null || customer.CustomerID <= 0)
+            if (customer is null || customer.CustomerID <= 0)
             {
                 TempData["Message"] = "Failed to save customer. Please try again.";
                 TempData["RowsAffected"] = "0";
                 return View("AddEditCustomer", model);
             }
 
-            TempData["Message"] = "Customer saved successfully.";
+            if (!model.IsEditMode && customer.CustomerID > 0)
+                TempData["Message"] = "Customer saved successfully.";
+            else
+                TempData["Message"] = "Customer updated successfully.";
             TempData["RowsAffected"] = "1";
 
             if (string.IsNullOrWhiteSpace(model.SubmitType))
@@ -91,7 +142,15 @@ namespace Insurancesys.web.Controllers
                 return RedirectToAction("ListOfCustomers");
 
             if (model.SubmitType.Equals("customerwithpolicies", StringComparison.OrdinalIgnoreCase))
-                return RedirectToAction("ManagePolicies", new { cid = _protector.ProtectInt(customer.CustomerID) });
+            {
+                // Use the stored deterministic token if available; fall back to
+                // generating one on the fly for existing customers that predate
+                // the EncryptedId column.
+                var cid = !string.IsNullOrEmpty(customer.EncryptedCustomerId)
+                    ? customer.EncryptedCustomerId
+                    : Cryptography.EncryptUtf16UrlSafe(Convert.ToString(customer.CustomerID));
+                return RedirectToAction("ManagePolicies", new { cid });
+            }
 
             return RedirectToAction("ListOfCustomers");
         }
@@ -190,16 +249,33 @@ namespace Insurancesys.web.Controllers
 
         #endregion
 
-        private async Task<CustomerEntity> SaveOrUpdateCustomer(CustomerViewModel model)
+        private async Task<CustomerEntity?> SaveOrUpdateCustomer(CustomerViewModel model)
         {
             var customer = _mapper.Map<CustomerEntity>(model);
 
-            if (!model.IsEditMode || model.CustomerID <= 0)
-                customer.CustomerID = await _customerService.AddCustomer(customer);
+            if (model.IsEditMode && model.CustomerID > 0)
+            {
+                customer.CustomerID = model.CustomerID;
+                await UpdateCustomerIdForEncryptedValue(customer.CustomerID); //remove this line lateron
+                return await _customerService.UpdateCustomerAsync(customer);
+            }
 
+            customer.CustomerID = await _customerService.AddCustomer(customer);
+            await UpdateCustomerIdForEncryptedValue(customer.CustomerID);
             return customer;
         }
 
+        private async Task UpdateCustomerIdForEncryptedValue(int customerId = 0)
+        {
+            // Generate a deterministic encrypted token and persist it once.
+            // The same CustomerID always produces the same token, so it can
+            // be stored in the DB and reused in query-string links.
+            if (customerId > 0)
+            {
+                var encryptedId = Cryptography.EncryptUtf16UrlSafe(Convert.ToString(customerId));
+                await _customerService.UpdateEncryptedIdAsync(customerId, encryptedId);
+            }
+        }
         private async Task SaveMotorPoliciesAsync(int customerId, List<MotorPolicyViewModel> motorPolicies)
         {
             foreach (var policyDto in motorPolicies)

@@ -21,16 +21,12 @@
 }
 
 
-    @* Track existing PolicyId for updates/deletes *@
-    @Html.Hidden("PolicyId")
-
     <div class="form-group row mt-3">
         @Html.TwoColsHorizontalFormTextBox(
         label: "Policy Number",
         forExpression: "PolicyNumber",
         isRequired: true,
-                placeholder: "Enter policy number",
-        maxlength: 50)
+                placeholder: "Enter policy number")
         @Html.TwoColsHorizontalDropdown(
                 label: "Insurer",
         forExpression: "Company",

@@ -151,8 +151,6 @@ namespace Insurancesys.web
             builder.Services.AddScoped<ILeadStatusService, LeadStatusRepository>();
             builder.Services.AddScoped<ICustomerService, CustomerRepository>();
 
-            // Generic query-string protector — inject IQueryStringProtector wherever needed
-            builder.Services.AddScoped<IQueryStringProtector, QueryStringProtector>();
         }
     }
 }

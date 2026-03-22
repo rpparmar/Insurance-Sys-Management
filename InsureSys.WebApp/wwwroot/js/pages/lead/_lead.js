@@ -101,46 +101,7 @@ function initDataTable() {
 $("#txtSearch").on('keyup', function () {
 	initDataTable();
 });
-$("#drpPolicyTypeID").on('change', function () {
-	/*
-	const policyTypeId = $(this).val();
-	let $companiesDropdown = $('#drpCompanyID');
-	$companiesDropdown.empty();	
-	$companiesDropdown.append(
-		$('<option>', {
-			value: '',
-			text: 'Select'
-		})
-	);
-	if (policyTypeId) {
-		$.ajax({
-			url: '/Lead/GetCompaniesByPolicyType',
-			type: 'POST',
-			data: { insuranceTypeId: policyTypeId },
-			success: function (response) {
-				if (response && response.length > 0) {
-					$.each(response, function (i, item) {
-						$companiesDropdown.append(
-							$('<option>', {
-								value: item.value,
-								text: item.text
-							})
-						);
-					});
-					$companiesDropdown.selectpicker('refresh'); // if you're using Bootstrap SelectPicker
-				} else {
-					$companiesDropdown.selectpicker('refresh');
-				}
-			},
-			error: function () {
-				toastr.error('Error occurred while fetching companies.');
-			}
-		});
-	}
-	else 
-		$companiesDropdown.selectpicker('refresh'); // if you're using Bootstrap SelectPicker
-
-	*/
+$("#drpPolicyTypeID").on('change', function () {	
 	bindDropdownByDependency({
 		sourceSelector: this,
 		targetSelector: "#drpCompanyID",

@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Utility\QueryStringProtector.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="Views\Customer\AddEditCustomerV1.cshtml" />
     <Content Remove="Views\Customer\AddEditCustomerV2.cshtml" />
     <Content Remove="Views\Customer\_CommonPolicyDetails_working.cshtml" />

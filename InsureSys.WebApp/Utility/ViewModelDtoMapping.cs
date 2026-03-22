@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Insurancesys.web.Models;
 using InsuranceSys.Domain.Entities;
 
@@ -14,7 +14,8 @@ namespace Insurancesys.web.Utility
             CreateMap<CompanyViewModel, CompanyEntity>();
             CreateMap<InsuranceTypeViewModel, InsuranceTypeEntity>();
             CreateMap<LeadStatusViewModel, LeadStatusEntity>();
-            CreateMap<CustomerViewModel, CustomerEntity>();
+            CreateMap<CustomerViewModel, CustomerEntity>()
+                .ForMember(dest => dest.EncryptedCustomerId, opt => opt.Ignore());
             CreateMap<PolicyBasicDetailsViewModel, PolicyDetailsEntity>();
             CreateMap<PolicyVehicleDetailsViewModel, PolicyVehicleDetailsEntity>();
             CreateMap<PolicyPaymentDetailsViewModel, PolicyPaymentDetailsEntity>();
