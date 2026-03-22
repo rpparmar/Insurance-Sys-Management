@@ -255,7 +255,7 @@
             //// Initialize all components
             this.initializeBootstrapSelect($policy);
             this.initializeDateTimePicker($policy);
-            //this.initializeCharacterCounter($policy);
+            this.initializeBootstrapMaxlength($policy);
             this.initializeDecimalInputs($policy);
             this.refreshValidation();
 
@@ -293,6 +293,20 @@
                 });
             });
             console.log('  ✓ Datetimepicker initialized');
+        },
+
+        /**
+         * Re-applies bootstrap-maxlength on inputs inside dynamically loaded policy partials.
+         * Global KTBootstrapMaxlength only runs on document ready for elements already in the DOM;
+         * AJAX-added rows need the same options as assets/.../bootstrap-maxlength.js (.maximum-length-setup).
+         */
+        initializeBootstrapMaxlength: function ($container) {
+            const maxlengthOptions = {
+                warningClass: 'label label-warning label-rounded label-inline',
+                limitReachedClass: 'label label-success label-rounded label-inline'
+            };
+            $container.find('.maximum-length-setup').maxlength(maxlengthOptions);
+            console.log('  ✓ Bootstrap-maxlength initialized');
         },
 
         initializeCharacterCounter: function ($container) {

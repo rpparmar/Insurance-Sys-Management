@@ -2,17 +2,6 @@
 @using Insurancesys.web.Models.Common
 @model dynamic
 
-@*
-    Common Policy Details - Reused across ALL insurance types
-    Supports: Motor, Health, Life, PersonalAccident
-    
-    ViewBag.PolicyType determines the prefix:
-    - Motor → MotorPolicies[0]
-    - Health → HealthPolicies[0]
-    - Life → LifePolicies[0]
-    - PersonalAccident → PersonalAccidentPolicies[0]
-*@
-
 @{
     var index = ViewBag.Index ?? 0;
     var policyType = ViewBag.PolicyType;
@@ -26,7 +15,8 @@
         label: "Policy Number",
         forExpression: "PolicyNumber",
         isRequired: true,
-                placeholder: "Enter policy number")
+                placeholder: "Enter policy number",
+        maxlength: 100)
         @Html.TwoColsHorizontalDropdown(
                 label: "Insurer",
         forExpression: "Company",
