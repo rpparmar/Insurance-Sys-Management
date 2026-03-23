@@ -1,14 +1,21 @@
 @using Insurancesys.web.Helper
+@using Insurancesys.web.Models
 @using Insurancesys.web.Models.Common
-@model dynamic
+@using Microsoft.AspNetCore.Mvc.Rendering
+@model PolicyBasicDetailsViewModel
 
 @{
     var index = ViewBag.Index ?? 0;
     var policyType = ViewBag.PolicyType;
     var prefix = $"{policyType}Policies[{index}].BasicDetails";
     ViewData.TemplateInfo.HtmlFieldPrefix = prefix;
+    var companyList = Model.CompanySelectList ?? new List<SelectListItem>();
 }
 
+
+    @Html.HiddenFor(m => m.InsuranceTypeID)
+    @Html.HiddenFor(m => m.PolicyId)
+    @Html.HiddenFor(m => m.CustomerID)
 
     <div class="form-group row mt-3">
         @Html.TwoColsHorizontalFormTextBox(
@@ -20,20 +27,7 @@
         @Html.TwoColsHorizontalDropdown(
                 label: "Insurer",
         forExpression: "Company",
-        new List<SelectListItem>{
-                new SelectListItem { Text = "ICICI Lombard", Value = "1", Selected = Model?.Company == "1" },
-                new SelectListItem { Text = "HDFC ERGO", Value = "2", Selected = Model?.Company == "2" },
-                new SelectListItem { Text = "Bajaj Allianz", Value = "3", Selected = Model?.Company == "3" },
-                new SelectListItem { Text = "Reliance General", Value = "4", Selected = Model?.Company == "4" },
-                new SelectListItem { Text = "TATA AIG", Value = "5", Selected = Model?.Company == "5" },
-                new SelectListItem { Text = "New India Assurance", Value = "6", Selected = Model?.Company == "6" },
-                new SelectListItem { Text = "Oriental Insurance", Value = "7", Selected = Model?.Company == "7" },
-                new SelectListItem { Text = "United India", Value = "8", Selected = Model?.Company == "8" },
-                new SelectListItem { Text = "National Insurance", Value = "9", Selected = Model?.Company == "9" },
-                new SelectListItem { Text = "LIC", Value = "10", Selected = Model?.Company == "10" },
-                new SelectListItem { Text = "SBI Life", Value = "11", Selected = Model?.Company == "11" },
-                new SelectListItem { Text = "Max Life", Value = "12", Selected = Model?.Company == "12" }
-                },
+        companyList,
                 isRequired: true)
     </div>
 

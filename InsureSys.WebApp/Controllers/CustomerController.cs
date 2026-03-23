@@ -2,20 +2,23 @@ using AutoMapper;
 using Insurancesys.web.Helper;
 using Insurancesys.web.Models;
 using Insurancesys.web.Utility;
+using InsuranceSys.Application.DTO;
 using InsuranceSys.Application.Interface;
 using InsuranceSys.Domain.Entities;
 using InsuranceSys.Infrastructure.Utility;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Insurancesys.web.Controllers
 {
     [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
-    public class CustomerController(IMapper mapper, ICustomerService customerService) : Controller
+    public class CustomerController(IMapper mapper, ICustomerService customerService, IDropDownBinderService dropDownBinderService) : Controller
     {
         private readonly IMapper _mapper = mapper;
         private readonly ICustomerService _customerService = customerService;
+        private readonly IDropDownBinderService _dropDownBinderService = dropDownBinderService;
 
         [Route("Customers")]
         public IActionResult ListOfCustomers()
@@ -165,6 +168,7 @@ namespace Insurancesys.web.Controllers
             {
                 TempData["Message"] = "Please correct the errors and try again.";
                 TempData["RowsAffected"] = "0";
+                await RepopulatePolicyDropdownsAsync(model);
                 return View("CustomerPolicies", model);
             }
 
@@ -204,46 +208,58 @@ namespace Insurancesys.web.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetMotorPolicyPartial(int index, int policyNumber = 1)
+        public async Task<IActionResult> GetMotorPolicyPartial(int index, int policyNumber = 1)
         {
             ViewBag.Index = index;
             ViewBag.PolicyNumber = policyNumber;
             ViewBag.PolicyType = "Motor";
 
-            var model = new MotorPolicyViewModel { BasicDetails = new PolicyBasicDetailsViewModel() };
+            var basic = new PolicyBasicDetailsViewModel { InsuranceTypeID = 1 };
+            basic.CompanySelectList = await GetCompanySelectListAsync(basic.InsuranceTypeID, basic.Company);
+            var model = new MotorPolicyViewModel
+            {
+                BasicDetails = basic,
+                VehicleDetails = new PolicyVehicleDetailsViewModel()
+            };
             return PartialView("_MotorPolicyPartial", model);
         }
 
         [HttpGet]
-        public IActionResult GetHealthPolicyPartial(int index, int policyNumber = 1)
+        public async Task<IActionResult> GetHealthPolicyPartial(int index, int policyNumber = 1)
         {
             ViewBag.Index = index;
             ViewBag.PolicyNumber = policyNumber;
             ViewBag.PolicyType = "Health";
 
-            var model = new HealthPolicyViewModel { BasicDetails = new PolicyBasicDetailsViewModel() };
+            var basic = new PolicyBasicDetailsViewModel { InsuranceTypeID = 2 };
+            basic.CompanySelectList = await GetCompanySelectListAsync(basic.InsuranceTypeID, basic.Company);
+            var model = new HealthPolicyViewModel { BasicDetails = basic };
             return PartialView("_HealthPolicyPartial", model);
         }
 
         [HttpGet]
-        public IActionResult GetLifePolicyPartial(int index, int policyNumber = 1)
+        public async Task<IActionResult> GetLifePolicyPartial(int index, int policyNumber = 1)
         {
             ViewBag.Index = index;
             ViewBag.PolicyNumber = policyNumber;
             ViewBag.PolicyType = "Life";
 
-            var model = new LifePolicyViewModel { BasicDetails = new PolicyBasicDetailsViewModel() };
+            var basic = new PolicyBasicDetailsViewModel { InsuranceTypeID = 3 };
+            basic.CompanySelectList = await GetCompanySelectListAsync(basic.InsuranceTypeID, basic.Company);
+            var model = new LifePolicyViewModel { BasicDetails = basic };
             return PartialView("_LifePolicyPartial", model);
         }
 
         [HttpGet]
-        public IActionResult GetPersonalAccidentPolicyPartial(int index, int policyNumber = 1)
+        public async Task<IActionResult> GetPersonalAccidentPolicyPartial(int index, int policyNumber = 1)
         {
             ViewBag.Index = index;
             ViewBag.PolicyNumber = policyNumber;
             ViewBag.PolicyType = "PersonalAccident";
 
-            var model = new PersonalAccidentPolicyViewModel { BasicDetails = new PolicyBasicDetailsViewModel() };
+            var basic = new PolicyBasicDetailsViewModel { InsuranceTypeID = 4 };
+            basic.CompanySelectList = await GetCompanySelectListAsync(basic.InsuranceTypeID, basic.Company);
+            var model = new PersonalAccidentPolicyViewModel { BasicDetails = basic };
             return PartialView("_PersonalAccidentPolicyPartial", model);
         }
 
@@ -512,6 +528,8 @@ namespace Insurancesys.web.Controllers
                 var payment = await _customerService.GetPolicyPaymentsByPollicyAsync(policy.PolicyId);
                 var paymentVm = payment != null ? _mapper.Map<PolicyPaymentDetailsViewModel>(payment) : null;
 
+                basicDetails.CompanySelectList = await GetCompanySelectListAsync(basicDetails.InsuranceTypeID, basicDetails.Company);
+
                 switch (policy.InsuranceTypeID)
                 {
                     case 1: // Motor Insurance
@@ -549,6 +567,52 @@ namespace Insurancesys.web.Controllers
             }
 
             return model;
+        }
+
+        private async Task<List<SelectListItem>> GetCompanySelectListAsync(int insuranceTypeId, string? selectedCompanyId)
+        {
+            var companies = await _dropDownBinderService.GetCompanyMappedWithInsuranceType(insuranceTypeId);
+            return DropdownMapper.ToSelectListItems(companies ?? new List<DropdownItemDto>(), selectedCompanyId);
+        }
+
+        private async Task RepopulatePolicyDropdownsAsync(PolicyDetailsViewModel model)
+        {
+            if (model.MotorPolicies != null)
+            {
+                foreach (var p in model.MotorPolicies)
+                {
+                    if (p.BasicDetails == null) continue;
+                    var typeId = p.BasicDetails.InsuranceTypeID > 0 ? p.BasicDetails.InsuranceTypeID : 1;
+                    p.BasicDetails.CompanySelectList = await GetCompanySelectListAsync(typeId, p.BasicDetails.Company);
+                }
+            }
+            if (model.HealthPolicies != null)
+            {
+                foreach (var p in model.HealthPolicies)
+                {
+                    if (p.BasicDetails == null) continue;
+                    var typeId = p.BasicDetails.InsuranceTypeID > 0 ? p.BasicDetails.InsuranceTypeID : 2;
+                    p.BasicDetails.CompanySelectList = await GetCompanySelectListAsync(typeId, p.BasicDetails.Company);
+                }
+            }
+            if (model.LifePolicies != null)
+            {
+                foreach (var p in model.LifePolicies)
+                {
+                    if (p.BasicDetails == null) continue;
+                    var typeId = p.BasicDetails.InsuranceTypeID > 0 ? p.BasicDetails.InsuranceTypeID : 3;
+                    p.BasicDetails.CompanySelectList = await GetCompanySelectListAsync(typeId, p.BasicDetails.Company);
+                }
+            }
+            if (model.PersonalAccidentPolicies != null)
+            {
+                foreach (var p in model.PersonalAccidentPolicies)
+                {
+                    if (p.BasicDetails == null) continue;
+                    var typeId = p.BasicDetails.InsuranceTypeID > 0 ? p.BasicDetails.InsuranceTypeID : 4;
+                    p.BasicDetails.CompanySelectList = await GetCompanySelectListAsync(typeId, p.BasicDetails.Company);
+                }
+            }
         }
     }
 }

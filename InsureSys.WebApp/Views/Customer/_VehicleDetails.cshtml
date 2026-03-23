@@ -12,6 +12,8 @@
     var policyType = ViewBag.PolicyType;
     var prefix = $"{policyType}Policies[{index}].VehicleDetails";
     ViewData.TemplateInfo.HtmlFieldPrefix = prefix;
+    var fuelList = VehiclePolicyDropdowns.GetFuelSelectList(Model?.Fuel);
+    var planTypeList = VehiclePolicyDropdowns.GetPlanTypeSelectList(Model?.PlanType);
 }
 
 <div class="separator-content-wrapper">
@@ -58,11 +60,7 @@
     @Html.TwoColsHorizontalDropdown(
         label: "Fuel Type",
         forExpression: "Fuel",
-        new List<SelectListItem>{
-        new SelectListItem { Text = "Petrol", Value = "PT" },
-        new SelectListItem { Text = "Diesel", Value = "DS" },
-        new SelectListItem { Text = "Petrol/CNG", Value = "PT_CNG" }
-        })
+        fuelList)
 </div>
 
 <div class="form-group row mt-3">
@@ -75,10 +73,5 @@
     @Html.TwoColsHorizontalDropdown(
         label: "Plan Type",
         forExpression: "PlanType",
-        new List<SelectListItem>{
-        new SelectListItem { Text = "FULL", Value = "FULL" },
-        new SelectListItem { Text = "T.P", Value = "TP" },
-        new SelectListItem { Text = "Own Damage", Value = "OF" },
-        new SelectListItem { Text = "Comprehensive", Value = "COMP" }
-        })
+        planTypeList)
 </div>

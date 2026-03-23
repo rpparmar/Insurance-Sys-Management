@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Insurancesys.web.Models
 {
@@ -20,6 +22,9 @@ namespace Insurancesys.web.Models
         [Required]
         public string Company { get; set; } = string.Empty;
 
+        /// <summary>Populated server-side for Insurer dropdown; not posted.</summary>
+        [BindNever]
+        public List<SelectListItem>? CompanySelectList { get; set; }
 
         [Required]
         [RegularExpression(@"^\d+(\.\d{1,2})?$")]
