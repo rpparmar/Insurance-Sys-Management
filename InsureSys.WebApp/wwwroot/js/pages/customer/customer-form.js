@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Customer Form - Customer Details Only
  * Handles two save options: Customer Only & Customer With Policies
  * Validates customer data regardless of option chosen
@@ -10,6 +10,7 @@
     const CustomerFormManager = {
         init: function () {
             this.bindEvents();
+            this.bindCountryStateCascade();
         },
 
         bindEvents: function () {
@@ -25,6 +26,47 @@
             // Intercept form submission for validation
             $('#frmCustomer').on('submit', function (e) {
                 return self.validateBeforeSubmit(e);
+            });
+        },
+
+        bindCountryStateCascade: function () {
+            const $country = $('#drp_CountryID');
+            const $state = $('#drp_StateID');
+            if (!$country.length || !$state.length) {
+                return;
+            }
+
+            $country.on('change', function () {
+                const countryId = $(this).val();
+                CustomerFormManager.loadStatesByCountry(countryId, $state);
+            });
+        },
+
+        loadStatesByCountry: function (countryId, $state) {
+            if (!countryId) {
+                $state.html('<option value="">Select</option>');
+                if ($state.hasClass('selectpicker')) {
+                    $state.selectpicker('refresh');
+                }
+                return;
+            }
+
+            $.ajax({
+                url: '/Customer/GetStatesByCountry',
+                type: 'GET',
+                data: { countryId: countryId },
+                success: function (response) {
+                    let options = '<option value="">Select</option>';
+                    if (response && response.length) {
+                        response.forEach(function (item) {
+                            options += '<option value="' + item.value + '">' + item.text + '</option>';
+                        });
+                    }
+                    $state.html(options);
+                    if ($state.hasClass('selectpicker')) {
+                        $state.selectpicker('refresh');
+                    }
+                }
             });
         },
 

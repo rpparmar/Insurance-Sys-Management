@@ -1,4 +1,4 @@
-﻿@using Insurancesys.web.Helper
+@using Insurancesys.web.Helper
 @using Insurancesys.web.Models.Common
 @model Insurancesys.web.Models.CustomerViewModel
 @section Styles {
@@ -115,18 +115,8 @@
                                                 @Html.TwoColsHorizontalFormTextBox(label: "Zipcode", forExpression: nameof(Model.ZipCode), isRequired: false, placeholder: "Enter zipcode", maxlength: 10)
                                             </div>
                                             <div class="form-group row">
-                                                @Html.TwoColsHorizontalDropdown("State", nameof(Model.State)
-                                                                                                , new List<SelectListItem>{
-                                                                                                new SelectListItem { Text = "Gujarat", Value = "GJ" },
-                                                                                                new SelectListItem { Text = "Rajasthan", Value = "RJ" },
-                                                                                                new SelectListItem { Text = "Maharashtra", Value = "MH" }}
-                                                                                                , isRequired: false, isRegExpression: false)
-                                                @Html.TwoColsHorizontalDropdown("Country", nameof(Model.Country)
-                                                                                                , new List<SelectListItem>{
-                                                                                                new SelectListItem { Text = "India", Value = "IN" },
-                                                                                                new SelectListItem { Text = "USA", Value = "USA" },
-                                                                                                new SelectListItem { Text = "Canada", Value = "CN" }}
-                                                                                                , isRequired: false, isRegExpression: false)
+                                                @Html.TwoColsHorizontalDropdown("Country", nameof(Model.CountryID), Model.CountrySelectList, isRequired: false, isRegExpression: false)
+                                                @Html.TwoColsHorizontalDropdown("State", nameof(Model.StateID), Model.StateSelectList, isRequired: false, isRegExpression: false)
                                             </div>
                                             <div class="form-group row">
                                                 @Html.TwoColsHorizontalDropdown("Gender", nameof(Model.Gender)

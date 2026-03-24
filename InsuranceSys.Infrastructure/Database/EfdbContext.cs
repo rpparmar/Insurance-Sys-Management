@@ -1,4 +1,4 @@
-﻿using InsuranceSys.Domain;
+using InsuranceSys.Domain;
 using InsuranceSys.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -17,6 +17,8 @@ namespace InsuranceSys.Infrastructure.Database
         public DbSet<CompanyEntity> EFCompanies { get; set; }
         public DbSet<InsuranceTypeEntity> EFInsuranceTypes { get; set; }
         public DbSet<LeadStatusEntity> EFLeadStatus { get; set; }
+        public DbSet<CountryEntity> EFCountries { get; set; }
+        public DbSet<StateEntity> EFStates { get; set; }
         public DbSet<Mapping_Company_InsuranceType> EFMappingCompanyInsuranceType { get; set; }
         public DbSet<CustomerEntity> EFCustomers { get; set; }
         public DbSet<PolicyDetailsEntity> EFPolicyDetails { get; set; }
@@ -30,6 +32,8 @@ namespace InsuranceSys.Infrastructure.Database
             modelBuilder.Entity<CompanyEntity>().ToTable("CompanyMaster");
             modelBuilder.Entity<InsuranceTypeEntity>().ToTable("InsuranceTypeMaster");
             modelBuilder.Entity<LeadStatusEntity>().ToTable("LeadStatus");
+            modelBuilder.Entity<CountryEntity>().ToTable("CountryMaster");
+            modelBuilder.Entity<StateEntity>().ToTable("StateMaster");
             modelBuilder.Entity<Mapping_Company_InsuranceType>().ToTable("Mapping_Company_InsuranceType");
             modelBuilder.Entity<CustomerEntity>().ToTable("CustomersInfo");
             modelBuilder.Entity<PolicyDetailsEntity>().ToTable("PolicyDetails");            

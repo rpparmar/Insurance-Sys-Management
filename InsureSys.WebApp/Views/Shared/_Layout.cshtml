@@ -1,4 +1,4 @@
-﻿@{
+@{
     string _userName = "My Username";
     string _userRole = "Admin";
     string _email = "myemail@domain.com";
@@ -148,6 +148,18 @@
                                             <a asp-controller="Company" asp-action="CompanyList" class="menu-link">
                                                 <i class="menu-bullet menu-bullet-dot"><span></span></i>
                                                 <span class="menu-text">Manage Company</span>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item @SetActiveClassOnLink("Country", "CountryList,AddEditCountry")" aria-haspopup="true">
+                                            <a asp-controller="Country" asp-action="CountryList" class="menu-link">
+                                                <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                                <span class="menu-text">Manage Country</span>
+                                            </a>
+                                        </li>
+                                        <li class="menu-item @SetActiveClassOnLink("State", "StateList,AddEditState")" aria-haspopup="true">
+                                            <a asp-controller="State" asp-action="StateList" class="menu-link">
+                                                <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                                <span class="menu-text">Manage State</span>
                                             </a>
                                         </li>
                                         <li class="menu-item @SetActiveClassOnLink("InsuranceType", "InsuranceTypeList,AddEditInsuranceType")" aria-haspopup="true">

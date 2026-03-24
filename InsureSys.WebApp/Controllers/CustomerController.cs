@@ -89,6 +89,7 @@ namespace Insurancesys.web.Controllers
                     IsEditMode = false,
                     IsActive = true
                 };
+                await PopulateCountryStateDropdownsAsync(newModel);
                 return View("../Customer/AddEditCustomer", newModel);
             }
             
@@ -110,6 +111,7 @@ namespace Insurancesys.web.Controllers
 
             var model = _mapper.Map<CustomerViewModel>(entity);
             model.IsEditMode = true;
+            await PopulateCountryStateDropdownsAsync(model);
             return View("../Customer/AddEditCustomer", model);
         }
 
@@ -121,6 +123,7 @@ namespace Insurancesys.web.Controllers
             {
                 TempData["Message"] = "Please correct the errors and try again.";
                 TempData["RowsAffected"] = "0";
+                await PopulateCountryStateDropdownsAsync(model);
                 return View("AddEditCustomer", model);
             }
 
@@ -129,6 +132,7 @@ namespace Insurancesys.web.Controllers
             {
                 TempData["Message"] = "Failed to save customer. Please try again.";
                 TempData["RowsAffected"] = "0";
+                await PopulateCountryStateDropdownsAsync(model);
                 return View("AddEditCustomer", model);
             }
 
@@ -188,6 +192,17 @@ namespace Insurancesys.web.Controllers
         }
 
         #region AJAX calls
+
+        [HttpGet]
+        public async Task<IActionResult> GetStatesByCountry(int countryId)
+        {
+            if (countryId <= 0)
+                return Json(new List<SelectListItem>());
+
+            var states = await _dropDownBinderService.GetStateDropdownByCountryAsync(countryId);
+            var result = states.Select(x => new SelectListItem { Value = x.Value, Text = x.Text }).ToList();
+            return Json(result);
+        }
 
         /// <summary>
         /// Immediately soft-deletes a single existing policy.
@@ -267,6 +282,7 @@ namespace Insurancesys.web.Controllers
 
         private async Task<CustomerEntity?> SaveOrUpdateCustomer(CustomerViewModel model)
         {
+            await HydrateLocationNamesFromIdsAsync(model);
             var customer = _mapper.Map<CustomerEntity>(model);
 
             if (model.IsEditMode && model.CustomerID > 0)
@@ -612,6 +628,69 @@ namespace Insurancesys.web.Controllers
                     var typeId = p.BasicDetails.InsuranceTypeID > 0 ? p.BasicDetails.InsuranceTypeID : 4;
                     p.BasicDetails.CompanySelectList = await GetCompanySelectListAsync(typeId, p.BasicDetails.Company);
                 }
+            }
+        }
+
+        private async Task PopulateCountryStateDropdownsAsync(CustomerViewModel model)
+        {
+            var countries = await _dropDownBinderService.GetCountryDropdownAsync();
+            model.CountrySelectList = countries.Select(x => new SelectListItem
+            {
+                Value = x.Value,
+                Text = x.Text,
+                Selected = model.CountryID.HasValue && x.Value == model.CountryID.Value.ToString()
+            }).ToList();
+
+            // Backfill IDs from old string storage when editing legacy rows.
+            if (!model.CountryID.HasValue && !string.IsNullOrWhiteSpace(model.Country))
+            {
+                var selectedCountry = countries.FirstOrDefault(x => string.Equals(x.Text, model.Country, StringComparison.OrdinalIgnoreCase));
+                if (selectedCountry != null && int.TryParse(selectedCountry.Value, out int selectedCountryId))
+                {
+                    model.CountryID = selectedCountryId;
+                }
+            }
+
+            model.StateSelectList = new List<SelectListItem>();
+            if (model.CountryID.HasValue && model.CountryID.Value > 0)
+            {
+                var states = await _dropDownBinderService.GetStateDropdownByCountryAsync(model.CountryID.Value);
+                if (!model.StateID.HasValue && !string.IsNullOrWhiteSpace(model.State))
+                {
+                    var selectedState = states.FirstOrDefault(x => string.Equals(x.Text, model.State, StringComparison.OrdinalIgnoreCase));
+                    if (selectedState != null && int.TryParse(selectedState.Value, out int selectedStateId))
+                    {
+                        model.StateID = selectedStateId;
+                    }
+                }
+
+                model.StateSelectList = states.Select(x => new SelectListItem
+                {
+                    Value = x.Value,
+                    Text = x.Text,
+                    Selected = model.StateID.HasValue && x.Value == model.StateID.Value.ToString()
+                }).ToList();
+            }
+        }
+
+        private async Task HydrateLocationNamesFromIdsAsync(CustomerViewModel model)
+        {
+            if (model.CountryID.HasValue && model.CountryID.Value > 0)
+            {
+                var countries = await _dropDownBinderService.GetCountryDropdownAsync();
+                var selectedCountry = countries.FirstOrDefault(x => x.Value == model.CountryID.Value.ToString());
+                model.Country = selectedCountry?.Text;
+            }
+
+            if (model.CountryID.HasValue && model.CountryID.Value > 0 && model.StateID.HasValue && model.StateID.Value > 0)
+            {
+                var states = await _dropDownBinderService.GetStateDropdownByCountryAsync(model.CountryID.Value);
+                var selectedState = states.FirstOrDefault(x => x.Value == model.StateID.Value.ToString());
+                model.State = selectedState?.Text;
+            }
+            else
+            {
+                model.State = null;
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿using InsuranceSys.Application.DTO;
+using InsuranceSys.Application.DTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +13,7 @@ namespace InsuranceSys.Application.Interface
         Task<List<DropdownItemDto>> GetInsuranceTypeDropdownAsync();
         Task<List<DropdownItemDto>> GetCompanyDropdownAsync();
         Task<List<DropdownItemDto>> GetLeadStatusDropdownAsync();
+        Task<List<DropdownItemDto>> GetCountryDropdownAsync();
+        Task<List<DropdownItemDto>> GetStateDropdownByCountryAsync(int countryID);
     }
 }

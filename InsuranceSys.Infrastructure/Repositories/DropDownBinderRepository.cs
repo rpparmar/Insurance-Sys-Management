@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using InsuranceSys.Application.DTO;
 using InsuranceSys.Application.Interface;
 using InsuranceSys.Infrastructure.Database;
@@ -135,6 +135,40 @@ namespace InsuranceSys.Infrastructure.Repositories
                     {
                         Value = c.LeadStatusID.ToString(),
                         Text = c.LeadStatus
+                    })
+                    .ToListAsync();
+            });
+        }
+
+        public async Task<List<DropdownItemDto>> GetCountryDropdownAsync()
+        {
+            return await ExecuteReadAsync(async context =>
+            {
+                return await context.EFCountries
+                    .AsNoTracking()
+                    .Where(x => x.IsActive && !x.IsDeleted)
+                    .OrderBy(x => x.CountryName)
+                    .Select(x => new DropdownItemDto
+                    {
+                        Value = x.CountryID.ToString(),
+                        Text = x.CountryName
+                    })
+                    .ToListAsync();
+            });
+        }
+
+        public async Task<List<DropdownItemDto>> GetStateDropdownByCountryAsync(int countryID)
+        {
+            return await ExecuteReadAsync(async context =>
+            {
+                return await context.EFStates
+                    .AsNoTracking()
+                    .Where(x => x.CountryID == countryID && x.IsActive && !x.IsDeleted)
+                    .OrderBy(x => x.StateName)
+                    .Select(x => new DropdownItemDto
+                    {
+                        Value = x.StateID.ToString(),
+                        Text = x.StateName
                     })
                     .ToListAsync();
             });

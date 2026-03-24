@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Insurancesys.web.Models
 {
@@ -42,8 +43,12 @@ namespace Insurancesys.web.Models
         public string? AddressLine2 { get; set; }
         public string? Country { get; set; }
         public string? State { get; set; }
+        public int? CountryID { get; set; }
+        public int? StateID { get; set; }
         public string? City { get; set; }
         public string? ZipCode { get; set; }
+        public List<SelectListItem> CountrySelectList { get; set; } = new();
+        public List<SelectListItem> StateSelectList { get; set; } = new();
         #endregion
 
         #region Policies

@@ -1,0 +1,86 @@
+@using InsuranceSys.Domain
+@section Styles {
+    <link href="~/assets/plugins/custom/datatables/datatables.bundle.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/css/custom-datatable.css" rel="stylesheet" type="text/css" />
+}
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Manage State";
+}
+<style>
+    #dt_state {
+        display: none;
+    }
+</style>
+<div class="subheader py-2 py-lg-4 subheader-solid" id="kt_subheader">
+    <div class="container-fluid d-flex align-items-center justify-content-between flex-wrap flex-sm-nowrap">
+        <div class="d-flex align-items-center flex-wrap mr-1 justify-content-between w-100">
+            <div class="d-flex align-items-baseline mr-5">
+                <ul class="breadcrumb breadcrumb-transparent breadcrumb-dot font-weight-bold p-0 my-2 font-size-sm">
+                    <li class="breadcrumb-item"><a href="" class="text-muted">Masters</a></li>
+                    <li class="breadcrumb-item"><h5 class="text-dark font-weight-bold my-2 mr-5">@ViewData["Title"]</h5></li>
+                </ul>
+            </div>
+            <div class="card-toolbar">
+                <a asp-controller="State" asp-action="AddEditState" class="btn btn-primary font-weight-bolder">
+                    <i class="fas fa-plus icon-sm"></i>
+                    Add State
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="d-flex flex-column-fluid">
+    <div class="container-fluid">
+        <div class="card card-custom">
+            <div class="card-body">
+                <div class="form-group mb-0">
+                    <div class="row dvSearch" style="display: flex; gap: 1rem;">
+                        <div class="col-lg-2 col-md-3">
+                            <div class="d-flex">
+                                <div class="input-icon flex-grow-1">
+                                    <input type="text" class="form-control" placeholder="Search..." id="txtSearch">
+                                    <span><i class="flaticon2-search-1 text-muted"></i></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="theme-default-table-wrapper">
+                    <table class="table table-separate table-head-custom table-checkable" id="dt_state">
+                        <thead>
+                            <tr>
+                                <th>State Name</th>
+                                <th>State Code</th>
+                                <th>Country Name</th>
+                                <th>Created On</th>
+                                <th>Updated On</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    @await Html.PartialAsync("_DataTableEssentials")
+    <script type="text/javascript">
+        var globalvar = {
+            listingURL: "@Html.Raw(Url.Action("GetData", "State"))",
+            IsformView: false,
+            tostarMsg: "@TempData["Message"]",
+            rowsaffected: "@TempData["RowsAffected"]",
+        }
+        var globalconst = {
+            deleteConfirmMsg: "@string.Format(Constants.ScriptMessages.MsgDeleteConfirmation, "state")",
+            deleteConscentMsg: "@Constants.ScriptMessages.MsgDeleteConscent",
+            deleteSuccessMsg: "@Constants.ScriptMessages.MsgDeleteSuccess",
+            cancelBtnTitle: "@Constants.ScriptMessages.CancelBtnTitle",
+            cancelBtnInnerText: "@Constants.ScriptMessages.CancelBtnInnerText",
+        }
+    </script>
+    <script src="~/js/pages/statemaster/_state.js"></script>
+}
