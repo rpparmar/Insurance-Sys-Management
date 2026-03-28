@@ -5,6 +5,7 @@ using Insurancesys.web.Utility;
 using InsuranceSys.Application.DTO;
 using InsuranceSys.Application.Interface;
 using InsuranceSys.Domain.Entities;
+using InsuranceSys.Domain.Enums;
 using InsuranceSys.Infrastructure.Utility;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -14,11 +15,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace Insurancesys.web.Controllers
 {
     [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
-    public class CustomerController(IMapper mapper, ICustomerService customerService, IDropDownBinderService dropDownBinderService) : Controller
+    public class CustomerController(IMapper mapper, ICustomerService customerService, IDropDownBinderService dropDownBinderService, IInsuranceTypeService insuranceTypeService) : Controller
     {
         private readonly IMapper _mapper = mapper;
         private readonly ICustomerService _customerService = customerService;
         private readonly IDropDownBinderService _dropDownBinderService = dropDownBinderService;
+        private readonly IInsuranceTypeService _insuranceTypeService = insuranceTypeService;
 
         [Route("Customers")]
         public IActionResult ListOfCustomers()
@@ -29,7 +31,10 @@ namespace Insurancesys.web.Controllers
         [Route("Customer/Policies")]
         public async Task<IActionResult> ManagePolicies(string? cid = null)
         {
-            var model = new PolicyDetailsViewModel();
+            var model = new PolicyDetailsViewModel
+            {
+                InsuranceTypesForGrid = await BuildInsuranceTypesForGridAsync()
+            };
 
             if (!string.IsNullOrWhiteSpace(cid))
             {
@@ -168,11 +173,21 @@ namespace Insurancesys.web.Controllers
         {
             int customerId = model.CustomerID;
 
+            if (!await ValidatePostedPoliciesAgainstMasterAsync(model))
+            {
+                TempData["Message"] = "One or more policies use an inactive or invalid insurance type.";
+                TempData["RowsAffected"] = "0";
+                await RepopulatePolicyDropdownsAsync(model);
+                model.InsuranceTypesForGrid = await BuildInsuranceTypesForGridAsync();
+                return View("CustomerPolicies", model);
+            }
+
             if (!ModelState.IsValid)
             {
                 TempData["Message"] = "Please correct the errors and try again.";
                 TempData["RowsAffected"] = "0";
                 await RepopulatePolicyDropdownsAsync(model);
+                model.InsuranceTypesForGrid = await BuildInsuranceTypesForGridAsync();
                 return View("CustomerPolicies", model);
             }
 
@@ -187,6 +202,9 @@ namespace Insurancesys.web.Controllers
 
             if (model.PersonalAccidentPolicies != null && model.PersonalAccidentPolicies.Count > 0)
                 await SavePersonalAccidentPoliciesAsync(customerId, model.PersonalAccidentPolicies);
+
+            if (model.StandardPolicies != null && model.StandardPolicies.Count > 0)
+                await SaveStandardPoliciesAsync(customerId, model.StandardPolicies);
 
             return RedirectToAction("ListOfCustomers");
         }
@@ -222,61 +240,90 @@ namespace Insurancesys.web.Controllers
             return Json(new { success = true });
         }
 
+        /// <summary>Loads the correct policy partial for any known insurance type (active master row required).</summary>
         [HttpGet]
-        public async Task<IActionResult> GetMotorPolicyPartial(int index, int policyNumber = 1)
+        public async Task<IActionResult> GetPolicyPartial(int insuranceTypeId, int index, int policyNumber = 1)
         {
+            var entity = await _insuranceTypeService.GetByIdAsync(insuranceTypeId);
+            if (entity == null || entity.IsDeleted)
+                return BadRequest("Invalid insurance type.");
+            if (!entity.IsActive)
+                return BadRequest("This insurance type is inactive.");
+
+            if (!TryResolveInsuranceTypeCode(entity, out var code))
+                return BadRequest("Unknown insurance type.");
+
             ViewBag.Index = index;
             ViewBag.PolicyNumber = policyNumber;
-            ViewBag.PolicyType = "Motor";
+            ViewBag.PolicySlug = code.ToGridSlug();
 
-            var basic = new PolicyBasicDetailsViewModel { InsuranceTypeID = 1 };
-            basic.CompanySelectList = await GetCompanySelectListAsync(basic.InsuranceTypeID, basic.Company);
-            var model = new MotorPolicyViewModel
+            switch (code)
             {
-                BasicDetails = basic,
-                VehicleDetails = new PolicyVehicleDetailsViewModel()
-            };
-            return PartialView("_MotorPolicyPartial", model);
+                case InsuranceTypeCode.MotorVehicle:
+                    ViewBag.PolicyType = "Motor";
+                    {
+                        var basic = new PolicyBasicDetailsViewModel { InsuranceTypeID = insuranceTypeId };
+                        basic.CompanySelectList = await GetCompanySelectListAsync(basic.InsuranceTypeID, basic.Company);
+                        var motorModel = new MotorPolicyViewModel
+                        {
+                            BasicDetails = basic,
+                            VehicleDetails = new PolicyVehicleDetailsViewModel()
+                        };
+                        return PartialView("_MotorPolicyPartial", motorModel);
+                    }
+                case InsuranceTypeCode.Health:
+                    ViewBag.PolicyType = "Health";
+                    {
+                        var basic = new PolicyBasicDetailsViewModel { InsuranceTypeID = insuranceTypeId };
+                        basic.CompanySelectList = await GetCompanySelectListAsync(basic.InsuranceTypeID, basic.Company);
+                        var vm = new HealthPolicyViewModel { BasicDetails = basic };
+                        return PartialView("_HealthPolicyPartial", vm);
+                    }
+                case InsuranceTypeCode.Life:
+                    ViewBag.PolicyType = "Life";
+                    {
+                        var basic = new PolicyBasicDetailsViewModel { InsuranceTypeID = insuranceTypeId };
+                        basic.CompanySelectList = await GetCompanySelectListAsync(basic.InsuranceTypeID, basic.Company);
+                        var vm = new LifePolicyViewModel { BasicDetails = basic };
+                        return PartialView("_LifePolicyPartial", vm);
+                    }
+                case InsuranceTypeCode.PersonalAccident:
+                    ViewBag.PolicyType = "PersonalAccident";
+                    {
+                        var basic = new PolicyBasicDetailsViewModel { InsuranceTypeID = insuranceTypeId };
+                        basic.CompanySelectList = await GetCompanySelectListAsync(basic.InsuranceTypeID, basic.Company);
+                        var vm = new PersonalAccidentPolicyViewModel { BasicDetails = basic };
+                        return PartialView("_PersonalAccidentPolicyPartial", vm);
+                    }
+                default:
+                    if (!code.UsesStandardPoliciesList())
+                        return BadRequest("Unsupported insurance type.");
+                    ViewBag.PolicyType = "Standard";
+                    ViewBag.PolicyDisplayTitle = entity.InsuranceType;
+                    {
+                        var basic = new PolicyBasicDetailsViewModel { InsuranceTypeID = insuranceTypeId };
+                        basic.CompanySelectList = await GetCompanySelectListAsync(basic.InsuranceTypeID, basic.Company);
+                        var vm = new StandardPolicyViewModel { BasicDetails = basic };
+                        return PartialView("_StandardPolicyPartial", vm);
+                    }
+            }
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetHealthPolicyPartial(int index, int policyNumber = 1)
-        {
-            ViewBag.Index = index;
-            ViewBag.PolicyNumber = policyNumber;
-            ViewBag.PolicyType = "Health";
-
-            var basic = new PolicyBasicDetailsViewModel { InsuranceTypeID = 2 };
-            basic.CompanySelectList = await GetCompanySelectListAsync(basic.InsuranceTypeID, basic.Company);
-            var model = new HealthPolicyViewModel { BasicDetails = basic };
-            return PartialView("_HealthPolicyPartial", model);
-        }
+        public Task<IActionResult> GetMotorPolicyPartial(int index, int policyNumber = 1) =>
+            GetPolicyPartial((int)InsuranceTypeCode.MotorVehicle, index, policyNumber);
 
         [HttpGet]
-        public async Task<IActionResult> GetLifePolicyPartial(int index, int policyNumber = 1)
-        {
-            ViewBag.Index = index;
-            ViewBag.PolicyNumber = policyNumber;
-            ViewBag.PolicyType = "Life";
-
-            var basic = new PolicyBasicDetailsViewModel { InsuranceTypeID = 3 };
-            basic.CompanySelectList = await GetCompanySelectListAsync(basic.InsuranceTypeID, basic.Company);
-            var model = new LifePolicyViewModel { BasicDetails = basic };
-            return PartialView("_LifePolicyPartial", model);
-        }
+        public Task<IActionResult> GetHealthPolicyPartial(int index, int policyNumber = 1) =>
+            GetPolicyPartial((int)InsuranceTypeCode.Health, index, policyNumber);
 
         [HttpGet]
-        public async Task<IActionResult> GetPersonalAccidentPolicyPartial(int index, int policyNumber = 1)
-        {
-            ViewBag.Index = index;
-            ViewBag.PolicyNumber = policyNumber;
-            ViewBag.PolicyType = "PersonalAccident";
+        public Task<IActionResult> GetLifePolicyPartial(int index, int policyNumber = 1) =>
+            GetPolicyPartial((int)InsuranceTypeCode.Life, index, policyNumber);
 
-            var basic = new PolicyBasicDetailsViewModel { InsuranceTypeID = 4 };
-            basic.CompanySelectList = await GetCompanySelectListAsync(basic.InsuranceTypeID, basic.Company);
-            var model = new PersonalAccidentPolicyViewModel { BasicDetails = basic };
-            return PartialView("_PersonalAccidentPolicyPartial", model);
-        }
+        [HttpGet]
+        public Task<IActionResult> GetPersonalAccidentPolicyPartial(int index, int policyNumber = 1) =>
+            GetPolicyPartial((int)InsuranceTypeCode.PersonalAccident, index, policyNumber);
 
         #endregion
 
@@ -530,9 +577,66 @@ namespace Insurancesys.web.Controllers
             }
         }
 
+        private async Task SaveStandardPoliciesAsync(int customerId, List<StandardPolicyViewModel> standardPolicies)
+        {
+            foreach (var policyDto in standardPolicies)
+            {
+                if (policyDto.BasicDetails == null)
+                    continue;
+
+                var typeId = policyDto.BasicDetails.InsuranceTypeID;
+                if (!InsuranceTypeCodeExtensions.TryFromInsuranceTypeId(typeId, out var code) || !code.UsesStandardPoliciesList())
+                    continue;
+
+                var isExisting = policyDto.BasicDetails.PolicyId > 0;
+
+                var copy = new StandardPolicyViewModel
+                {
+                    BasicDetails = new PolicyBasicDetailsViewModel
+                    {
+                        CustomerID = customerId,
+                        PolicyId = policyDto.BasicDetails.PolicyId,
+                        InsuranceTypeID = typeId,
+                        PolicyNumber = policyDto.BasicDetails.PolicyNumber,
+                        PolicyStartDate = policyDto.BasicDetails.PolicyStartDate,
+                        PolicyDueDate = policyDto.BasicDetails.PolicyDueDate,
+                        Company = policyDto.BasicDetails.Company,
+                        GrosssPremium = policyDto.BasicDetails.GrosssPremium,
+                        NetPremium = policyDto.BasicDetails.NetPremium,
+                        ODPremium = policyDto.BasicDetails.ODPremium,
+                        NCB = policyDto.BasicDetails.NCB,
+                        Dealer = policyDto.BasicDetails.Dealer,
+                        SM = policyDto.BasicDetails.SM,
+                        CreatedOn = DateTime.UtcNow,
+                        UpdatedOn = DateTime.UtcNow,
+                        IsActive = true
+                    },
+                    PolicyPaymentDetails = policyDto.PolicyPaymentDetails
+                };
+
+                var policyEntity = _mapper.Map<PolicyDetailsEntity>(copy.BasicDetails);
+                if (isExisting)
+                {
+                    await _customerService.UpdatePolicyDetailsAsync(policyEntity);
+                }
+                else
+                {
+                    policyEntity.PolicyId = await _customerService.AddPolicyDetails(policyEntity);
+                    copy.BasicDetails.PolicyId = policyEntity.PolicyId;
+                }
+
+                if (policyEntity.PolicyId > 0)
+                    await SavePolicyPaymentDetailsAsync(policyEntity.PolicyId, copy.PolicyPaymentDetails);
+            }
+        }
+
         private async Task<PolicyDetailsViewModel> BuildPolicyDetailsViewModelAsync(int customerId)
         {
-            var model = new PolicyDetailsViewModel { CustomerID = customerId };
+            var model = new PolicyDetailsViewModel
+            {
+                CustomerID = customerId,
+                InsuranceTypesForGrid = await BuildInsuranceTypesForGridAsync()
+            };
 
             var policies = await _customerService.GetPolicyDetailsByCustomerAsync(customerId);
             if (policies == null || policies.Count == 0)
@@ -546,38 +650,53 @@ namespace Insurancesys.web.Controllers
 
                 basicDetails.CompanySelectList = await GetCompanySelectListAsync(basicDetails.InsuranceTypeID, basicDetails.Company);
 
-                switch (policy.InsuranceTypeID)
+                if (!InsuranceTypeCodeExtensions.TryFromInsuranceTypeId(policy.InsuranceTypeID, out var code))
+                    continue;
+
+                switch (code)
                 {
-                    case 1: // Motor Insurance
-                        var vehicle = await _customerService.GetVehicleDetailsByPollicyAsync(policy.PolicyId);
-                        var vehicleVm = vehicle != null ? _mapper.Map<PolicyVehicleDetailsViewModel>(vehicle) : null;
-                        model.MotorPolicies.Add(new MotorPolicyViewModel
+                    case InsuranceTypeCode.MotorVehicle:
                         {
-                            BasicDetails = basicDetails,
-                            VehicleDetails = vehicleVm,
-                            PolicyPaymentDetails = paymentVm
-                        });
-                        break;
-                    case 2: // Health Insurance
+                            var vehicle = await _customerService.GetVehicleDetailsByPollicyAsync(policy.PolicyId);
+                            var vehicleVm = vehicle != null ? _mapper.Map<PolicyVehicleDetailsViewModel>(vehicle) : null;
+                            model.MotorPolicies.Add(new MotorPolicyViewModel
+                            {
+                                BasicDetails = basicDetails,
+                                VehicleDetails = vehicleVm,
+                                PolicyPaymentDetails = paymentVm
+                            });
+                            break;
+                        }
+                    case InsuranceTypeCode.Health:
                         model.HealthPolicies.Add(new HealthPolicyViewModel
                         {
                             BasicDetails = basicDetails,
                             PolicyPaymentDetails = paymentVm
                         });
                         break;
-                    case 3: // Life Insurance
+                    case InsuranceTypeCode.Life:
                         model.LifePolicies.Add(new LifePolicyViewModel
                         {
                             BasicDetails = basicDetails,
                             PolicyPaymentDetails = paymentVm
                         });
                         break;
-                    case 4: // Personal Accident
+                    case InsuranceTypeCode.PersonalAccident:
                         model.PersonalAccidentPolicies.Add(new PersonalAccidentPolicyViewModel
                         {
                             BasicDetails = basicDetails,
                             PolicyPaymentDetails = paymentVm
                         });
+                        break;
+                    default:
+                        if (code.UsesStandardPoliciesList())
+                        {
+                            model.StandardPolicies.Add(new StandardPolicyViewModel
+                            {
+                                BasicDetails = basicDetails,
+                                PolicyPaymentDetails = paymentVm
+                            });
+                        }
                         break;
                 }
             }
@@ -629,6 +748,120 @@ namespace Insurancesys.web.Controllers
                     p.BasicDetails.CompanySelectList = await GetCompanySelectListAsync(typeId, p.BasicDetails.Company);
                 }
             }
+            if (model.StandardPolicies != null)
+            {
+                foreach (var p in model.StandardPolicies)
+                {
+                    if (p.BasicDetails == null) continue;
+                    var typeId = p.BasicDetails.InsuranceTypeID;
+                    if (typeId <= 0) continue;
+                    p.BasicDetails.CompanySelectList = await GetCompanySelectListAsync(typeId, p.BasicDetails.Company);
+                }
+            }
+        }
+
+        private async Task<List<InsuranceTypePolicyGridItemViewModel>> BuildInsuranceTypesForGridAsync()
+        {
+            var rows = await _insuranceTypeService.GetAllNonDeletedAsync();
+            var list = new List<InsuranceTypePolicyGridItemViewModel>();
+            foreach (var e in rows.OrderBy(x => x.InsuranceTypeId))
+            {
+                if (!TryResolveInsuranceTypeCode(e, out var code))
+                    continue;
+
+                list.Add(new InsuranceTypePolicyGridItemViewModel
+                {
+                    InsuranceTypeId = e.InsuranceTypeId,
+                    EnumName = code.ToString(),
+                    DisplayName = e.InsuranceType,
+                    IsActive = e.IsActive,
+                    Slug = code.ToGridSlug(),
+                    IconEmoji = GetIconEmojiFor(code),
+                    FormCollectionPrefix = GetFormCollectionPrefix(code),
+                    IsStandardBucket = code.UsesStandardPoliciesList()
+                });
+            }
+
+            return list;
+        }
+
+        private static string GetFormCollectionPrefix(InsuranceTypeCode code) => code switch
+        {
+            InsuranceTypeCode.MotorVehicle => "MotorPolicies",
+            InsuranceTypeCode.Health => "HealthPolicies",
+            InsuranceTypeCode.Life => "LifePolicies",
+            InsuranceTypeCode.PersonalAccident => "PersonalAccidentPolicies",
+            _ => "StandardPolicies"
+        };
+
+        private static string? GetIconEmojiFor(InsuranceTypeCode code) => code switch
+        {
+            InsuranceTypeCode.MotorVehicle => "🚗",
+            InsuranceTypeCode.Health => "❤️",
+            InsuranceTypeCode.Life => "🛡️",
+            InsuranceTypeCode.PersonalAccident => "🚑",
+            InsuranceTypeCode.Travel => "✈️",
+            InsuranceTypeCode.HomeProperty => "🏠",
+            InsuranceTypeCode.Fire => "🔥",
+            InsuranceTypeCode.Marine => "⚓",
+            InsuranceTypeCode.Commercial => "🏢",
+            InsuranceTypeCode.Liability => "⚖️",
+            InsuranceTypeCode.TermLife => "📜",
+            _ => "📋"
+        };
+
+        private static bool TryResolveInsuranceTypeCode(InsuranceTypeEntity entity, out InsuranceTypeCode code)
+        {
+            if (!string.IsNullOrWhiteSpace(entity.InsuranceTypeCode)
+                && Enum.TryParse<InsuranceTypeCode>(entity.InsuranceTypeCode.Trim(), true, out var fromColumn))
+            {
+                code = fromColumn;
+                return true;
+            }
+
+            return InsuranceTypeCodeExtensions.TryFromInsuranceTypeId(entity.InsuranceTypeId, out code);
+        }
+
+        private async Task<bool> ValidatePostedPoliciesAgainstMasterAsync(PolicyDetailsViewModel model)
+        {
+            var active = await _insuranceTypeService.GetActiveInsuranceTypeIdsAsync();
+            var ok = true;
+
+            void Check(PolicyBasicDetailsViewModel? b)
+            {
+                if (b == null || b.InsuranceTypeID <= 0)
+                    return;
+                if (!active.Contains(b.InsuranceTypeID))
+                    ok = false;
+            }
+
+            if (model.MotorPolicies != null)
+            {
+                foreach (var p in model.MotorPolicies)
+                    Check(p.BasicDetails);
+            }
+            if (model.HealthPolicies != null)
+            {
+                foreach (var p in model.HealthPolicies)
+                    Check(p.BasicDetails);
+            }
+            if (model.LifePolicies != null)
+            {
+                foreach (var p in model.LifePolicies)
+                    Check(p.BasicDetails);
+            }
+            if (model.PersonalAccidentPolicies != null)
+            {
+                foreach (var p in model.PersonalAccidentPolicies)
+                    Check(p.BasicDetails);
+            }
+            if (model.StandardPolicies != null)
+            {
+                foreach (var p in model.StandardPolicies)
+                    Check(p.BasicDetails);
+            }
+
+            return ok;
         }
 
         private async Task PopulateCountryStateDropdownsAsync(CustomerViewModel model)

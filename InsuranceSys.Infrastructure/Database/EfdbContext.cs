@@ -30,7 +30,11 @@ namespace InsuranceSys.Infrastructure.Database
             modelBuilder.Entity<LeadEntity>().ToTable("LeadManagement");
             modelBuilder.Entity<UsersEntity>().ToTable("UsersInfo");
             modelBuilder.Entity<CompanyEntity>().ToTable("CompanyMaster");
-            modelBuilder.Entity<InsuranceTypeEntity>().ToTable("InsuranceTypeMaster");
+            modelBuilder.Entity<InsuranceTypeEntity>(entity =>
+            {
+                entity.ToTable("InsuranceTypeMaster");
+                entity.Property(e => e.InsuranceTypeCode).HasMaxLength(64);
+            });
             modelBuilder.Entity<LeadStatusEntity>().ToTable("LeadStatus");
             modelBuilder.Entity<CountryEntity>().ToTable("CountryMaster");
             modelBuilder.Entity<StateEntity>().ToTable("StateMaster");

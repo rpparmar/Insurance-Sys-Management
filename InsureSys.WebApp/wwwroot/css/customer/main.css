@@ -1,4 +1,4 @@
-﻿/* Hint Box */
+/* Hint Box */
 .hint-box {
     background: #fff4de;
     border-left: 4px solid #ffa800;
@@ -275,3 +275,18 @@
         display: block;
         opacity: 0.3;
     }
+
+/* Master inactive: selector card (no click) */
+.policy-card-disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.policy-section-disabled {
+    opacity: 0.85;
+}
+
+.policy-section-disabled .btn-add-another {
+    display: none;
+}

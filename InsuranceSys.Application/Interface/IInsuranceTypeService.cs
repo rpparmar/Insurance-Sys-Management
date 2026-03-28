@@ -1,4 +1,4 @@
-﻿using InsuranceSys.Domain.Entities;
+using InsuranceSys.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -18,5 +18,7 @@ namespace InsuranceSys.Application.Interface
         Task<int> DeleteAsync(int InsuranceTypeId);
         Task<int> UpdateStatusAsync(int InsuranceTypeId, bool status);
         Task<bool> FindByNameAsync(string InsuranceType);
+        Task<IReadOnlyList<InsuranceTypeEntity>> GetAllNonDeletedAsync();
+        Task<HashSet<int>> GetActiveInsuranceTypeIdsAsync();
     }
 }

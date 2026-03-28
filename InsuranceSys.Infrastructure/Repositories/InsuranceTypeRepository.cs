@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using InsuranceSys.Application.Interface;
 using InsuranceSys.Domain.Entities;
 using InsuranceSys.Infrastructure.Database;
@@ -334,6 +334,31 @@ namespace InsuranceSys.Infrastructure.Repositories
                 return await context.EFInsuranceTypes
                     .AsNoTracking()
                     .AnyAsync(c => c.InsuranceType == InsuranceType && !c.IsDeleted);
+            });
+        }
+
+        public async Task<IReadOnlyList<InsuranceTypeEntity>> GetAllNonDeletedAsync()
+        {
+            return await ExecuteReadAsync(async context =>
+            {
+                return await context.EFInsuranceTypes
+                    .AsNoTracking()
+                    .Where(c => !c.IsDeleted)
+                    .OrderBy(c => c.InsuranceTypeId)
+                    .ToListAsync();
+            });
+        }
+
+        public async Task<HashSet<int>> GetActiveInsuranceTypeIdsAsync()
+        {
+            return await ExecuteReadAsync(async context =>
+            {
+                var ids = await context.EFInsuranceTypes
+                    .AsNoTracking()
+                    .Where(c => !c.IsDeleted && c.IsActive)
+                    .Select(c => c.InsuranceTypeId)
+                    .ToListAsync();
+                return ids.ToHashSet();
             });
         }
     }

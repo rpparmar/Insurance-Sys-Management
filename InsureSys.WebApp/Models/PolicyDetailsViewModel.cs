@@ -79,6 +79,16 @@ namespace Insurancesys.web.Models
         /// </summary>
         public List<PersonalAccidentPolicyViewModel> PersonalAccidentPolicies { get; set; } = new List<PersonalAccidentPolicyViewModel>();
 
+        /// <summary>
+        /// Additional types (travel, fire, etc.) using the standard common + payment partial.
+        /// </summary>
+        public List<StandardPolicyViewModel> StandardPolicies { get; set; } = new List<StandardPolicyViewModel>();
+
+        /// <summary>
+        /// Insurance types from master for the selector grid (includes inactive rows).
+        /// </summary>
+        public List<InsuranceTypePolicyGridItemViewModel> InsuranceTypesForGrid { get; set; } = new List<InsuranceTypePolicyGridItemViewModel>();
+
         #endregion
     }
 }

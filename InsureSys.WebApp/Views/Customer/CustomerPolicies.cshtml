@@ -1,12 +1,17 @@
+@using System.Text.Json
+@using InsuranceSys.Domain.Enums
 @using Insurancesys.web.Helper
 @using Insurancesys.web.Models.Common
 @model Insurancesys.web.Models.PolicyDetailsViewModel
+@{
+    Layout = "_Layout";
+    var gridJson = JsonSerializer.Serialize(
+        Model.InsuranceTypesForGrid ?? new List<Insurancesys.web.Models.InsuranceTypePolicyGridItemViewModel>(),
+        new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+}
 @section Styles {
     <link href="~/css/common.css" rel="stylesheet" type="text/css" />
     <link href="~/css/customer/main.css" rel="stylesheet" type="text/css" />    
-}
-@{
-    Layout = "_Layout";   
 }
 
 <div class="container-fluid">
@@ -33,140 +38,133 @@
                     <div class="card-body">
                         <div class="row justify-content-center align-items-center">
                             <div class="col-md-12">                               
-                                <!-- Policy Type Selector -->                                
                                 <div class="policy-type-grid">
-                                    <div class="policy-card" data-policy-type="motor">
-                                        <div class="policy-icon">🚗</div>
-                                        <div class="policy-title">Motor Insurance</div>
-                                        <span class="policy-badge inactive">0</span>
-                                    </div>
-
-                                    <div class="policy-card" data-policy-type="health">
-                                        <div class="policy-icon">❤️</div>
-                                        <div class="policy-title">Health Insurance</div>
-                                        <span class="policy-badge inactive">0</span>
-                                    </div>
-
-                                    <div class="policy-card" data-policy-type="life">
-                                        <div class="policy-icon">🛡️</div>
-                                        <div class="policy-title">Life Insurance</div>
-                                        <span class="policy-badge inactive">0</span>
-                                    </div>
-
-                                    <div class="policy-card" data-policy-type="personalaccident">
-                                        <div class="policy-icon">🚑</div>
-                                        <div class="policy-title">Personal Accident</div>
-                                        <span class="policy-badge inactive">0</span>
-                                    </div>
-                                </div>
-
-                                <!-- Motor Policies Section -->
-                                <div class="policy-section" data-policy-type="motor">
-                                    <div class="policy-section-header">
-                                        <i>🚗</i>
-                                        <h4>Motor Policies</h4>
-                                    </div>
-
-                                    <!-- Container for dynamic motor policies -->
-                                    <div id="motor-policies-container">
-                                        @if (Model.MotorPolicies != null && Model.MotorPolicies.Count > 0)
+                                    @if (Model.InsuranceTypesForGrid != null)
+                                    {
+                                        foreach (var t in Model.InsuranceTypesForGrid)
                                         {
-                                            for (int i = 0; i < Model.MotorPolicies.Count; i++)
-                                            {
-                                                ViewBag.Index = i;
-                                                ViewBag.PolicyNumber = i + 1;
-                                                ViewBag.PolicyType = "Motor";
-                                                @Html.Partial("_MotorPolicyPartial", Model.MotorPolicies[i])
-                                            }
+                                            var cardClass = "policy-card" + (t.IsActive ? "" : " policy-card-disabled");
+                                            <div class="@cardClass"
+                                                 data-policy-type="@t.Slug"
+                                                 data-insurance-type-id="@t.InsuranceTypeId"
+                                                 data-is-active="@(t.IsActive.ToString().ToLowerInvariant())"
+                                                 data-form-prefix="@t.FormCollectionPrefix"
+                                                 data-standard-bucket="@(t.IsStandardBucket.ToString().ToLowerInvariant())">
+                                                <div class="policy-icon">@(t.IconEmoji ?? "📋")</div>
+                                                <div class="policy-title">@t.DisplayName</div>
+                                                <span class="policy-badge inactive">0</span>
+                                            </div>
                                         }
-                                    </div>
-
-                                    <button type="button" class="btn-add-another" data-policy-type="motor">
-                                        <span style="font-size: 18px;">+</span>
-                                        Add Another Motor Policy
-                                    </button>
+                                    }
                                 </div>
 
-                                <!-- Health Insurance Policies Section -->
-                                <div class="policy-section" data-policy-type="health">
-                                    <div class="policy-section-header">
-                                        <i>❤️</i>
-                                        <h4>Health Insurance Policies</h4>
-                                    </div>
-
-                                    <!-- Container for dynamic health policies -->
-                                    <div id="health-policies-container">
-                                        @if (Model.HealthPolicies != null && Model.HealthPolicies.Count > 0)
+                                @if (Model.InsuranceTypesForGrid != null)
+                                {
+                                    foreach (var t in Model.InsuranceTypesForGrid)
+                                    {
+                                        if (!Enum.TryParse<InsuranceTypeCode>(t.EnumName, out var typeCode))
                                         {
-                                            for (int i = 0; i < Model.HealthPolicies.Count; i++)
-                                            {
-                                                ViewBag.Index = i;
-                                                ViewBag.PolicyNumber = i + 1;
-                                                ViewBag.PolicyType = "Health";
-                                                @Html.Partial("_HealthPolicyPartial", Model.HealthPolicies[i])
-                                            }
+                                            continue;
                                         }
-                                    </div>
 
-                                    <button type="button" class="btn-add-another" data-policy-type="health">
-                                        <span style="font-size: 18px;">+</span>
-                                        Add Another Health Policy
-                                    </button>
-                                </div>
+                                        var sectionClass = "policy-section" + (t.IsActive ? "" : " policy-section-disabled");
+                                        <div class="@sectionClass"
+                                             data-policy-type="@t.Slug"
+                                             data-insurance-type-id="@t.InsuranceTypeId"
+                                             data-is-active="@(t.IsActive.ToString().ToLowerInvariant())">
+                                            <div class="policy-section-header">
+                                                <i>@(t.IconEmoji ?? "📋")</i>
+                                                <h4>@t.DisplayName</h4>
+                                                @if (!t.IsActive)
+                                                {
+                                                    <span class="badge badge-secondary ml-2">Inactive in master</span>
+                                                }
+                                            </div>
 
-                                <!-- Life Policies Section -->
-                                <div class="policy-section" data-policy-type="life">
-                                    <div class="policy-section-header">
-                                        <i>🛡️</i>
-                                        <h4>Life Insurance Policies</h4>
-                                    </div>
+                                            <div id="@(t.Slug)-policies-container">
+                                                @switch (typeCode)
+                                                {
+                                                    case InsuranceTypeCode.MotorVehicle:
+                                                        if (Model.MotorPolicies != null)
+                                                        {
+                                                            for (int i = 0; i < Model.MotorPolicies.Count; i++)
+                                                            {
+                                                                ViewBag.Index = i;
+                                                                ViewBag.PolicyNumber = i + 1;
+                                                                ViewBag.PolicyType = "Motor";
+                                                                @Html.Partial("_MotorPolicyPartial", Model.MotorPolicies[i])
+                                                            }
+                                                        }
+                                                        break;
+                                                    case InsuranceTypeCode.Health:
+                                                        if (Model.HealthPolicies != null)
+                                                        {
+                                                            for (int i = 0; i < Model.HealthPolicies.Count; i++)
+                                                            {
+                                                                ViewBag.Index = i;
+                                                                ViewBag.PolicyNumber = i + 1;
+                                                                ViewBag.PolicyType = "Health";
+                                                                @Html.Partial("_HealthPolicyPartial", Model.HealthPolicies[i])
+                                                            }
+                                                        }
+                                                        break;
+                                                    case InsuranceTypeCode.Life:
+                                                        if (Model.LifePolicies != null)
+                                                        {
+                                                            for (int i = 0; i < Model.LifePolicies.Count; i++)
+                                                            {
+                                                                ViewBag.Index = i;
+                                                                ViewBag.PolicyNumber = i + 1;
+                                                                ViewBag.PolicyType = "Life";
+                                                                @Html.Partial("_LifePolicyPartial", Model.LifePolicies[i])
+                                                            }
+                                                        }
+                                                        break;
+                                                    case InsuranceTypeCode.PersonalAccident:
+                                                        if (Model.PersonalAccidentPolicies != null)
+                                                        {
+                                                            for (int i = 0; i < Model.PersonalAccidentPolicies.Count; i++)
+                                                            {
+                                                                ViewBag.Index = i;
+                                                                ViewBag.PolicyNumber = i + 1;
+                                                                ViewBag.PolicyType = "PersonalAccident";
+                                                                @Html.Partial("_PersonalAccidentPolicyPartial", Model.PersonalAccidentPolicies[i])
+                                                            }
+                                                        }
+                                                        break;
+                                                    default:
+                                                        if (typeCode.UsesStandardPoliciesList() && Model.StandardPolicies != null)
+                                                        {
+                                                            var ordinal = 1;
+                                                            for (int i = 0; i < Model.StandardPolicies.Count; i++)
+                                                            {
+                                                                var sp = Model.StandardPolicies[i];
+                                                                if (sp.BasicDetails?.InsuranceTypeID != t.InsuranceTypeId)
+                                                                {
+                                                                    continue;
+                                                                }
+                                                                ViewBag.Index = i;
+                                                                ViewBag.PolicyNumber = ordinal++;
+                                                                ViewBag.PolicyType = "Standard";
+                                                                ViewBag.PolicySlug = t.Slug;
+                                                                ViewBag.PolicyDisplayTitle = t.DisplayName;
+                                                                @Html.Partial("_StandardPolicyPartial", sp)
+                                                            }
+                                                        }
+                                                        break;
+                                                }
+                                            </div>
 
-                                    <!-- Container for dynamic life policies -->
-                                    <div id="life-policies-container">
-                                        @if (Model.LifePolicies != null && Model.LifePolicies.Count > 0)
-                                        {
-                                            for (int i = 0; i < Model.LifePolicies.Count; i++)
+                                            @if (t.IsActive)
                                             {
-                                                ViewBag.Index = i;
-                                                ViewBag.PolicyNumber = i + 1;
-                                                ViewBag.PolicyType = "Life";
-                                                @Html.Partial("_LifePolicyPartial", Model.LifePolicies[i])
+                                                <button type="button" class="btn-add-another" data-policy-type="@t.Slug" data-insurance-type-id="@t.InsuranceTypeId">
+                                                    <span style="font-size: 18px;">+</span>
+                                                    Add @t.DisplayName
+                                                </button>
                                             }
-                                        }
-                                    </div>
-
-                                    <button type="button" class="btn-add-another" data-policy-type="life">
-                                        <span style="font-size: 18px;">+</span>
-                                        Add Another Life Policy
-                                    </button>
-                                </div>
-
-                                <!-- Personal Accident Section -->
-                                <div class="policy-section" data-policy-type="personalaccident">
-                                    <div class="policy-section-header">
-                                        <i>🚑</i>
-                                        <h4>Personal Accident Policies</h4>
-                                    </div>
-
-                                    <!-- Container for dynamic personal accident policies -->
-                                    <div id="personalaccident-policies-container">
-                                        @if (Model.PersonalAccidentPolicies != null && Model.PersonalAccidentPolicies.Count > 0)
-                                        {
-                                            for (int i = 0; i < Model.PersonalAccidentPolicies.Count; i++)
-                                            {
-                                                ViewBag.Index = i;
-                                                ViewBag.PolicyNumber = i + 1;
-                                                ViewBag.PolicyType = "PersonalAccident";
-                                                @Html.Partial("_PersonalAccidentPolicyPartial", Model.PersonalAccidentPolicies[i])
-                                            }
-                                        }
-                                    </div>
-
-                                    <button type="button" class="btn-add-another" data-policy-type="personalaccident">
-                                        <span style="font-size: 18px;">+</span>
-                                        Add Another Personal Accident Policy
-                                    </button>
-                                </div>
+                                        </div>
+                                    }
+                                }
                             </div>
                         </div>
                     </div>
@@ -175,7 +173,9 @@
         </div>
     </form>
 </div>
-<!-- Hidden message container for toastr -->
+
+<script type="application/json" id="policy-type-grid-config">@Html.Raw(gridJson)</script>
+
 @if (TempData["Message"] != null)
 {
     <div class="toastr-message" data-message="@TempData["Message"]" data-type="@(TempData["RowsAffected"]?.ToString() == "1" ? "success" : "error")" style="display:none;"></div>
