@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using System.Xml.Serialization;
+
 
 namespace Insurancesys.web.Helper
 {
@@ -39,6 +39,45 @@ namespace Insurancesys.web.Helper
             labelColumn.InnerHtml.AppendHtml(labelContent);
 
             // Create form-group row
+            var formGroupRow = new TagBuilder("div");
+            formGroupRow.AddCssClass("form-group row");
+            formGroupRow.InnerHtml.AppendHtml(labelColumn);
+            formGroupRow.InnerHtml.AppendHtml(inputColumn);
+
+            return formGroupRow;
+        }
+
+        public static IHtmlContent SimpleFormDropdown(this IHtmlHelper htmlHelper, string label, string forExpression, IEnumerable<SelectListItem> selectList, bool isRequired = false, string placeholder = "Select", bool isRegExpression = false)
+        {
+            var labelContent = new TagBuilder("label");
+            labelContent.InnerHtml.Append(label);
+            labelContent.AddCssClass("col-form-label");
+            if (isRequired)
+                labelContent.AddCssClass("required");
+
+            var dropdownAttributes = new Dictionary<string, object>
+            {
+                { "class", "form-control selectpicker" },
+                { "data-size", "7" },
+                { "data-live-search", "true" },
+                { "id", $"drp{forExpression}" }
+            };
+            var optionLabel = string.IsNullOrEmpty(placeholder) ? "Select" : placeholder;
+            var dropdownContent = htmlHelper.DropDownList(forExpression, selectList, optionLabel, dropdownAttributes);
+
+            var inputColumn = new TagBuilder("div");
+            inputColumn.AddCssClass("col-md-8 col-xs-12");
+            inputColumn.InnerHtml.AppendHtml(dropdownContent);
+            if (isRequired || isRegExpression)
+            {
+                var validationMessage = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
+                inputColumn.InnerHtml.AppendHtml(validationMessage);
+            }
+
+            var labelColumn = new TagBuilder("div");
+            labelColumn.AddCssClass("col-md-4 col-xs-12 text-md-right");
+            labelColumn.InnerHtml.AppendHtml(labelContent);
+
             var formGroupRow = new TagBuilder("div");
             formGroupRow.AddCssClass("form-group row");
             formGroupRow.InnerHtml.AppendHtml(labelColumn);
