@@ -168,6 +168,8 @@ namespace InsuranceSys.Infrastructure.Repositories
                 existing.City = incoming.City;
                 existing.ZipCode = incoming.ZipCode;
                 existing.IsActive = incoming.IsActive;
+                existing.SmsReminderEnabled = incoming.SmsReminderEnabled;
+                existing.EmailReminderEnabled = incoming.EmailReminderEnabled;
                 existing.UpdatedOn = DateTime.UtcNow;
 
                 await context.SaveChangesAsync();

@@ -43,6 +43,8 @@ namespace InsuranceSys.Domain.Entities
         public DateTime UpdatedOn { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
+        public bool SmsReminderEnabled { get; set; } = true;
+        public bool EmailReminderEnabled { get; set; } = true;
 
     }
 }

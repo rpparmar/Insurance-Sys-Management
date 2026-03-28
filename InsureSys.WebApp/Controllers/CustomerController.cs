@@ -644,7 +644,7 @@ namespace Insurancesys.web.Controllers
             // Backfill IDs from old string storage when editing legacy rows.
             if (!model.CountryID.HasValue && !string.IsNullOrWhiteSpace(model.Country))
             {
-                var selectedCountry = countries.FirstOrDefault(x => string.Equals(x.Text, model.Country, StringComparison.OrdinalIgnoreCase));
+                var selectedCountry = countries.FirstOrDefault(x => string.Equals(x.Value, model.Country, StringComparison.OrdinalIgnoreCase));
                 if (selectedCountry != null && int.TryParse(selectedCountry.Value, out int selectedCountryId))
                 {
                     model.CountryID = selectedCountryId;
@@ -657,7 +657,7 @@ namespace Insurancesys.web.Controllers
                 var states = await _dropDownBinderService.GetStateDropdownByCountryAsync(model.CountryID.Value);
                 if (!model.StateID.HasValue && !string.IsNullOrWhiteSpace(model.State))
                 {
-                    var selectedState = states.FirstOrDefault(x => string.Equals(x.Text, model.State, StringComparison.OrdinalIgnoreCase));
+                    var selectedState = states.FirstOrDefault(x => string.Equals(x.Value, model.State, StringComparison.OrdinalIgnoreCase));
                     if (selectedState != null && int.TryParse(selectedState.Value, out int selectedStateId))
                     {
                         model.StateID = selectedStateId;
@@ -679,14 +679,14 @@ namespace Insurancesys.web.Controllers
             {
                 var countries = await _dropDownBinderService.GetCountryDropdownAsync();
                 var selectedCountry = countries.FirstOrDefault(x => x.Value == model.CountryID.Value.ToString());
-                model.Country = selectedCountry?.Text;
+                model.Country = selectedCountry?.Value;
             }
 
             if (model.CountryID.HasValue && model.CountryID.Value > 0 && model.StateID.HasValue && model.StateID.Value > 0)
             {
                 var states = await _dropDownBinderService.GetStateDropdownByCountryAsync(model.CountryID.Value);
                 var selectedState = states.FirstOrDefault(x => x.Value == model.StateID.Value.ToString());
-                model.State = selectedState?.Text;
+                model.State = selectedState?.Value;
             }
             else
             {

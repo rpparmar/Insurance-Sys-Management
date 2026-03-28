@@ -35,7 +35,12 @@ namespace InsuranceSys.Infrastructure.Database
             modelBuilder.Entity<CountryEntity>().ToTable("CountryMaster");
             modelBuilder.Entity<StateEntity>().ToTable("StateMaster");
             modelBuilder.Entity<Mapping_Company_InsuranceType>().ToTable("Mapping_Company_InsuranceType");
-            modelBuilder.Entity<CustomerEntity>().ToTable("CustomersInfo");
+            modelBuilder.Entity<CustomerEntity>(entity =>
+            {
+                entity.ToTable("CustomersInfo");
+                entity.Property(e => e.SmsReminderEnabled).HasDefaultValue(true);
+                entity.Property(e => e.EmailReminderEnabled).HasDefaultValue(true);
+            });
             modelBuilder.Entity<PolicyDetailsEntity>().ToTable("PolicyDetails");            
             modelBuilder.Entity<PolicyVehicleDetailsEntity>().ToTable("VehicleDetails");
             modelBuilder.Entity<PolicyPaymentDetailsEntity>().ToTable("PolicyPayment");            

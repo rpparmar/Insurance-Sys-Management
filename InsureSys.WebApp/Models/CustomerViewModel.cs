@@ -10,6 +10,8 @@ namespace Insurancesys.web.Models
         public bool IsEditMode { get; set; }
         public bool IsActive { get; set; }
         public bool IsDeleted { get; set; }
+        public bool SmsReminderEnabled { get; set; } = true;
+        public bool EmailReminderEnabled { get; set; } = true;
         public DateTime CreatedOn { get; set; }
         public DateTime UpdatedOn { get; set; }
 

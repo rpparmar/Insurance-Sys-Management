@@ -60,7 +60,7 @@
                                     <ul class="nav nav-hover flex-column">
                                         <li class="nav-item">
                                             <a href="#" class="nav-link submit-option" data-submit-type="customeronly">
-                                                <i class="nav-icon flaticon2-reload"></i>
+                                                <i class="nav-icon flaticon2-power"></i>
                                                 <span class="nav-text">Customer Only</span>
                                             </a>
                                         </li>
@@ -124,7 +124,11 @@
                                                                                                 new SelectListItem { Text = "Male", Value = "M" },
                                                                                                 new SelectListItem { Text = "Female", Value = "F" },
                                                                                                 new SelectListItem { Text = "Other", Value = "O" }}
-                                                                                                , isRequired: false, isRegExpression: false)
+                                                                                                , isRequired: false, isRegExpression: false)                                                
+                                                                                                </div>
+                                            <div class="form-group row">
+                                                @Html.TwoColsHorizontalFormCheckBox("SMS Reminder", nameof(Model.SmsReminderEnabled))
+                                                @Html.TwoColsHorizontalFormCheckBox("Email Reminder", nameof(Model.EmailReminderEnabled))
                                             </div>
                                         </div>
                                     </div>

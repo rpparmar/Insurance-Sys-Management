@@ -97,32 +97,7 @@ namespace Insurancesys.web.Helper
             labelTag.InnerHtml.Append(label);
             labelColumn.InnerHtml.AppendHtml(labelTag);
 
-            // Input (checkbox)
-            string inputId = string.IsNullOrEmpty(id) ? forExpression : id;
-
-            var checkbox = htmlHelper.CheckBox(forExpression, new { id = inputId });
-
-            // Switch style container
-            IHtmlContent switchWrapper;
-            if (useSwitch)
-            {
-                var switchSpan = new TagBuilder("span");
-                switchSpan.AddCssClass("switch switch-icon");
-
-                var labelInner = new TagBuilder("label");
-
-                // Manually render input and span inside label
-                labelInner.InnerHtml.AppendHtml(checkbox);
-                labelInner.InnerHtml.AppendHtml("<span></span>");
-
-                switchSpan.InnerHtml.AppendHtml(labelInner);
-                switchWrapper = switchSpan;
-            }
-            else
-            {
-                // Fallback to default checkbox only
-                switchWrapper = checkbox;
-            }
+            var switchWrapper = BuildCheckBoxSwitchContent(htmlHelper, forExpression, id, useSwitch);
 
             // Input column
             var inputColumn = new TagBuilder("div");
@@ -701,62 +676,6 @@ namespace Insurancesys.web.Helper
             return container;
         }
 
-        public static IHtmlContent TwoColsHorizontalFormDecimal_obsolete(
-     this IHtmlHelper htmlHelper,
-     string label,
-     string forExpression,
-     bool isRequired = false,
-     string placeholder = "0.00"
- )
-        {
-            // ---- LABEL ----
-            var labelTag = new TagBuilder("label");
-            labelTag.AddCssClass("col-lg-2 col-form-label text-right");
-            if (isRequired)
-                labelTag.AddCssClass("required");
-            labelTag.InnerHtml.Append(label);
-
-            // ---- INPUT ATTRIBUTES ----
-            var htmlAttributes = new Dictionary<string, object>
-    {
-        { "class", "form-control text-right" },
-        { "placeholder", placeholder },
-        { "type", "text" },
-        { "data-decimal", "true" },
-        // ALWAYS add validation for numeric format only
-        { "data-val", "true" },        
-        // Add range validation for max 10 lakh
-        { "data-val-range", $"{label} must not exceed 10,00,000.00" },
-        { "data-val-range-min", "0" },
-        { "data-val-range-max", "1000000.00" }
-    };
-
-            // Add required validation only if isRequired is true
-            if (isRequired)
-            {
-                htmlAttributes.Add("data-val-required", $"{label} is required");
-            }
-
-            // ---- INPUT TEXTBOX ----
-            var inputTag = htmlHelper.TextBox(forExpression, null, htmlAttributes);
-
-            // ---- COLUMN WITH INPUT ----
-            var inputColumn = new TagBuilder("div");
-            inputColumn.AddCssClass("col-lg-3");
-            inputColumn.InnerHtml.AppendHtml(inputTag);
-
-            // ---- VALIDATION MESSAGE (Always show) ----
-            var validationMessage = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
-            inputColumn.InnerHtml.AppendHtml(validationMessage);
-
-            // ---- FINAL OUTPUT (Label + Column) ----
-            var container = new HtmlContentBuilder();
-            container.AppendHtml(labelTag);
-            container.AppendHtml(inputColumn);
-
-            return container;
-        }
-
         public static IHtmlContent TwoColsHorizontalFormDecimal(
             this IHtmlHelper htmlHelper,
             string label,
@@ -798,9 +717,41 @@ namespace Insurancesys.web.Helper
 
             return container;
         }
+
+        public static IHtmlContent TwoColsHorizontalFormCheckBox(this IHtmlHelper htmlHelper, string label, string forExpression, string id = "", bool useSwitch = true)
+        {
+            var labelTag = new TagBuilder("label");
+            labelTag.AddCssClass("col-lg-2 col-form-label text-right");
+            labelTag.InnerHtml.Append(label);
+
+            var inputColumn = new TagBuilder("div");
+            inputColumn.AddCssClass("col-lg-3");
+            inputColumn.InnerHtml.AppendHtml(BuildCheckBoxSwitchContent(htmlHelper, forExpression, id, useSwitch));
+
+            var container = new HtmlContentBuilder();
+            container.AppendHtml(labelTag);
+            container.AppendHtml(inputColumn);
+
+            return container;
+        }
         #endregion
 
         #region 3 Columns Vertical Form inputs
+        public static IHtmlContent ThreeColsHorizontalFormCheckBox(this IHtmlHelper htmlHelper, string label, string forExpression, string id = "", bool useSwitch = true)
+        {
+            var col = new TagBuilder("div");
+            col.AddCssClass("col-lg-4");
+
+            var labelTag = new TagBuilder("label");
+            labelTag.AddCssClass("col-form-label");
+            labelTag.InnerHtml.Append(label);
+            col.InnerHtml.AppendHtml(labelTag);
+
+            col.InnerHtml.AppendHtml(BuildCheckBoxSwitchContent(htmlHelper, forExpression, id, useSwitch));
+
+            return col;
+        }
+
         public static IHtmlContent ThreeColsVerticalFormTextBox(
             this IHtmlHelper htmlHelper,
             string label,
@@ -1133,6 +1084,25 @@ namespace Insurancesys.web.Helper
             return col;
         }
         #endregion
+        private static IHtmlContent BuildCheckBoxSwitchContent(IHtmlHelper htmlHelper, string forExpression, string id, bool useSwitch)
+        {
+            string inputId = string.IsNullOrEmpty(id) ? forExpression : id;
+            var checkbox = htmlHelper.CheckBox(forExpression, new { id = inputId });
+
+            if (!useSwitch)
+                return checkbox;
+
+            var switchSpan = new TagBuilder("span");
+            switchSpan.AddCssClass("switch switch-icon");
+
+            var labelInner = new TagBuilder("label");
+            labelInner.InnerHtml.AppendHtml(checkbox);
+            labelInner.InnerHtml.AppendHtml("<span></span>");
+
+            switchSpan.InnerHtml.AppendHtml(labelInner);
+            return switchSpan;
+        }
+
         private static string? GetFormattedDateTime(string forExpression, object? model)
         {
             if (model != null && !string.IsNullOrEmpty(forExpression))
