@@ -10,16 +10,16 @@ namespace Insurancesys.web.Models
         public int CustomerID { get; set; }
         public int InsuranceTypeID { get; set; }
 
-        [Required]
+        [Required(ErrorMessage ="Enter policy number")]
         public string PolicyNumber { get; set; } = string.Empty;
 
-        [Required]
-        public DateTime? PolicyStartDate { get; set; }
+        [Required(ErrorMessage = "Select policy start date ")]
+        public DateTime PolicyStartDate { get; set; }
 
-        [Required]
-        public DateTime? PolicyDueDate { get; set; }
+        [Required(ErrorMessage = "Select policy due date ")]
+        public DateTime PolicyDueDate { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Select insurer")]
         public string Company { get; set; } = string.Empty;
 
         /// <summary>Populated server-side for Insurer dropdown; not posted.</summary>

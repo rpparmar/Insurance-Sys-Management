@@ -250,7 +250,7 @@
             });
             return hasData;
         },
-
+        
         renumberPolicies: function (slug) {
             $('.policy-instance[data-policy-type="' + slug + '"]').each(function (displayIndex) {
                 var title = $(this).find('.policy-instance-title').first();
@@ -338,6 +338,7 @@
                 }
                 $input.data('decimal-initialized', true);
 
+                // ----- Formatting behaviour -----
                 $input.on('blur', function () {
                     var raw = ($(this).val() || '').toString().replace(/,/g, '');
                     var value = parseFloat(raw);
@@ -356,30 +357,40 @@
                     }
                 });
 
+                // ----- Client-side validation aligned with PolicyBasicDetailsViewModel -----
                 var name = ($input.attr('name') || '').toString();
                 if (!name) return;
 
+                // Ensure data-val is active
                 if (!$input.attr('data-val')) {
                     $input.attr('data-val', 'true');
                 }
-                if (!$input.attr('data-val-regex')) {
-                    $input.attr('data-val-regex', 'Invalid value entered');
-                }
-                if (!$input.attr('data-val-regex-pattern')) {
-                    $input.attr('data-val-regex-pattern', DECIMAL_REGEX_PATTERN);
+
+                // Remove the generic number validator — it fires before regex and shows
+                // "must be a number" for invalid input, hiding the regex message.
+                // The regex fully covers numeric format validation.
+                $input.removeAttr('data-val-number');
+
+                // Always override regex message (replaces server-generated default)
+                $input.attr('data-val-regex', 'Invalid amount');
+                $input.attr('data-val-regex-pattern', DECIMAL_REGEX_PATTERN);
+
+
+                // Apply field-specific range rules
+                if (name.endsWith('.GrosssPremium')) {
+                    $input.attr('data-val-range', 'Gross Premium must be greater than 0');
+                    $input.attr('data-val-range-min', '0.01');
+                    $input.attr('data-val-range-max', DECIMAL_MAX.toString());
+                } else if (
+                    name.endsWith('.NetPremium') ||
+                    name.endsWith('.ODPremium') ||
+                    name.endsWith('.NCB')
+                ) {
+                    $input.attr('data-val-range', 'Value must be between 0.01 and 10,000,000');
+                    $input.attr('data-val-range-min', '0.01');
+                    $input.attr('data-val-range-max', DECIMAL_MAX.toString());
                 }
 
-                if (name.endsWith('.GrosssPremium') || name.endsWith('.NetPremium') || name.endsWith('.ODPremium') || name.endsWith('.NCB')) {
-                    if (!$input.attr('data-val-range')) {
-                        $input.attr('data-val-range', 'Value must be greater than 0');
-                    }
-                    if (!$input.attr('data-val-range-min')) {
-                        $input.attr('data-val-range-min', '0.01');
-                    }
-                    if (!$input.attr('data-val-range-max')) {
-                        $input.attr('data-val-range-max', DECIMAL_MAX.toString());
-                    }
-                }
             });
         },
 
@@ -502,6 +513,15 @@
 
     $(document).ready(function () {
         PolicyManager.init();
+
+        if (typeof toastr !== 'undefined') {
+            toastr.options = {
+                closeButton: true,
+                progressBar: true,
+                positionClass: 'toast-top-right',
+                timeOut: 4000
+            };
+        }
 
         var $toastrMsg = $('.toastr-message');
         if ($toastrMsg.length && typeof toastr !== 'undefined') {
