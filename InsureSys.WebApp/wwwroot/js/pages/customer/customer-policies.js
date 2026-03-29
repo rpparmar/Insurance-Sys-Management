@@ -37,6 +37,15 @@
             return this.gridConfig.find(function (c) { return c.slug === slug; });
         },
 
+        getPolicyPrefix: function (slug) {
+            var cfg = this.getConfigForSlug(slug);
+            return cfg && cfg.formCollectionPrefix ? cfg.formCollectionPrefix : '';
+        },
+
+        getPolicyArray: function (slug) {
+            return this.policyIndices[slug] || [];
+        },
+
         isCardActive: function (slug) {
             var $card = $('.policy-card[data-policy-type="' + slug + '"]');
             return $card.length && String($card.data('is-active')) !== 'false';
@@ -211,17 +220,94 @@
         removePolicy: function (slug, $instance, index) {
             var self = this;
 
-            var hasData = this.policyHasData($instance);
-            if (hasData) {
-                if (!confirm('This policy has data. Are you sure you want to remove it?')) {
-                    return;
+            var prefix = self.getPolicyPrefix(slug);
+            if (!prefix) {
+                if (typeof toastr !== 'undefined') {
+                    toastr.error('Could not resolve policy type. Please refresh the page.');
+                } else {
+                    alert('Could not resolve policy type. Please refresh the page.');
                 }
+                return;
             }
+
+            var exactFieldName = prefix + '[' + index + '].BasicDetails.PolicyId';
+            var $policyIdInput = $instance.find('input[name="' + exactFieldName + '"]');
+            var existingId = parseInt(($policyIdInput.val() || '0'), 10);
+            var isExisting = !isNaN(existingId) && existingId > 0;            
+            var confirmText = isExisting
+                ? 'This will permanently delete this policy record.'
+                : 'This policy has not been saved yet and will be discarded.';
+
+            var runAfterConfirm = function () {
+                if (isExisting) {
+                    self.deleteExistingPolicy(existingId, slug, $instance, index);
+                } else {
+                    self.removePolicyFromDom(slug, $instance, index);
+                }
+            };
+
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: 'Remove Policy?',
+                    text: confirmText,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Yes, remove it',
+                    cancelButtonText: 'Cancel',
+                    buttonsStyling: false,
+                    customClass: {
+                        confirmButton: 'btn btn-danger font-weight-bold',
+                        cancelButton: 'btn btn-secondary font-weight-bold mr-3'
+                    },
+                    reverseButtons: true
+                }).then(function (result) {                    
+                    if (result.value) {
+                        runAfterConfirm();
+                    }
+                });
+            } else if (window.confirm('Remove Policy?\n\n' + confirmText)) {
+                runAfterConfirm();
+            }
+        },
+
+        deleteExistingPolicy: function (policyId, slug, $instance, index) {            
+            var self = this;
+            var token = $('input[name="__RequestVerificationToken"]').val();
+            var customerId = parseInt($('input[name="CustomerID"]').val() || '0', 10);
+
+            $.ajax({
+                url: '/Customer/DeletePolicy',
+                type: 'POST',
+                data: {
+                    policyId: policyId,
+                    customerId: customerId
+                },
+                headers: { 'RequestVerificationToken': token },
+                success: function (response) {
+                    if (response && response.success) {
+                        self.removePolicyFromDom(slug, $instance, index);
+                        if (typeof toastr !== 'undefined') {
+                            toastr.success('Policy removed successfully.');
+                        }
+                    } else if (typeof toastr !== 'undefined') {
+                        toastr.error((response && response.message) ? response.message : 'Failed to remove policy. Please try again.');
+                    }
+                },
+                error: function () {
+                    if (typeof toastr !== 'undefined') {
+                        toastr.error('An error occurred while removing the policy. Please try again.');
+                    }
+                }
+            });
+        },
+
+        removePolicyFromDom: function (slug, $instance, index) {
+            var self = this;
 
             $instance.fadeOut(300, function () {
                 $(this).remove();
 
-                var policyArray = self.policyIndices[slug] || [];
+                var policyArray = self.getPolicyArray(slug);                
                 var idx = policyArray.indexOf(index);
                 if (idx > -1) {
                     policyArray.splice(idx, 1);
@@ -239,18 +325,6 @@
             });
         },
 
-        policyHasData: function ($instance) {
-            var hasData = false;
-            $instance.find('input[type="text"], input[type="number"], input[type="date"], select').each(function () {
-                var val = $(this).val();
-                if (val && val !== '' && val !== 'Select') {
-                    hasData = true;
-                    return false;
-                }
-            });
-            return hasData;
-        },
-        
         renumberPolicies: function (slug) {
             $('.policy-instance[data-policy-type="' + slug + '"]').each(function (displayIndex) {
                 var title = $(this).find('.policy-instance-title').first();

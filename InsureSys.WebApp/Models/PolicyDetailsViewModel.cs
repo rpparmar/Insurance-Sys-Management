@@ -59,6 +59,10 @@ namespace Insurancesys.web.Models
 
         //#endregion
         public int CustomerID { get; set; }
+
+        /// <summary>Full name for header display; set server-side from customer record.</summary>
+        public string? CustomerDisplayName { get; set; }
+
         #region Policies
         /// <summary>
         /// Motor Policies

@@ -179,6 +179,7 @@ namespace Insurancesys.web.Controllers
                 TempData["RowsAffected"] = "0";
                 await RepopulatePolicyDropdownsAsync(model);
                 model.InsuranceTypesForGrid = await BuildInsuranceTypesForGridAsync();
+                await PopulateCustomerDisplayNameAsync(model);
                 return View("CustomerPolicies", model);
             }
 
@@ -188,6 +189,7 @@ namespace Insurancesys.web.Controllers
                 TempData["RowsAffected"] = "0";
                 await RepopulatePolicyDropdownsAsync(model);
                 model.InsuranceTypesForGrid = await BuildInsuranceTypesForGridAsync();
+                await PopulateCustomerDisplayNameAsync(model);
                 return View("CustomerPolicies", model);
             }
 
@@ -206,7 +208,15 @@ namespace Insurancesys.web.Controllers
             if (model.StandardPolicies != null && model.StandardPolicies.Count > 0)
                 await SaveStandardPoliciesAsync(customerId, model.StandardPolicies);
 
-            return RedirectToAction("ListOfCustomers");
+            //var savedCustomer = await _customerService.GetCustomerByIdAsync(model.CustomerID);
+            //var cid = !string.IsNullOrEmpty(savedCustomer?.EncryptedCustomerId)
+            //    ? savedCustomer!.EncryptedCustomerId!
+            //    : Cryptography.EncryptUtf16UrlSafe(Convert.ToString(model.CustomerID));
+
+            TempData["Message"] = "Policy details saved successfully.";
+            TempData["RowsAffected"] = "1";
+            //return RedirectToAction(nameof(ListOfCustomers), new { cid });
+            return RedirectToAction(nameof(ListOfCustomers));
         }
 
         #region AJAX calls
@@ -637,6 +647,7 @@ namespace Insurancesys.web.Controllers
                 CustomerID = customerId,
                 InsuranceTypesForGrid = await BuildInsuranceTypesForGridAsync()
             };
+            await PopulateCustomerDisplayNameAsync(model);
 
             var policies = await _customerService.GetPolicyDetailsByCustomerAsync(customerId);
             if (policies == null || policies.Count == 0)
@@ -708,6 +719,27 @@ namespace Insurancesys.web.Controllers
         {
             var companies = await _dropDownBinderService.GetCompanyMappedWithInsuranceType(insuranceTypeId);
             return DropdownMapper.ToSelectListItems(companies ?? new List<DropdownItemDto>(), selectedCompanyId);
+        }
+
+        private static string FormatCustomerDisplayName(CustomerEntity c)
+        {
+            var first = string.IsNullOrWhiteSpace(c.FirstName) ? string.Empty : c.FirstName.Trim();
+            var last = string.IsNullOrWhiteSpace(c.LastName) ? string.Empty : c.LastName.Trim();
+            if (string.IsNullOrEmpty(first) && string.IsNullOrEmpty(last))
+                return string.Empty;
+            return string.IsNullOrEmpty(last) ? first : $"{first} {last}".Trim();
+        }
+
+        private async Task PopulateCustomerDisplayNameAsync(PolicyDetailsViewModel model)
+        {
+            if (model.CustomerID <= 0)
+            {
+                model.CustomerDisplayName = null;
+                return;
+            }
+
+            var customer = await _customerService.GetCustomerByIdAsync(model.CustomerID);
+            model.CustomerDisplayName = customer == null ? null : FormatCustomerDisplayName(customer);
         }
 
         private async Task RepopulatePolicyDropdownsAsync(PolicyDetailsViewModel model)
