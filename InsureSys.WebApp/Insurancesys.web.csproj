@@ -10,13 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="App_Data\**" />
     <Compile Remove="wwwroot\assets\js\pages\crud\datatables\basic\**" />
-    <Content Remove="App_Data\**" />
     <Content Remove="wwwroot\assets\js\pages\crud\datatables\basic\**" />
-    <EmbeddedResource Remove="App_Data\**" />
     <EmbeddedResource Remove="wwwroot\assets\js\pages\crud\datatables\basic\**" />
-    <None Remove="App_Data\**" />
     <None Remove="wwwroot\assets\js\pages\crud\datatables\basic\**" />
   </ItemGroup>
 
@@ -55,5 +51,9 @@
     <ProjectReference Include="..\InsuranceSys.Application\InsuranceSys.Application.csproj" />
     <ProjectReference Include="..\InsuranceSys.Domain\InsuranceSys.Domain.csproj" />
     <ProjectReference Include="..\InsuranceSys.Infrastructure\InsuranceSys.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="App_Data\" />
   </ItemGroup>
 </Project>

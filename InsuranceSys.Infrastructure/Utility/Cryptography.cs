@@ -5,8 +5,19 @@ namespace InsuranceSys.Infrastructure.Utility
 {
     public static class Cryptography
     {
-        // Prefer loading from configuration, not literals.
-        private static string GetMasterPassword() => "Insyscrypto2026";
+        private static string? _masterKey;
+        private const string FallbackKey = "Insyscrypto2026";
+
+        /// <summary>
+        /// Must be called once at app startup from Program.cs with the configured key.
+        /// Falls back to a compile-time default if not initialized (backward compat).
+        /// </summary>
+        public static void Initialize(string masterKey)
+        {
+            _masterKey = masterKey ?? throw new ArgumentNullException(nameof(masterKey));
+        }
+
+        private static string GetMasterPassword() => _masterKey ?? FallbackKey;
         private const int KeySizeBits = 256;
         private const int IvSizeBytes = 16; // AES block size
         private const int SaltSizeBytes = 16;

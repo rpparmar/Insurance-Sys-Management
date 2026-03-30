@@ -1,21 +1,17 @@
 ﻿using InsuranceSys.Infrastructure.Database.Interface;
-using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Data.SqlClient;
 
 namespace InsuranceSys.Infrastructure.Database
 {
     /// <summary>
-    /// Optimized ADO.NET database context that reuses connections per request
+    /// Optimized ADO.NET database context that reuses the tenant connection per request.
     /// </summary>
-    public class AdoNetDBContext:IAdoNetDBContext
+    public class AdoNetDBContext : IAdoNetDBContext
     {
         private readonly ISqlConnectionProvider _connectionProvider;
+
         public AdoNetDBContext(ISqlConnectionProvider connectionProvider)
         {
             _connectionProvider = connectionProvider;
@@ -26,10 +22,9 @@ namespace InsuranceSys.Infrastructure.Database
         public async Task<int> ExecuteNonQueryAsync(
             ImmutableDictionary<string, object> paramCollection,
             CommandType cmdType,
-            string cmdText,
-            bool masterDBConn = true)
+            string cmdText)
         {
-            // ✅ Reuses shared connection for this request
+            // Reuses shared connection for this request
             var connection = await _connectionProvider.GetConnectionAsync();
 
             using var cmd = new SqlCommand(cmdText, connection);
@@ -37,20 +32,10 @@ namespace InsuranceSys.Infrastructure.Database
 
             // Add current transaction if active
             if (_connectionProvider.CurrentTransaction != null)
-            {
                 cmd.Transaction = _connectionProvider.CurrentTransaction;
-            }
 
-            // Add parameters
-            if (paramCollection != null)
-            {
-                foreach (var param in paramCollection)
-                {
-                    cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
-                }
-            }
-            var result = await cmd.ExecuteNonQueryAsync();
-            return result;
+            AddParameters(cmd, paramCollection);
+            return await cmd.ExecuteNonQueryAsync();
         }
 
         /// <summary>
@@ -59,8 +44,7 @@ namespace InsuranceSys.Infrastructure.Database
         public async Task<DataSet> GetDataSetAsync(
             ImmutableDictionary<string, object> paramCollection,
             CommandType cmdType,
-            string cmdText,
-            bool masterDBConn = true)
+            string cmdText)
         {
             var connection = await _connectionProvider.GetConnectionAsync();
 
@@ -68,22 +52,14 @@ namespace InsuranceSys.Infrastructure.Database
             cmd.CommandType = cmdType;
 
             if (_connectionProvider.CurrentTransaction != null)
-            {
                 cmd.Transaction = _connectionProvider.CurrentTransaction;
-            }
 
-            if (paramCollection != null)
-            {
-                foreach (var param in paramCollection)
-                {
-                    cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
-                }
-            }
+            AddParameters(cmd, paramCollection);
 
             var ds = new DataSet();
             using var da = new SqlDataAdapter(cmd);
             da.Fill(ds);
-            return ds;            
+            return ds;
         }
 
         /// <summary>
@@ -92,8 +68,7 @@ namespace InsuranceSys.Infrastructure.Database
         public async Task<DataTable> GetDataTableAsync(
             ImmutableDictionary<string, object> paramCollection,
             CommandType cmdType,
-            string cmdText,
-            bool masterDBConn = true)
+            string cmdText)
         {
             var connection = await _connectionProvider.GetConnectionAsync();
 
@@ -101,23 +76,15 @@ namespace InsuranceSys.Infrastructure.Database
             cmd.CommandType = cmdType;
 
             if (_connectionProvider.CurrentTransaction != null)
-            {
                 cmd.Transaction = _connectionProvider.CurrentTransaction;
-            }
 
-            if (paramCollection != null)
-            {
-                foreach (var param in paramCollection)
-                {
-                    cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
-                }
-            }
+            AddParameters(cmd, paramCollection);
 
             var dt = new DataTable();
-            // ✅ Use DataReader with Load() - more efficient for async
+            // Use DataReader with Load() - more efficient for async
             using var reader = await cmd.ExecuteReaderAsync();
             dt.Load(reader);
-            return dt;            
+            return dt;
         }
 
         /// <summary>
@@ -126,8 +93,7 @@ namespace InsuranceSys.Infrastructure.Database
         public async Task<T?> GetObjectAsync<T>(
             ImmutableDictionary<string, object> paramCollection,
             CommandType cmdType,
-            string cmdText,
-            bool masterDBConn = true) where T : class, new()
+            string cmdText) where T : class, new()
         {
             var connection = await _connectionProvider.GetConnectionAsync();
 
@@ -135,25 +101,14 @@ namespace InsuranceSys.Infrastructure.Database
             cmd.CommandType = cmdType;
 
             if (_connectionProvider.CurrentTransaction != null)
-            {
                 cmd.Transaction = _connectionProvider.CurrentTransaction;
-            }
 
-            if (paramCollection != null)
-            {
-                foreach (var param in paramCollection)
-                {
-                    cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
-                }
-            }
-            // ✅ Use CommandBehavior.SingleRow for optimization
+            AddParameters(cmd, paramCollection);
+            // Use CommandBehavior.SingleRow for optimization
             using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SingleRow);
 
             if (reader.HasRows)
-            {
-                var result = MappingGenericObject.MapToObject<T>(reader);
-                return result;
-            }
+                return MappingGenericObject.MapToObject<T>(reader);
 
             return null;
         }
@@ -164,8 +119,7 @@ namespace InsuranceSys.Infrastructure.Database
         public async Task<List<T>> GetListAsync<T>(
             ImmutableDictionary<string, object> paramCollection,
             CommandType cmdType,
-            string cmdText,
-            bool masterDBConn = true) where T : class, new()
+            string cmdText) where T : class, new()
         {
             var connection = await _connectionProvider.GetConnectionAsync();
 
@@ -173,22 +127,12 @@ namespace InsuranceSys.Infrastructure.Database
             cmd.CommandType = cmdType;
 
             if (_connectionProvider.CurrentTransaction != null)
-            {
                 cmd.Transaction = _connectionProvider.CurrentTransaction;
-            }
 
-            if (paramCollection != null)
-            {
-                foreach (var param in paramCollection)
-                {
-                    cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
-                }
-            }
+            AddParameters(cmd, paramCollection);
+
             using var reader = await cmd.ExecuteReaderAsync();
-
-            var result = MappingGenericObject.MapToList<T>(reader);
-
-            return result;            
+            return MappingGenericObject.MapToList<T>(reader);
         }
 
         /// <summary>
@@ -197,8 +141,7 @@ namespace InsuranceSys.Infrastructure.Database
         public async Task<string?> ExecuteScalarAsync(
             ImmutableDictionary<string, object> paramCollection,
             CommandType cmdType,
-            string cmdText,
-            bool masterDBConn = true)
+            string cmdText)
         {
             var connection = await _connectionProvider.GetConnectionAsync();
 
@@ -206,21 +149,14 @@ namespace InsuranceSys.Infrastructure.Database
             cmd.CommandType = cmdType;
 
             if (_connectionProvider.CurrentTransaction != null)
-            {
                 cmd.Transaction = _connectionProvider.CurrentTransaction;
-            }
 
-            if (paramCollection != null)
-            {
-                foreach (var param in paramCollection)
-                {
-                    cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
-                }
-            }
+            AddParameters(cmd, paramCollection);
+
             var result = await cmd.ExecuteScalarAsync();
             return result != null && result != DBNull.Value
                 ? Convert.ToString(result)
-                : null;            
+                : null;
         }
 
         /// <summary>
@@ -229,8 +165,7 @@ namespace InsuranceSys.Infrastructure.Database
         public async Task<T?> ExecuteScalarAsync<T>(
             ImmutableDictionary<string, object> paramCollection,
             CommandType cmdType,
-            string cmdText,
-            bool masterDBConn = true)
+            string cmdText)
         {
             var connection = await _connectionProvider.GetConnectionAsync();
 
@@ -238,23 +173,15 @@ namespace InsuranceSys.Infrastructure.Database
             cmd.CommandType = cmdType;
 
             if (_connectionProvider.CurrentTransaction != null)
-            {
                 cmd.Transaction = _connectionProvider.CurrentTransaction;
-            }
 
-            if (paramCollection != null)
-            {
-                foreach (var param in paramCollection)
-                {
-                    cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
-                }
-            }
+            AddParameters(cmd, paramCollection);
+
             var result = await cmd.ExecuteScalarAsync();
-
             if (result == null || result == DBNull.Value)
-                return default(T);
+                return default;
 
-            return (T)Convert.ChangeType(result, typeof(T));            
+            return (T)Convert.ChangeType(result, typeof(T));
         }
 
         /// <summary>
@@ -265,29 +192,33 @@ namespace InsuranceSys.Infrastructure.Database
             if (string.IsNullOrWhiteSpace(sequenceName))
                 throw new ArgumentException("Sequence name cannot be null or empty", nameof(sequenceName));
 
-            // ✅ Use parameterized query to prevent SQL injection
-            var cmdText = "SELECT NEXT VALUE FOR @SequenceName";
-
-            var connection = await _connectionProvider.GetConnectionAsync();
-
-            using var cmd = new SqlCommand(cmdText, connection);
-
             // Note: Sequence names cannot be parameterized in SQL Server
             // So we validate the input and use string interpolation carefully
             if (!IsValidSqlIdentifier(sequenceName))
-            {
                 throw new ArgumentException("Invalid sequence name", nameof(sequenceName));
-            }
 
-            cmd.CommandText = $"SELECT NEXT VALUE FOR {sequenceName}";
+            var connection = await _connectionProvider.GetConnectionAsync();
+
+            using var cmd = new SqlCommand($"SELECT NEXT VALUE FOR {sequenceName}", connection);
+
+            if (_connectionProvider.CurrentTransaction != null)
+                cmd.Transaction = _connectionProvider.CurrentTransaction;
+
             var result = await cmd.ExecuteScalarAsync();
-            return Convert.ToInt32(result);            
+            return Convert.ToInt32(result);
+        }
+
+        private static void AddParameters(SqlCommand cmd, ImmutableDictionary<string, object>? paramCollection)
+        {
+            if (paramCollection == null) return;
+            foreach (var param in paramCollection)
+                cmd.Parameters.AddWithValue(param.Key, param.Value ?? DBNull.Value);
         }
 
         /// <summary>
         /// Validates SQL identifier to prevent injection
         /// </summary>
-        private bool IsValidSqlIdentifier(string identifier)
+        private static bool IsValidSqlIdentifier(string identifier)
         {
             if (string.IsNullOrWhiteSpace(identifier))
                 return false;

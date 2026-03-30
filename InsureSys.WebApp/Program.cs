@@ -1,47 +1,41 @@
+using Insurancesys.web.Middleware;
+using Insurancesys.web.Utility;
 using InsuranceSys.Application;
-using InsuranceSys.Infrastructure;
+using InsuranceSys.Application.Interface;
 using InsuranceSys.Infrastructure.Database;
+using InsuranceSys.Infrastructure.Database.Interface;
+using InsuranceSys.Infrastructure.Repositories;
+using InsuranceSys.Infrastructure.Utility;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System.Globalization;
-using System.Text;
-using Insurancesys.web.Utility;
-using InsuranceSys.Application.Interface;
-using Insurancesys.web.Middleware;
+using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.MSSqlServer;
-using Serilog;
-using System.Data;
-using InsuranceSys.Infrastructure.Database.Interface;
-using Microsoft.EntityFrameworkCore.Internal;
-using InsuranceSys.Infrastructure.Repositories;
+using System.Text;
 
 namespace Insurancesys.web
 {
     public static class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            #region Serilog configuration for error logs
+            #region Serilog
             Log.Logger = new LoggerConfiguration()
-                    .MinimumLevel.Error()
-                    .Enrich.FromLogContext()
-                    //.WriteTo.File("Logs/app_log.txt", rollingInterval: RollingInterval.Day)
-                    .WriteTo.MSSqlServer(
-                        connectionString: builder.Configuration.GetConnectionString("MasterConnection"),
-                        sinkOptions: new Serilog.Sinks.MSSqlServer.MSSqlServerSinkOptions
-                        {
-                            TableName = "AppLogs",
-                            AutoCreateSqlTable = true
-                        },
-                        restrictedToMinimumLevel: LogEventLevel.Error)
-                    .CreateLogger();
+                .MinimumLevel.Error()
+                .Enrich.FromLogContext()
+                .WriteTo.MSSqlServer(
+                    connectionString: builder.Configuration.GetConnectionString("MasterConnection"),
+                    sinkOptions: new MSSqlServerSinkOptions
+                    {
+                        TableName = "AppLogs",
+                        AutoCreateSqlTable = true
+                    },
+                    restrictedToMinimumLevel: LogEventLevel.Error)
+                .CreateLogger();
 
             builder.Host.UseSerilog();
             #endregion
@@ -49,8 +43,10 @@ namespace Insurancesys.web
             builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation(); // Optional - Add services to the container - used to have cshtml changes runtime.
             builder.Services.AddControllers();
 
-            // Add session services
-            builder.Services.AddDistributedMemoryCache(); // Registers a default in-memory cache implementation.
+            builder.Services.AddDistributedMemoryCache();
+            builder.Services.AddMemoryCache();
+            builder.Services.AddHttpContextAccessor();
+
             builder.Services.AddSession(options =>
             {
                 options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout.
@@ -61,19 +57,12 @@ namespace Insurancesys.web
             // Add AutoMapper
             builder.Services.AddAutoMapper(typeof(ViewModelDtoMapping)); // Scans for profiles in the assembly           
 
-            // Build the configuration
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(builder.Environment.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .Build();
-
-            //builder.Services.AddScoped<IAppDBContext, AppDBContext>(provider =>
-            //{
-            //    return new AppDBContext(configuration);
-            //});
-
-            builder.Services.AddDbContext<EfdbContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("MasterConnection") ?? string.Empty));
+            #region Database Contexts
+            builder.Services.AddDbContext<MasterDbContext>(options =>
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("MasterConnection") ?? string.Empty,
+                    sql => sql.EnableRetryOnFailure(3)));
+            #endregion
 
             RegisterDependency(builder);
 
@@ -93,27 +82,41 @@ namespace Insurancesys.web
             });
             #endregion
             #region Cookie Authentication for Unauthorized Access
-            // Configure cookie authentication
             builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(options =>
                 {
                     options.Cookie.Name = "CookieAuth";
-                    options.LoginPath = "/"; // Customize the login path as needed					
-					options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-					options.SlidingExpiration = true;
-					//options.Events = new CookieAuthenticationEvents
-					//{
-					//    OnRedirectToLogin = ctx =>
-					//    {
-					//        return Task.FromResult<object>(null);
-					//    }
-					//};
-				});
+                    options.LoginPath = "/";
+                    options.AccessDeniedPath = "/Login/Login";
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                    options.SlidingExpiration = true;
+                    //options.Events = new CookieAuthenticationEvents
+                    //{
+                    //    OnRedirectToLogin = ctx =>
+                    //    {
+                    //        return Task.FromResult<object>(null);
+                    //    }
+                    //};
+                });
+            #endregion
+
+            #region Initialize Encryption
+            var encryptionKey = builder.Configuration["Encryption:MasterKey"];
+            if (!string.IsNullOrEmpty(encryptionKey))
+                Cryptography.Initialize(encryptionKey);
             #endregion
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+            #region Seed Master DB
+            using (var scope = app.Services.CreateScope())
+            {
+                var masterDb = scope.ServiceProvider.GetRequiredService<MasterDbContext>();
+                await masterDb.Database.EnsureCreatedAsync();
+                await masterDb.SeedSuperAdminAsync();
+            }
+            #endregion
+
             if (!app.Environment.IsDevelopment())
             {
                 app.UseExceptionHandler("/Home/Error");
@@ -133,18 +136,27 @@ namespace Insurancesys.web
                 name: "default",
                 pattern: "{controller=Login}/{action=Login}/{id?}");
 
-            app.Run();
+            await app.RunAsync();
         }
 
         private static void RegisterDependency(WebApplicationBuilder builder)
         {
-            // CRITICAL: Register EFdbContextProvider,SqlConnectionProvider,AdoNetDBContext as SCOPED (one per request)
+            // Tenant infrastructure (Singleton for cache, Scoped for per-request components)
+            builder.Services.AddSingleton<ITenantConnectionCache, TenantConnectionCache>();
+            builder.Services.AddScoped<ITenantConnectionResolver, TenantConnectionResolver>();
+
+            // Connection providers (Scoped - one per request, tenant-aware)
             builder.Services.AddScoped<IEFdbContextProvider, EFdbContextProvider>();
             builder.Services.AddScoped<ISqlConnectionProvider, SqlConnectionProvider>();
             builder.Services.AddScoped<IAdoNetDBContext, AdoNetDBContext>();
-            
-            builder.Services.AddScoped<ICompanyService, CompanyRepository>();            
-            builder.Services.AddScoped<ILeadService, LeadRepository>();            
+
+            // Master DB services
+            builder.Services.AddScoped<IMasterLoginService, MasterLoginRepository>();
+            builder.Services.AddScoped<ITenantOnboardingService, TenantOnboardingRepository>();
+
+            // Existing tenant-scoped services
+            builder.Services.AddScoped<ICompanyService, CompanyRepository>();
+            builder.Services.AddScoped<ILeadService, LeadRepository>();
             builder.Services.AddScoped<ILoginService, LoginRepository>();
             builder.Services.AddScoped<IInsuranceTypeService, InsuranceTypeRepository>();
             builder.Services.AddScoped<IDropDownBinderService, DropDownBinderRepository>();

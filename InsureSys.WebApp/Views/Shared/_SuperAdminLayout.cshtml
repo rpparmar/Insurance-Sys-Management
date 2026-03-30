@@ -1,13 +1,172 @@
-﻿<!DOCTYPE html>
-
-<html>
+@{
+    string _userName = User.Identity?.Name ?? "SuperAdmin";
+    string _userRole = "Super Administrator";
+    string _firstLetter = _userName.Substring(0, 1).ToUpper();
+}
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta name="viewport" content="width=device-width" />
-    <title>@ViewBag.Title</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title - Admin Panel</title>
+    @await Html.PartialAsync("_LayoutHeadScriptsPartial")
+    @RenderSection("Styles", required: false)
+    <style>
+        .navi.navi-spacer-x-0 .navi-item .navi-link {
+            padding-bottom: 0;
+        }
+        @@media print {
+            .noprint { visibility: hidden; }
+        }
+        .offcanvas.offcanvas-right {
+            right: -707px;
+            left: auto;
+        }
+    </style>
 </head>
-<body>
-    <div>
-        @RenderBody()
+<body id="kt_body" class="header-fixed header-mobile-fixed footer-fixed subheader-enabled subheader-fixed aside-enabled aside-fixed aside-minimize-hoverable page-loading">
+    <!--begin::Header Mobile-->
+    <div id="kt_header_mobile" class="header-mobile align-items-center header-mobile-fixed noprint">
+        <div class="d-flex align-items-center">
+            <button class="btn p-0 burger-icon burger-icon-left mr-2" id="kt_aside_mobile_toggle">
+                <span></span>
+            </button>
+            <button class="btn btn-hover-text-primary p-0 ml-2" id="kt_header_mobile_topbar_toggle123" onclick="hideshow_mobile_toggle()">
+                <i class="fas fa-user icon-lg"></i>
+            </button>
+        </div>
     </div>
+    <!--end::Header Mobile-->
+    <div class="d-flex flex-column flex-root">
+        <div class="d-flex flex-row flex-column-fluid page">
+            <!--begin::Aside-->
+            <div class="aside aside-left aside-fixed d-flex flex-column flex-row-auto" id="kt_aside">
+                <!--begin::Brand-->
+                <div class="brand flex-column-auto" id="kt_brand">
+                    <a href="@Url.Action("List", "TenantOnboarding")" class="brand-logo">
+                        <span class="font-weight-bold text-white font-size-h5">InsureSys Admin</span>
+                    </a>
+                    <button class="brand-toggle btn btn-sm px-0" id="kt_aside_toggle">
+                        <span class="svg-icon svg-icon svg-icon-xl">
+                            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24px" height="24px" viewBox="0 0 24 24" version="1.1">
+                                <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                                    <polygon points="0 0 24 0 24 24 0 24" />
+                                    <path d="M5.29288961,6.70710318 C4.90236532,6.31657888 4.90236532,5.68341391 5.29288961,5.29288961 C5.68341391,4.90236532 6.31657888,4.90236532 6.70710318,5.29288961 L12.7071032,11.2928896 C13.0856821,11.6714686 13.0989277,12.281055 12.7371505,12.675721 L7.23715054,18.675721 C6.86395813,19.08284 6.23139076,19.1103429 5.82427177,18.7371505 C5.41715278,18.3639581 5.38964985,17.7313908 5.76284226,17.3242718 L10.6158586,12.0300721 L5.29288961,6.70710318 Z" fill="#000000" fill-rule="nonzero" transform="translate(8.999997, 11.999999) scale(-1, 1) translate(-8.999997, -11.999999)" />
+                                    <path d="M10.7071009,15.7071068 C10.3165766,16.0976311 9.68341162,16.0976311 9.29288733,15.7071068 C8.90236304,15.3165825 8.90236304,14.6834175 9.29288733,14.2928932 L15.2928873,8.29289322 C15.6714663,7.91431428 16.2810527,7.90106866 16.6757187,8.26284586 L22.6757187,13.7628459 C23.0828377,14.1360383 23.1103407,14.7686056 22.7371482,15.1757246 C22.3639558,15.5828436 21.7313885,15.6103465 21.3242695,15.2371541 L16.0300699,10.3841378 L10.7071009,15.7071068 Z" fill="#000000" fill-rule="nonzero" opacity="0.3" transform="translate(15.999997, 11.999999) scale(-1, 1) rotate(-270.000000) translate(-15.999997, -11.999999)" />
+                                </g>
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+                <!--end::Brand-->
+                <div class="aside-menu-wrapper flex-column-fluid" id="kt_aside_menu_wrapper">
+                    <div id="kt_aside_menu" class="aside-menu my-4" data-menu-vertical="1" data-menu-scroll="1" data-menu-dropdown-timeout="500">
+                        <ul class="menu-nav">
+                            <!--begin::Tenant Management-->
+                            <li class="menu-section">
+                                <h4 class="menu-text">Tenant Management</h4>
+                                <i class="menu-icon ki ki-bold-more-hor icon-md"></i>
+                            </li>
+                            <li class="menu-item @SetActiveClassOnLink("TenantOnboarding", "List")" aria-haspopup="true">
+                                <a asp-controller="TenantOnboarding" asp-action="List" class="menu-link">
+                                    <span class="svg-icon menu-icon">
+                                        <span class="fas fa-building"></span>
+                                    </span>
+                                    <span class="menu-text">All Tenants</span>
+                                </a>
+                            </li>
+                            <li class="menu-item @SetActiveClassOnLink("TenantOnboarding", "Onboard")" aria-haspopup="true">
+                                <a asp-controller="TenantOnboarding" asp-action="Onboard" class="menu-link">
+                                    <span class="svg-icon menu-icon">
+                                        <span class="fas fa-plus-circle"></span>
+                                    </span>
+                                    <span class="menu-text">Onboard New Tenant</span>
+                                </a>
+                            </li>
+                            <!--end::Tenant Management-->
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!--end::Aside-->
+            <!--begin::Wrapper-->
+            <div class="d-flex flex-column flex-row-fluid wrapper" id="kt_wrapper">
+                <!--begin::Header-->
+                <div id="kt_header" class="header header-fixed">
+                    <div class="container-fluid d-flex align-items-stretch justify-content-between">
+                        <div class="header-menu-wrapper header-menu-wrapper-left">
+                        </div>
+                        <div class="topbar">
+                            <div class="topbar-item">
+                                <div class="btn btn-icon w-auto btn-clean d-flex align-items-center btn-lg px-2" id="kt_quick_user_toggle">
+                                    <span class="text-muted font-weight-bold font-size-base d-none d-md-inline mr-1">Hi,</span>
+                                    <span class="text-dark-50 font-weight-bolder font-size-base d-none d-md-inline mr-3">@_userName</span>
+                                    <span class="symbol symbol-35 symbol-light-warning">
+                                        <span class="symbol-label font-size-h5 font-weight-bold">@_firstLetter</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--end::Header-->
+                <!--begin::Content-->
+                <div class="content d-flex flex-column flex-column-fluid" id="kt_content">
+                    <main role="main" class="pb-3">
+                        @await Html.PartialAsync("_ShowLoader")
+                        @RenderBody()
+                    </main>
+                </div>
+                <!--end::Content-->
+            </div>
+            <!--end::Wrapper-->
+        </div>
+    </div>
+    <!--begin::User Panel-->
+    <div id="kt_quick_user" class="offcanvas offcanvas-right p-10">
+        <div class="offcanvas-header d-flex align-items-center justify-content-between pb-5">
+            <h3 class="font-weight-bold m-0">My Profile</h3>
+            <a href="#" class="btn btn-xs btn-icon btn-light btn-hover-primary" id="kt_quick_user_close">
+                <i class="ki ki-close icon-xs text-muted"></i>
+            </a>
+        </div>
+        <div class="offcanvas-content pr-5 mr-n5">
+            <div class="d-flex align-items-center mt-5">
+                <div class="symbol symbol-100 mr-5">
+                    <div class="symbol-label" style="background-image:url('/assets/media/users/default.jpg')"></div>
+                    <i class="symbol-badge bg-warning"></i>
+                </div>
+                <div class="d-flex flex-column">
+                    <span class="font-weight-bold font-size-h5 text-dark-75">@_userName</span>
+                    <div class="text-muted mt-1">@_userRole</div>
+                    <div class="navi mt-2">
+                        <a asp-controller="Login" asp-action="Logout" class="btn btn-sm btn-light-primary font-weight-bolder py-2 px-5">Sign Out</a>
+                    </div>
+                </div>
+            </div>
+            <div class="separator separator-dashed mt-8 mb-5"></div>
+        </div>
+    </div>
+    <!--end::User Panel-->
+    <div id="kt_scrolltop" class="scrolltop">
+        <span class="svg-icon"><i class="fas fa-arrow-up"></i></span>
+    </div>
+    @functions {
+        string SetActiveClassOnLink(string controller, string action = "")
+        {
+            var currentController = Convert.ToString(ViewContext.RouteData.Values["controller"]);
+            var currentAction = Convert.ToString(ViewContext.RouteData.Values["action"]);
+            if (string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.IsNullOrEmpty(action) || action.Split(',').Contains(currentAction, StringComparer.OrdinalIgnoreCase))
+                    return "menu-item-active";
+            }
+            return "menu-item";
+        }
+    }
+    @await Html.PartialAsync("_LayoutFooterScriptsPartial")
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    @RenderSection("Scripts", required: false)
+    <script src="~/js/_layout.min.js"></script>
 </body>
 </html>

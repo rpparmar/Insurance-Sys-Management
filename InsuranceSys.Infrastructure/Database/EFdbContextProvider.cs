@@ -1,25 +1,29 @@
-﻿using InsuranceSys.Infrastructure.Database.Interface;
+using InsuranceSys.Application.Interface;
+using InsuranceSys.Infrastructure.Database.Interface;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace InsuranceSys.Infrastructure.Database
 {
-    public class EFdbContextProvider: IEFdbContextProvider
+    public class EFdbContextProvider : IEFdbContextProvider
     {
         private readonly IConfiguration _configuration;
-        // ✅ Lazy initialization - context created only when first needed
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ITenantConnectionResolver _tenantConnectionResolver;
         private EfdbContext? _context;
         private string? _connectionString;
         private bool _disposed;
-        public EFdbContextProvider(IConfiguration configuration)
+
+        public EFdbContextProvider(
+            IConfiguration configuration,
+            IHttpContextAccessor httpContextAccessor,
+            ITenantConnectionResolver tenantConnectionResolver)
         {
             _configuration = configuration;
+            _httpContextAccessor = httpContextAccessor;
+            _tenantConnectionResolver = tenantConnectionResolver;
         }
 
         /// <summary>
@@ -30,11 +34,9 @@ namespace InsuranceSys.Infrastructure.Database
             if (_disposed)
                 throw new ObjectDisposedException(nameof(EFdbContextProvider));
 
-            // ✅ Reuse existing context if already created in this request
+            // Reuse existing context if already created in this request
             if (_context != null)
-            {
                 return _context;
-            }
 
             // Get connection string
             var connectionString = await GetConnectionStringAsync();
@@ -57,7 +59,7 @@ namespace InsuranceSys.Infrastructure.Database
                     sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
                 });
 
-            // ✅ Disable thread safety checks in production (performance optimization)
+            // Disable thread safety checks in production (performance optimization)
 #if !DEBUG
             optionsBuilder.EnableThreadSafetyChecks(false);
 #endif
@@ -75,29 +77,33 @@ namespace InsuranceSys.Infrastructure.Database
         /// <summary>
         /// Gets the connection string for the current tenant
         /// </summary>
-        public async Task<string> GetConnectionStringAsync(bool masterDBConn = true)
+        public async Task<string> GetConnectionStringAsync()
         {
             if (_disposed)
                 throw new ObjectDisposedException(nameof(EFdbContextProvider));
 
-            // ✅ Cache connection string to avoid repeated session lookups
+            // Cache connection string to avoid repeated session lookups
             if (_connectionString != null)
-            {
                 return _connectionString;
-            }
 
-            // Option 1: From config file
-            _connectionString = _configuration.GetConnectionString("MasterConnection");
-            if (!masterDBConn)
-                _connectionString = _configuration.GetConnectionString("TestConnection");
+            _connectionString = await ResolveTenantConnectionStringAsync();
 
             if (string.IsNullOrEmpty(_connectionString))
-            {
                 throw new InvalidOperationException(
-                    "Tenant connection string not found. User may not be authenticated.");
-            }
+                    "Tenant connection string not found. User may not be authenticated or tenant is not assigned.");
 
-            return await Task.FromResult(_connectionString);
+            return _connectionString;
+        }
+
+        private async Task<string?> ResolveTenantConnectionStringAsync()
+        {
+            var user = _httpContextAccessor.HttpContext?.User;
+            var tenantIdClaim = user?.FindFirst("TenantId")?.Value;
+
+            if (!string.IsNullOrEmpty(tenantIdClaim) && int.TryParse(tenantIdClaim, out var tenantId))
+                return await _tenantConnectionResolver.GetConnectionStringAsync(tenantId);
+
+            return _configuration.GetConnectionString("MasterConnection");
         }
 
         /// <summary>
