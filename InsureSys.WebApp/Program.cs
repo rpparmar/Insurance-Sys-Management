@@ -55,7 +55,7 @@ namespace Insurancesys.web
             });
 
             // Add AutoMapper
-            builder.Services.AddAutoMapper(typeof(ViewModelDtoMapping)); // Scans for profiles in the assembly           
+            builder.Services.AddAutoMapper(_ => { }, typeof(ViewModelDtoMapping).Assembly); // Scans for profiles in the assembly           
 
             #region Database Contexts
             builder.Services.AddDbContext<MasterDbContext>(options =>
