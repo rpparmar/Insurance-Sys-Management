@@ -38,8 +38,8 @@ namespace Insurancesys.web.Controllers
 
             var user = await _masterLoginService.AuthenticateAsync(model.Username, model.Password);
             if (user == null)
-            {
-                ModelState.AddModelError(string.Empty, "Invalid username or password.");
+            {                
+                ModelState.AddModelError("LoginError", "Invalid username or password.");
                 return View(model);
             }
 
@@ -57,9 +57,10 @@ namespace Insurancesys.web.Controllers
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var authProperties = new AuthenticationProperties
             {
-                IsPersistent = model.IsRemember, // This enables "Remember Me"
-                ExpiresUtc = DateTime.UtcNow.AddMinutes(30)
+                IsPersistent = model.IsRemember // This enables "Remember Me"
             };
+            if (model.IsRemember)
+                authProperties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7);
 
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
@@ -70,16 +71,11 @@ namespace Insurancesys.web.Controllers
 
             if (model.IsRemember)
             {
-                var options = new CookieOptions
-                {
-                    Expires = DateTime.UtcNow.AddDays(7), // Set expiry for 7 days						
-                    SameSite = SameSiteMode.Strict // Prevent CSRF
-                };
-                HttpContext.Response.Cookies.Append("username", model.Username, options);
+                HttpContext.Response.Cookies.Append("username", model.Username, BuildUsernameCookieOptions(expiresUtc: DateTime.UtcNow.AddDays(7)));
             }
             else
             {
-                HttpContext.Response.Cookies.Delete("username");
+                HttpContext.Response.Cookies.Delete("username", BuildUsernameCookieOptions(expiresUtc: null));
             }
 
             if (user.Role == "SuperAdmin")
@@ -92,6 +88,23 @@ namespace Insurancesys.web.Controllers
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction("Login", "Login");
+        }
+
+        /// <summary>
+        /// Username pre-fill cookie: HttpOnly + SameSite; Secure only when the request is HTTPS (localhost HTTP still works).
+        /// </summary>
+        private CookieOptions BuildUsernameCookieOptions(DateTime? expiresUtc)
+        {
+            var options = new CookieOptions
+            {
+                Path = "/",
+                SameSite = SameSiteMode.Strict,
+                HttpOnly = true,
+                Secure = Request.IsHttps
+            };
+            if (expiresUtc.HasValue)
+                options.Expires = expiresUtc.Value;
+            return options;
         }
     }
 }

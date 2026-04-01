@@ -1,4 +1,4 @@
-﻿@using Insurancesys.web.Helper
+@using Insurancesys.web.Helper
 @model Insurancesys.web.Models.SignInViewModel
 @{
     Layout = "_LoginLayout";    
@@ -21,12 +21,13 @@
 					<div class="text-muted font-weight-bold">Enter your details to login to your account:</div>
 				</div>
 				<form class="form" id="frmLogin" method="post">
+					@Html.ValidationMessage("LoginError", null, new { @class = "d-block text-danger text-left mb-5 font-weight-bold" })
 					<div class="form-group mb-5">
-						<input class="form-control h-auto form-control-solid py-4 px-8" type="text" placeholder="UserName" asp-for="Username" autocomplete="off" value="demouser" />
+						<input class="form-control h-auto form-control-solid py-4 px-8" type="text" placeholder="UserName" asp-for="Username" autocomplete="off" />
 						<span asp-validation-for="Username" class="d-flex text-danger text-left"></span>
 					</div>
 					<div class="form-group mb-5">
-						<input class="form-control h-auto form-control-solid py-4 px-8" type="password" placeholder="Password" asp-for="Password" value="Admin@123" />
+						<input class="form-control h-auto form-control-solid py-4 px-8" type="password" placeholder="Password" asp-for="Password" />
 						<span asp-validation-for="Password" class="d-flex text-danger text-left"></span>
 					</div>
 					<div class="form-group d-flex flex-wrap justify-content-between align-items-center">
