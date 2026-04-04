@@ -9,27 +9,28 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
+using InsuranceSys.Domain.Enums;
 
 namespace InsuranceSys.Infrastructure.Repositories
 {
-    public class TenantOnboardingRepository : ITenantOnboardingService
+    public class AgencyOnboardingRepository : IAgencyOnboardingService
     {
         private readonly MasterDbContext _masterDb;
         private readonly IConfiguration _configuration;
-        private readonly ILogger<TenantOnboardingRepository> _logger;
+        private readonly ILogger<AgencyOnboardingRepository> _logger;
         private readonly IHostEnvironment _hostEnvironment;
-
+        private const string MasterConnection = "MasterConnection";
         private sealed class SqlInstanceInfoDto
         {
             public string? InstanceName { get; init; }
             public string? InstanceDefaultDataPath { get; init; }
         }
 
-        public TenantOnboardingRepository(
+        public AgencyOnboardingRepository(
             MasterDbContext masterDb,
             IConfiguration configuration,
             IHostEnvironment hostEnvironment,
-            ILogger<TenantOnboardingRepository> logger)
+            ILogger<AgencyOnboardingRepository> logger)
         {
             _masterDb = masterDb;
             _configuration = configuration;
@@ -48,44 +49,45 @@ namespace InsuranceSys.Infrastructure.Repositories
             return hostPart;
         }
 
-        public async Task<(bool Success, string Message)> OnboardTenantAsync(OnboardTenantDto dto, int createdByUserId)
+        public async Task<(bool Success, string Message)> OnboardAgencyAsync(OnboardAgencyDto dto, int createdByUserId)
         {
-            if (await IsTenantCodeExistsAsync(dto.TenantCode))
-                return (false, "Tenant code already exists.");
+            if (await IsAgencyCodeExistsAsync(dto.AgencyCode))
+                return (false, "Agency code already exists.");
 
             if (await IsDatabaseNameExistsAsync(dto.DesiredDatabaseName))
                 return (false, "Database name already in use.");
 
-            var dbUser = $"usr_{dto.TenantCode.ToLowerInvariant()}";
+            var dbUser = $"usr_{dto.AgencyCode.ToLowerInvariant()}";
             var dbPassword = GenerateSecurePassword(20);
-            var masterConnStr = _configuration.GetConnectionString("MasterConnection")
+            var masterConnStr = _configuration.GetConnectionString(MasterConnection)
                 ?? throw new InvalidOperationException("MasterConnection not configured.");
             var serverInstance = GetServerHostNameFromConnectionString(masterConnStr);
 
             try
             {
-                var restoreSuccess = await RestoreTenantDatabaseAsync(dto.DesiredDatabaseName);
+                var restoreSuccess = await RestoreAgencyDatabaseAsync(dto.DesiredDatabaseName);
 
                 if (!restoreSuccess)
                 {
-                    var fallbackEnabled = _configuration.GetValue<bool>("TenantProvisioning:FallbackToMigrations");
-                    if (fallbackEnabled)
-                    {
-                        await CreateDatabaseViaMigrationsAsync(dto.DesiredDatabaseName);
-                    }
-                    else
-                    {
-                        return (false, "Database restore failed and fallback is disabled.");
-                    }
+                    //var fallbackEnabled = _configuration.GetValue<bool>("TenantProvisioning:FallbackToMigrations");
+                    //if (fallbackEnabled)
+                    //{
+                    //    await CreateDatabaseViaMigrationsAsync(dto.DesiredDatabaseName);
+                    //}
+                    //else
+                    //{
+                    //    return (false, "Database restore failed and fallback is disabled.");
+                    //}
+                    return (false, "Database restore failed.");
                 }
 
                 await CreateSqlLoginAsync(dto.DesiredDatabaseName, dbUser, dbPassword);
 
                 var encryptedPassword = Cryptography.EncryptUtf16(dbPassword);
 
-                var tenant = new TenantEntity
+                var agencyDetails = new AgencyDetailsEntity
                 {
-                    TenantCode = dto.TenantCode,
+                    AgencyCode = dto.AgencyCode,
                     AgencyName = dto.AgencyName,
                     ContactEmail = dto.ContactEmail,
                     ContactPhone = dto.ContactPhone,
@@ -97,42 +99,42 @@ namespace InsuranceSys.Infrastructure.Repositories
                     CreatedByUserId = createdByUserId
                 };
 
-                _masterDb.Tenants.Add(tenant);
+                _masterDb.AgencyDetails.Add(agencyDetails);
                 await _masterDb.SaveChangesAsync();
 
                 var (hash, salt) = PasswordHasher.HashPassword(dto.AdminPassword);
-                var adminUser = new TenantUserEntity
+                var agencyUser = new AgencyUsersEntity
                 {
-                    TenantId = tenant.TenantId,
+                    AgencyId = agencyDetails.AgencyId,
                     Username = dto.AdminUsername,
                     PasswordHash = hash,
                     PasswordSalt = salt,
                     Email = dto.ContactEmail,
                     DisplayName = dto.AgencyName + " Admin",
-                    Role = "AgencyAdmin",
+                    Role = (int)Roles.AgencyAdmin,
                     IsActive = true
                 };
 
-                _masterDb.TenantUsers.Add(adminUser);
+                _masterDb.AgencyUsers.Add(agencyUser);
                 await _masterDb.SaveChangesAsync();
 
-                return (true, $"Tenant '{dto.AgencyName}' onboarded successfully. Database: {dto.DesiredDatabaseName}");
+                return (true, $"Agency '{dto.AgencyName}' onboarded successfully. Database: {dto.DesiredDatabaseName}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to onboard tenant {TenantCode}", dto.TenantCode);
+                _logger.LogError(ex, "Failed to onboard agency {AgencyCode}", dto.AgencyCode);
                 return (false, $"Onboarding failed: {ex.Message}");
             }
         }
 
-        public async Task<List<TenantInfoDto>> GetAllTenantsAsync()
+        public async Task<List<AgencyDetailsDto>> GetAllAgencyAsync()
         {
-            return await _masterDb.Tenants
+            return await _masterDb.AgencyDetails
                 .AsNoTracking()
-                .Select(t => new TenantInfoDto
+                .Select(t => new AgencyDetailsDto
                 {
-                    TenantId = t.TenantId,
-                    TenantCode = t.TenantCode,
+                    AgencyId = t.AgencyId,
+                    AgencyCode = t.AgencyCode,
                     AgencyName = t.AgencyName,
                     ContactEmail = t.ContactEmail,
                     ContactPhone = t.ContactPhone,
@@ -146,26 +148,26 @@ namespace InsuranceSys.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<bool> DeactivateTenantAsync(int tenantId)
+        public async Task<bool> DeactivateAgencyAsync(int agencyId)
         {
-            var tenant = await _masterDb.Tenants.FindAsync(tenantId);
-            if (tenant == null) return false;
+            var agencyDetail = await _masterDb.AgencyDetails.FindAsync(agencyId);
+            if (agencyDetail == null) return false;
 
-            tenant.IsActive = false;
-            tenant.UpdatedAtUtc = DateTime.UtcNow;
+            agencyDetail.IsActive = false;
+            agencyDetail.UpdatedAtUtc = DateTime.UtcNow;
             await _masterDb.SaveChangesAsync();
             return true;
         }
 
-        public async Task<bool> IsTenantCodeExistsAsync(string tenantCode)
+        public async Task<bool> IsAgencyCodeExistsAsync(string agencyCode)
         {
-            return await _masterDb.Tenants
-                .AnyAsync(t => t.TenantCode == tenantCode);
+            return await _masterDb.AgencyDetails
+                .AnyAsync(t => t.AgencyCode == agencyCode);
         }
 
         public async Task<bool> IsDatabaseNameExistsAsync(string databaseName)
         {
-            return await _masterDb.Tenants
+            return await _masterDb.AgencyDetails
                 .AnyAsync(t => t.DatabaseName == databaseName);
         }
 
@@ -214,7 +216,7 @@ namespace InsuranceSys.Infrastructure.Repositories
             };
         }
 
-        private async Task<bool> RestoreTenantDatabaseAsync(string newDbName)
+        private async Task<bool> RestoreAgencyDatabaseAsync(string newDbName)
         {
             var configuredBak = _configuration["TenantProvisioning:BackupFileName"];
             var bakFileName = string.IsNullOrWhiteSpace(configuredBak) ? null : Path.GetFileName(configuredBak);
@@ -228,7 +230,7 @@ namespace InsuranceSys.Infrastructure.Repositories
                 return false;
             }
 
-            var masterConnStr = _configuration.GetConnectionString("MasterConnection")!;
+            var masterConnStr = _configuration.GetConnectionString(MasterConnection)!;
 
             // 1) Fetch SQL instance default data path from app master DB via stored procedure.
             await using var appMasterConnection = new SqlConnection(masterConnStr);
@@ -289,7 +291,7 @@ namespace InsuranceSys.Infrastructure.Repositories
             var ldfPath = Path.Combine(instanceDefaultDataPath, newDbName + "_Log.ldf");
 
             _logger.LogInformation(
-                "Restoring tenant DB {DbName} using instance default path {InstancePath}. MDF={MdfPath} LDF={LdfPath}",
+                "Restoring agency DB {DbName} using instance default path {InstancePath}. MDF={MdfPath} LDF={LdfPath}",
                 newDbName,
                 instanceDefaultDataPath,
                 mdfPath,
@@ -317,30 +319,30 @@ namespace InsuranceSys.Infrastructure.Repositories
             return true;
         }
 
-        private async Task CreateDatabaseViaMigrationsAsync(string dbName)
-        {
-            var masterConnStr = _configuration.GetConnectionString("MasterConnection")!;
-            var builder = new SqlConnectionStringBuilder(masterConnStr)
-            {
-                InitialCatalog = dbName
-            };
+        //private async Task CreateDatabaseViaMigrationsAsync(string dbName)
+        //{
+        //    var masterConnStr = _configuration.GetConnectionString(MasterConnection)!;
+        //    var builder = new SqlConnectionStringBuilder(masterConnStr)
+        //    {
+        //        InitialCatalog = dbName
+        //    };
 
-            var optionsBuilder = new DbContextOptionsBuilder<EfdbContext>();
-            optionsBuilder.UseSqlServer(builder.ConnectionString, sql =>
-            {
-                sql.EnableRetryOnFailure(3);
-                sql.CommandTimeout(120);
-            });
+        //    var optionsBuilder = new DbContextOptionsBuilder<EfdbContext>();
+        //    optionsBuilder.UseSqlServer(builder.ConnectionString, sql =>
+        //    {
+        //        sql.EnableRetryOnFailure(3);
+        //        sql.CommandTimeout(120);
+        //    });
 
-            await using var tenantContext = new EfdbContext(optionsBuilder.Options);
-            await tenantContext.Database.MigrateAsync();
+        //    await using var tenantContext = new EfdbContext(optionsBuilder.Options);
+        //    await tenantContext.Database.MigrateAsync();
 
-            _logger.LogInformation("Tenant DB {DbName} created via EF migrations (fallback).", dbName);
-        }
+        //    _logger.LogInformation("Agency DB {DbName} created via EF migrations (fallback).", dbName);
+        //}
 
         private async Task CreateSqlLoginAsync(string dbName, string dbUser, string dbPassword)
         {
-            var masterConnStr = _configuration.GetConnectionString("MasterConnection")!;
+            var masterConnStr = _configuration.GetConnectionString(MasterConnection)!;
             var builder = new SqlConnectionStringBuilder(masterConnStr)
             {
                 InitialCatalog = "master"

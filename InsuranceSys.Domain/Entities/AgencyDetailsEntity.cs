@@ -3,15 +3,15 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InsuranceSys.Domain.Entities
 {
-    public class TenantEntity
+    public class AgencyDetailsEntity
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public int TenantId { get; set; }
+        public int AgencyId { get; set; }
 
         [Required]
         [MaxLength(50)]
-        public string TenantCode { get; set; } = string.Empty;
+        public string AgencyCode { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(200)]
@@ -46,6 +46,6 @@ namespace InsuranceSys.Domain.Entities
         public int? CreatedByUserId { get; set; }
 
         [ForeignKey(nameof(CreatedByUserId))]
-        public TenantUserEntity? CreatedByUser { get; set; }
+        public AgencyUsersEntity? CreatedByUser { get; set; }
     }
 }

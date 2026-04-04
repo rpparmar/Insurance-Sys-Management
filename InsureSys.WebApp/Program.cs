@@ -152,7 +152,7 @@ namespace Insurancesys.web
 
             // Master DB services
             builder.Services.AddScoped<IMasterLoginService, MasterLoginRepository>();
-            builder.Services.AddScoped<ITenantOnboardingService, TenantOnboardingRepository>();
+            builder.Services.AddScoped<IAgencyOnboardingService, AgencyOnboardingRepository>();
 
             // Existing tenant-scoped services
             builder.Services.AddScoped<ICompanyService, CompanyRepository>();

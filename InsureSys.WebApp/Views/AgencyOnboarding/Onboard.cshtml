@@ -1,6 +1,6 @@
-@model Insurancesys.web.Models.TenantOnboardingViewModel
+@model Insurancesys.web.Models.AgencyOnboardingViewModel
 @{
-    ViewBag.Title = "Onboard New Tenant";
+    ViewBag.Title = "Onboard New Agency";
     Layout = "_SuperAdminLayout";
 }
 
@@ -47,9 +47,9 @@
                 <h4 class="font-weight-bold text-dark mb-4">Agency Details</h4>
                 <div class="form-group row">
                     <div class="col-lg-6">
-                        <label asp-for="TenantCode" class="font-weight-bold"></label>
-                        <input asp-for="TenantCode" class="form-control form-control-solid" placeholder="e.g. ACME_INS" />
-                        <span asp-validation-for="TenantCode" class="text-danger"></span>
+                        <label asp-for="AgencyCode" class="font-weight-bold"></label>
+                        <input asp-for="AgencyCode" class="form-control form-control-solid" placeholder="e.g. ACME_INS" />
+                        <span asp-validation-for="AgencyCode" class="text-danger"></span>
                         <span class="form-text text-muted">Unique short code (letters, numbers, underscore only)</span>
                     </div>
                     <div class="col-lg-6">

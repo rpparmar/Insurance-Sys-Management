@@ -16,18 +16,18 @@ namespace InsuranceSys.Infrastructure.Database
             _masterDb = masterDb;
         }
 
-        public async Task<string> GetConnectionStringAsync(int tenantId)
+        public async Task<string> GetConnectionStringAsync(int agencyId)
         {
-            var cached = await _cache.GetConnectionStringAsync(tenantId);
+            var cached = await _cache.GetConnectionStringAsync(agencyId);
             if (cached != null)
                 return cached;
 
-            var tenant = await _masterDb.Tenants
+            var tenant = await _masterDb.AgencyDetails
                 .AsNoTracking()
-                .FirstOrDefaultAsync(t => t.TenantId == tenantId && t.IsActive);
+                .FirstOrDefaultAsync(t => t.AgencyId == agencyId && t.IsActive);
 
             if (tenant == null)
-                throw new InvalidOperationException($"Active tenant with ID {tenantId} not found.");
+                throw new InvalidOperationException($"Active agency with ID {agencyId} not found.");
 
             var password = !string.IsNullOrEmpty(tenant.EncryptedDatabasePassword)
                 ? Cryptography.DecryptUtf16(tenant.EncryptedDatabasePassword)
@@ -48,13 +48,13 @@ namespace InsuranceSys.Infrastructure.Database
             };
 
             var connectionString = builder.ConnectionString;
-            await _cache.SetConnectionStringAsync(tenantId, connectionString);
+            await _cache.SetConnectionStringAsync(agencyId, connectionString);
             return connectionString;
         }
 
-        public async Task InvalidateAsync(int tenantId)
+        public async Task InvalidateAsync(int agencyId)
         {
-            await _cache.InvalidateAsync(tenantId);
+            await _cache.InvalidateAsync(agencyId);
         }
     }
 }

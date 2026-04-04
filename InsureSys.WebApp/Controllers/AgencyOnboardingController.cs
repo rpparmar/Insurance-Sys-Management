@@ -9,11 +9,11 @@ using System.Security.Claims;
 namespace Insurancesys.web.Controllers
 {
     [Authorize(Roles = "SuperAdmin", AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
-    public class TenantOnboardingController : Controller
+    public class AgencyOnboardingController : Controller
     {
-        private readonly ITenantOnboardingService _onboardingService;
+        private readonly IAgencyOnboardingService _onboardingService;
 
-        public TenantOnboardingController(ITenantOnboardingService onboardingService)
+        public AgencyOnboardingController(IAgencyOnboardingService onboardingService)
         {
             _onboardingService = onboardingService;
         }
@@ -21,19 +21,19 @@ namespace Insurancesys.web.Controllers
         [HttpGet]
         public async Task<IActionResult> List()
         {
-            var tenants = await _onboardingService.GetAllTenantsAsync();
+            var tenants = await _onboardingService.GetAllAgencyAsync();
             return View(tenants);
         }
 
         [HttpGet]
         public IActionResult Onboard()
         {
-            return View(new TenantOnboardingViewModel());
+            return View(new AgencyOnboardingViewModel());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Onboard(TenantOnboardingViewModel model)
+        public async Task<IActionResult> Onboard(AgencyOnboardingViewModel model)
         {
             if (!ModelState.IsValid)
                 return View(model);
@@ -41,9 +41,9 @@ namespace Insurancesys.web.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int.TryParse(userIdClaim, out var createdByUserId);
 
-            var dto = new OnboardTenantDto
+            var dto = new OnboardAgencyDto
             {
-                TenantCode = model.TenantCode,
+                AgencyCode = model.AgencyCode,
                 AgencyName = model.AgencyName,
                 ContactEmail = model.ContactEmail,
                 ContactPhone = model.ContactPhone,
@@ -53,7 +53,7 @@ namespace Insurancesys.web.Controllers
                 Notes = model.Notes
             };
 
-            var (success, message) = await _onboardingService.OnboardTenantAsync(dto, createdByUserId);
+            var (success, message) = await _onboardingService.OnboardAgencyAsync(dto, createdByUserId);
 
             if (success)
             {
@@ -66,10 +66,10 @@ namespace Insurancesys.web.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> IsTenantCodeAvailable(string tenantCode)
+        public async Task<IActionResult> IsAgencyCodeAvailable(string tenantCode)
         {
-            var exists = await _onboardingService.IsTenantCodeExistsAsync(tenantCode);
-            return Json(exists ? "This tenant code is already taken." : true);
+            var exists = await _onboardingService.IsAgencyCodeExistsAsync(tenantCode);
+            return Json(exists ? "This agency code is already in use." : true);
         }
 
         [HttpGet]
@@ -81,13 +81,13 @@ namespace Insurancesys.web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Deactivate(int tenantId)
+        public async Task<IActionResult> Deactivate(int agencyId)
         {
-            var result = await _onboardingService.DeactivateTenantAsync(tenantId);
+            var result = await _onboardingService.DeactivateAgencyAsync(agencyId);
             if (result)
-                TempData["SuccessMessage"] = "Tenant deactivated successfully.";
+                TempData["SuccessMessage"] = "Agency deactivated successfully.";
             else
-                TempData["ErrorMessage"] = "Failed to deactivate tenant.";
+                TempData["ErrorMessage"] = "Failed to deactivate agency.";
 
             return RedirectToAction(nameof(List));
         }

@@ -1,8 +1,8 @@
 namespace InsuranceSys.Application.DTO
 {
-    public class OnboardTenantDto
+    public class OnboardAgencyDto
     {
-        public string TenantCode { get; set; } = string.Empty;
+        public string AgencyCode { get; set; } = string.Empty;
         public string AgencyName { get; set; } = string.Empty;
         public string? ContactEmail { get; set; }
         public string? ContactPhone { get; set; }

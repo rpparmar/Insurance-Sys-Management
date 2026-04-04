@@ -1,5 +1,6 @@
 using Insurancesys.web.Models;
 using InsuranceSys.Application.Interface;
+using InsuranceSys.Domain.Enums;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -43,16 +44,16 @@ namespace Insurancesys.web.Controllers
                 return View(model);
             }
 
+            var roleName = Enum.GetName(typeof(Roles), user.Role) ?? string.Empty;
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, user.Role),
+                new Claim(ClaimTypes.Role, roleName),
                 new Claim("DisplayName", user.DisplayName ?? user.Username)
             };
-
-            if (user.TenantId.HasValue)
-                claims.Add(new Claim("TenantId", user.TenantId.Value.ToString()));
+            if (user.AgencyId.HasValue)
+                claims.Add(new Claim("AgencyId", user.AgencyId.Value.ToString()));
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var authProperties = new AuthenticationProperties
@@ -78,8 +79,8 @@ namespace Insurancesys.web.Controllers
                 HttpContext.Response.Cookies.Delete("username", BuildUsernameCookieOptions(expiresUtc: null));
             }
 
-            if (user.Role == "SuperAdmin")
-                return RedirectToAction("List", "TenantOnboarding");
+            if (user.Role == (int)Roles.SuperAdmin)
+                return RedirectToAction("List", "AgencyOnboarding");
 
             return RedirectToAction("Index", "Home");
         }

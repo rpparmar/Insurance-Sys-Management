@@ -3,16 +3,16 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace InsuranceSys.Domain.Entities
 {
-    public class TenantUserEntity
+    public class AgencyUsersEntity
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int UserId { get; set; }
 
-        public int? TenantId { get; set; }
+        public int? AgencyId { get; set; }
 
-        [ForeignKey(nameof(TenantId))]
-        public TenantEntity? Tenant { get; set; }
+        [ForeignKey(nameof(AgencyId))]
+        public AgencyDetailsEntity? AgencyDetails { get; set; }
 
         [Required]
         [MaxLength(100)]
@@ -33,8 +33,8 @@ namespace InsuranceSys.Domain.Entities
         public string? DisplayName { get; set; }
 
         [Required]
-        [MaxLength(50)]
-        public string Role { get; set; } = string.Empty;
+        
+        public int Role { get; set; }
 
         public bool IsActive { get; set; } = true;
 

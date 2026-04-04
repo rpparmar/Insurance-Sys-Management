@@ -3,14 +3,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Insurancesys.web.Models
 {
-    public class TenantOnboardingViewModel
+    public class AgencyOnboardingViewModel
     {
-        [Required(ErrorMessage = "Tenant code is required")]
+        [Required(ErrorMessage = "Agency code is required")]
         [MaxLength(50)]
         [RegularExpression(@"^[A-Za-z0-9_]+$", ErrorMessage = "Only letters, numbers, and underscores allowed")]
-        [Remote(action: "IsTenantCodeAvailable", controller: "TenantOnboarding")]
-        [Display(Name = "Tenant Code")]
-        public string TenantCode { get; set; } = string.Empty;
+        [Remote(action: "IsAgencyCodeAvailable", controller: "AgencyOnboarding")]
+        [Display(Name = "Agency Code")]
+        public string AgencyCode { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Agency/Agent name is required")]
         [MaxLength(200)]
@@ -29,7 +29,7 @@ namespace Insurancesys.web.Models
         [Required(ErrorMessage = "Database name is required")]
         [MaxLength(128)]
         [RegularExpression(@"^[A-Za-z0-9_]+$", ErrorMessage = "Only letters, numbers, and underscores allowed")]
-        [Remote(action: "IsDatabaseNameAvailable", controller: "TenantOnboarding")]
+        [Remote(action: "IsDatabaseNameAvailable", controller: "AgencyOnboarding")]
         [Display(Name = "Database Name")]
         public string DesiredDatabaseName { get; set; } = string.Empty;
 

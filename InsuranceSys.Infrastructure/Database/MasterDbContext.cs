@@ -1,4 +1,5 @@
 using InsuranceSys.Domain.Entities;
+using InsuranceSys.Domain.Enums;
 using InsuranceSys.Infrastructure.Utility;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,36 +9,37 @@ namespace InsuranceSys.Infrastructure.Database
     {
         public MasterDbContext(DbContextOptions<MasterDbContext> options) : base(options) { }
 
-        public DbSet<TenantEntity> Tenants { get; set; }
-        public DbSet<TenantUserEntity> TenantUsers { get; set; }
+        public DbSet<AgencyDetailsEntity> AgencyDetails { get; set; }
+        public DbSet<AgencyUsersEntity> AgencyUsers { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<TenantEntity>(entity =>
+            
+            modelBuilder.Entity<AgencyDetailsEntity>(entity =>
             {
-                entity.ToTable("Tenants");
-                entity.HasKey(e => e.TenantId);
+                entity.ToTable("AgencyDetails");
+                entity.HasKey(e => e.AgencyId);
 
-                entity.HasIndex(e => e.TenantCode).IsUnique();
+                entity.HasIndex(e => e.AgencyCode).IsUnique();
                 entity.HasIndex(e => e.IsActive)
                       .HasFilter("[IsActive] = 1");
 
                 entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("SYSUTCDATETIME()");
             });
 
-            modelBuilder.Entity<TenantUserEntity>(entity =>
+            modelBuilder.Entity<AgencyUsersEntity>(entity =>
             {
-                entity.ToTable("TenantUsers");
+                entity.ToTable("AgencyUsers");
                 entity.HasKey(e => e.UserId);
 
                 entity.HasIndex(e => e.Username).IsUnique();
-                entity.HasIndex(e => e.TenantId);
+                entity.HasIndex(e => e.AgencyId);
 
                 entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("SYSUTCDATETIME()");
 
-                entity.HasOne(e => e.Tenant)
+                entity.HasOne(e => e.AgencyDetails)
                       .WithMany()
-                      .HasForeignKey(e => e.TenantId)
+                      .HasForeignKey(e => e.AgencyId)
                       .OnDelete(DeleteBehavior.SetNull);
             });
         }
@@ -47,20 +49,20 @@ namespace InsuranceSys.Infrastructure.Database
         /// </summary>
         public async Task SeedSuperAdminAsync()
         {
-            var existing = await TenantUsers.FirstOrDefaultAsync(u => u.Username == "superadmin");
+            var existing = await AgencyUsers.FirstOrDefaultAsync(u => u.Username == "superadmin");
 
             if (existing == null)
             {
                 var (hash, salt) = PasswordHasher.HashPassword("SuperAdmin@2026#");
-                TenantUsers.Add(new TenantUserEntity
+                AgencyUsers.Add(new AgencyUsersEntity
                 {
-                    TenantId = null,
+                    AgencyId = null,
                     Username = "superadmin",
                     PasswordHash = hash,
                     PasswordSalt = salt,
                     Email = "admin@insuresys.local",
                     DisplayName = "System Administrator",
-                    Role = "SuperAdmin",
+                    Role = (int)Roles.SuperAdmin,
                     IsActive = true,
                     CreatedAtUtc = DateTime.UtcNow
                 });

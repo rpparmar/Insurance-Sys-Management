@@ -15,11 +15,11 @@ namespace InsuranceSys.Infrastructure.Repositories
             _masterDb = masterDb;
         }
 
-        public async Task<TenantUserEntity?> AuthenticateAsync(string username, string password)
+        public async Task<AgencyUsersEntity?> AuthenticateAsync(string username, string password)
         {
-            var user = await _masterDb.TenantUsers
+            var user = await _masterDb.AgencyUsers
                 .AsNoTracking()
-                .Include(u => u.Tenant)
+                .Include(u => u.AgencyDetails)
                 .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
 
             if (user == null)
@@ -33,7 +33,7 @@ namespace InsuranceSys.Infrastructure.Repositories
 
         public async Task UpdateLastLoginAsync(int userId)
         {
-            var user = await _masterDb.TenantUsers.FindAsync(userId);
+            var user = await _masterDb.AgencyUsers.FindAsync(userId);
             if (user != null)
             {
                 user.LastLoginAtUtc = DateTime.UtcNow;
