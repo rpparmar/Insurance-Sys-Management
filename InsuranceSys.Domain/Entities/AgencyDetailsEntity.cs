@@ -9,9 +9,8 @@ namespace InsuranceSys.Domain.Entities
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int AgencyId { get; set; }
 
-        [Required]
         [MaxLength(50)]
-        public string AgencyCode { get; set; } = string.Empty;
+        public string? AgencyCode { get; set; }
 
         [Required]
         [MaxLength(200)]

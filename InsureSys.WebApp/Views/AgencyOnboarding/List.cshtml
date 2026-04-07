@@ -13,7 +13,7 @@
             </div>
         </div>
         <div class="d-flex align-items-center">
-            <a asp-action="Onboard" class="btn btn-primary font-weight-bolder">
+            <a asp-action="AddEditAgency" class="btn btn-primary font-weight-bolder">
                 <i class="fas fa-plus mr-1"></i> Onboard New Agency
             </a>
         </div>
@@ -76,7 +76,7 @@
                                 var agency = Model[i];
                                 <tr>
                                     <td>@(i + 1)</td>
-                                    <td><span class="font-weight-bold">@agency.AgencyCode</span></td>
+                                    <td><span class="font-weight-bold">@(agency.AgencyCode ?? "—")</span></td>
                                     <td>@agency.AgencyName</td>
                                     <td>@(agency.ContactEmail ?? "-")</td>
                                     <td><code>@agency.DatabaseName</code></td>

@@ -51,13 +51,22 @@ namespace InsuranceSys.Infrastructure.Repositories
 
         public async Task<(bool Success, string Message)> OnboardAgencyAsync(OnboardAgencyDto dto, int createdByUserId)
         {
-            if (await IsAgencyCodeExistsAsync(dto.AgencyCode))
+            var trimmedName = dto.AgencyName.Trim();
+            if (await IsAgencyNameExistsAsync(trimmedName))
+                return (false, "An agency with this name already exists.");
+
+            if (await IsAdminUsernameExistsAsync(dto.AdminUsername))
+                return (false, "This admin username is already in use.");
+
+            var agencyCodeForStorage = string.IsNullOrWhiteSpace(dto.AgencyCode) ? null : dto.AgencyCode.Trim();
+            if (agencyCodeForStorage != null && await IsAgencyCodeExistsAsync(agencyCodeForStorage))
                 return (false, "Agency code already exists.");
 
             if (await IsDatabaseNameExistsAsync(dto.DesiredDatabaseName))
                 return (false, "Database name already in use.");
 
-            var dbUser = $"usr_{dto.AgencyCode.ToLowerInvariant()}";
+            // SQL login name: usr_{agencyCode} when provided; otherwise usr_{sanitized admin username} (username is globally unique).
+            var dbUser = BuildDatabaseLoginName(agencyCodeForStorage, dto.AdminUsername);
             var dbPassword = GenerateSecurePassword(20);
             var masterConnStr = _configuration.GetConnectionString(MasterConnection)
                 ?? throw new InvalidOperationException("MasterConnection not configured.");
@@ -87,8 +96,8 @@ namespace InsuranceSys.Infrastructure.Repositories
 
                 var agencyDetails = new AgencyDetailsEntity
                 {
-                    AgencyCode = dto.AgencyCode,
-                    AgencyName = dto.AgencyName,
+                    AgencyCode = agencyCodeForStorage,
+                    AgencyName = trimmedName,
                     ContactEmail = dto.ContactEmail,
                     ContactPhone = dto.ContactPhone,
                     DatabaseName = dto.DesiredDatabaseName,
@@ -118,11 +127,11 @@ namespace InsuranceSys.Infrastructure.Repositories
                 _masterDb.AgencyUsers.Add(agencyUser);
                 await _masterDb.SaveChangesAsync();
 
-                return (true, $"Agency '{dto.AgencyName}' onboarded successfully. Database: {dto.DesiredDatabaseName}");
+                return (true, $"Agency '{trimmedName}' onboarded successfully. Database: {dto.DesiredDatabaseName}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to onboard agency {AgencyCode}", dto.AgencyCode);
+                _logger.LogError(ex, "Failed to onboard agency {AgencyCode}", agencyCodeForStorage ?? "(no code)");
                 return (false, $"Onboarding failed: {ex.Message}");
             }
         }
@@ -159,10 +168,60 @@ namespace InsuranceSys.Infrastructure.Repositories
             return true;
         }
 
+        /// <summary>
+        /// Bracket-safe segment for CREATE LOGIN: letters, digits, underscore, @ (SQL Server allows in quoted identifiers).
+        /// </summary>
+        private static string BuildDatabaseLoginName(string? agencyCode, string adminUsername)
+        {
+            if (!string.IsNullOrWhiteSpace(agencyCode))
+                return $"usr_{agencyCode.Trim().ToLowerInvariant()}";
+
+            var seg = SanitizeForSqlLoginSegment(adminUsername);
+            return $"usr_{seg}";
+        }
+
+        /// <summary>
+        /// Lowercase, keep [a-z0-9_@], truncate to fit SQL login name limits.
+        /// </summary>
+        private static string SanitizeForSqlLoginSegment(string username)
+        {
+            var s = username.Trim().ToLowerInvariant();
+            var chars = s.Where(c => char.IsAsciiLetterOrDigit(c) || c == '_' || c == '@').ToArray();
+            var core = new string(chars);
+            if (core.Length == 0)
+                core = "user";
+            return core.Length > 120 ? core[..120] : core;
+        }
+
         public async Task<bool> IsAgencyCodeExistsAsync(string agencyCode)
         {
+            if (string.IsNullOrWhiteSpace(agencyCode))
+                return false;
+
+            var trimmed = agencyCode.Trim();
             return await _masterDb.AgencyDetails
-                .AnyAsync(t => t.AgencyCode == agencyCode);
+                .AnyAsync(t => t.AgencyCode != null && t.AgencyCode == trimmed);
+        }
+
+        public async Task<bool> IsAgencyNameExistsAsync(string agencyName)
+        {
+            if (string.IsNullOrWhiteSpace(agencyName))
+                return false;
+
+            var trimmed = agencyName.Trim();
+            var lower = trimmed.ToLowerInvariant();
+            return await _masterDb.AgencyDetails
+                .AnyAsync(t => t.AgencyName.ToLower() == lower);
+        }
+
+        public async Task<bool> IsAdminUsernameExistsAsync(string username)
+        {
+            if (string.IsNullOrWhiteSpace(username))
+                return false;
+
+            var trimmed = username.Trim();
+            return await _masterDb.AgencyUsers
+                .AnyAsync(u => u.Username == trimmed);
         }
 
         public async Task<bool> IsDatabaseNameExistsAsync(string databaseName)

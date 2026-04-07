@@ -9,6 +9,8 @@ namespace InsuranceSys.Application.Interface
         Task<List<AgencyDetailsDto>> GetAllAgencyAsync();
         Task<bool> DeactivateAgencyAsync(int agencyId);
         Task<bool> IsAgencyCodeExistsAsync(string agencyCode);
+        Task<bool> IsAgencyNameExistsAsync(string agencyName);
+        Task<bool> IsAdminUsernameExistsAsync(string username);
         Task<bool> IsDatabaseNameExistsAsync(string databaseName);
     }
 }

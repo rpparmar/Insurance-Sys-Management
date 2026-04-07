@@ -79,7 +79,7 @@ namespace InsuranceSys.Infrastructure.Database
         private async Task<string?> ResolveTenantConnectionStringAsync()
         {
             var user = _httpContextAccessor.HttpContext?.User;
-            var tenantIdClaim = user?.FindFirst("TenantId")?.Value;
+            var tenantIdClaim = user?.FindFirst("AgencyId")?.Value;
 
             if (!string.IsNullOrEmpty(tenantIdClaim) && int.TryParse(tenantIdClaim, out var tenantId))
                 return await _tenantConnectionResolver.GetConnectionStringAsync(tenantId);

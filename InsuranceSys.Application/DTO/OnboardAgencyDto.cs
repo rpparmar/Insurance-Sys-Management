@@ -2,7 +2,7 @@ namespace InsuranceSys.Application.DTO
 {
     public class OnboardAgencyDto
     {
-        public string AgencyCode { get; set; } = string.Empty;
+        public string? AgencyCode { get; set; }
         public string AgencyName { get; set; } = string.Empty;
         public string? ContactEmail { get; set; }
         public string? ContactPhone { get; set; }

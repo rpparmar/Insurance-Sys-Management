@@ -24,6 +24,7 @@ namespace InsuranceSys.Infrastructure.Database
                 entity.HasIndex(e => e.IsActive)
                       .HasFilter("[IsActive] = 1");
 
+                entity.Property(e => e.AgencyCode).IsRequired(false);
                 entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("SYSUTCDATETIME()");
             });
 

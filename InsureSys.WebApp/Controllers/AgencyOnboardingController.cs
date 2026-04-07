@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Text;
 
 namespace Insurancesys.web.Controllers
 {
@@ -26,14 +27,14 @@ namespace Insurancesys.web.Controllers
         }
 
         [HttpGet]
-        public IActionResult Onboard()
+        public IActionResult AddEditAgency()
         {
             return View(new AgencyOnboardingViewModel());
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Onboard(AgencyOnboardingViewModel model)
+        public async Task<IActionResult> AddEditAgency(AgencyOnboardingViewModel model)
         {
             if (!ModelState.IsValid)
                 return View(model);
@@ -41,16 +42,23 @@ namespace Insurancesys.web.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int.TryParse(userIdClaim, out var createdByUserId);
 
+            var desiredDatabaseName = await GenerateUniqueDatabaseNameAsync(model.AdminUsername);
+            if (desiredDatabaseName == null)
+            {
+                TempData["ErrorMessage"] = "Could not allocate a unique database name. Please try again.";
+                return View(model);
+            }
+
             var dto = new OnboardAgencyDto
             {
-                AgencyCode = model.AgencyCode,
-                AgencyName = model.AgencyName,
-                ContactEmail = model.ContactEmail,
-                ContactPhone = model.ContactPhone,
-                DesiredDatabaseName = model.DesiredDatabaseName,
-                AdminUsername = model.AdminUsername,
+                AgencyCode = string.IsNullOrWhiteSpace(model.AgencyCode) ? null : model.AgencyCode.Trim(),
+                AgencyName = model.AgencyName.Trim(),
+                ContactEmail = string.IsNullOrWhiteSpace(model.ContactEmail) ? null : model.ContactEmail.Trim(),
+                ContactPhone = string.IsNullOrWhiteSpace(model.ContactPhone) ? null : model.ContactPhone.Trim(),
+                DesiredDatabaseName = desiredDatabaseName,
+                AdminUsername = model.AdminUsername.Trim(),
                 AdminPassword = model.AdminPassword,
-                Notes = model.Notes
+                Notes = null
             };
 
             var (success, message) = await _onboardingService.OnboardAgencyAsync(dto, createdByUserId);
@@ -65,18 +73,73 @@ namespace Insurancesys.web.Controllers
             return View(model);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> IsAgencyCodeAvailable(string tenantCode)
+        /// <summary>
+        /// Middle segment for DB name: letters, digits, underscore; @ becomes underscore. Matches Insuresys_{segment}_{timestamp}.
+        /// </summary>
+        private static string SanitizeForDatabaseNameSegment(string adminUsername)
         {
-            var exists = await _onboardingService.IsAgencyCodeExistsAsync(tenantCode);
-            return Json(exists ? "This agency code is already in use." : true);
+            var s = adminUsername.Trim();
+            var sb = new StringBuilder(s.Length);
+            foreach (var c in s)
+            {
+                if (char.IsAsciiLetterOrDigit(c) || c == '_')
+                    sb.Append(c);
+                else if (c == '@')
+                    sb.Append('_');
+            }
+
+            var result = sb.ToString();
+            return string.IsNullOrEmpty(result) ? "agency" : result;
+        }
+
+        private async Task<string?> GenerateUniqueDatabaseNameAsync(string adminUsername)
+        {
+            var segment = SanitizeForDatabaseNameSegment(adminUsername);
+            if (segment.Length > 80)
+                segment = segment[..80];
+
+            for (var attempt = 0; attempt < 10; attempt++)
+            {
+                var ts = DateTime.UtcNow.AddSeconds(attempt).ToString("yyyyMMddHHmmss");
+                var name = $"Insuresys_{segment}_{ts}";
+                if (name.Length > 128)
+                    name = name[..128];
+
+                if (!await _onboardingService.IsDatabaseNameExistsAsync(name))
+                    return name;
+            }
+
+            return null;
         }
 
         [HttpGet]
-        public async Task<IActionResult> IsDatabaseNameAvailable(string desiredDatabaseName)
+        public async Task<IActionResult> IsAgencyCodeAvailable(string? agencyCode)
         {
-            var exists = await _onboardingService.IsDatabaseNameExistsAsync(desiredDatabaseName);
-            return Json(exists ? "This database name is already in use." : true);
+            if (string.IsNullOrWhiteSpace(agencyCode))
+                return Json(true);
+
+            var exists = await _onboardingService.IsAgencyCodeExistsAsync(agencyCode.Trim());
+            return Json(exists ? "This agency code is already in use." : (object)true);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> IsAgencyNameAvailable(string? agencyName)
+        {
+            if (string.IsNullOrWhiteSpace(agencyName))
+                return Json(true);
+
+            var exists = await _onboardingService.IsAgencyNameExistsAsync(agencyName.Trim());
+            return Json(exists ? "An agency with this name already exists." : (object)true);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> IsAdminUsernameAvailable(string? adminUsername)
+        {
+            if (string.IsNullOrWhiteSpace(adminUsername))
+                return Json(true);
+
+            var exists = await _onboardingService.IsAdminUsernameExistsAsync(adminUsername.Trim());
+            return Json(exists ? "This admin username is already in use." : (object)true);
         }
 
         [HttpPost]
