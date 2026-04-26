@@ -43,7 +43,7 @@
             <div class="aside aside-left aside-fixed d-flex flex-column flex-row-auto" id="kt_aside">
                 <!--begin::Brand-->
                 <div class="brand flex-column-auto" id="kt_brand">
-                    <a href="@Url.Action("List", "AgencyOnboarding")" class="brand-logo">
+                    <a href="@Url.Action("AgencyList", "AgencyOnboarding")" class="brand-logo">
                     </a>
                     <button class="brand-toggle btn btn-sm px-0" id="kt_aside_toggle">
                         <span class="svg-icon svg-icon svg-icon-xl">
@@ -66,12 +66,20 @@
                                 <h4 class="menu-text">Agency Management</h4>
                                 <i class="menu-icon ki ki-bold-more-hor icon-md"></i>
                             </li>
-                            <li class="menu-item @SetActiveClassOnLink("AgencyOnboarding", "List")" aria-haspopup="true">
-                                <a asp-controller="AgencyOnboarding" asp-action="List" class="menu-link">
+                            <li class="menu-item @SetActiveClassOnLink("AgencyOnboarding", "AgencyList")" aria-haspopup="true">
+                                <a asp-controller="AgencyOnboarding" asp-action="AgencyList" class="menu-link">
                                     <span class="svg-icon menu-icon">
                                         <span class="fas fa-building"></span>
                                     </span>
                                     <span class="menu-text">All Agencies</span>
+                                </a>
+                            </li>
+                            <li class="menu-item @SetActiveClassOnLink("AgencyOnboarding", "AddEditAgency")" aria-haspopup="true">
+                                <a href="@Url.Content("~/Agencies/Add")" class="menu-link">
+                                    <span class="svg-icon menu-icon">
+                                        <span class="fas fa-plus-circle"></span>
+                                    </span>
+                                    <span class="menu-text">Add Agency</span>
                                 </a>
                             </li>
                             <!--end::Tenant Management-->

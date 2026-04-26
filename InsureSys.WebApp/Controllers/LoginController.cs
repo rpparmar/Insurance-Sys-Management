@@ -80,7 +80,7 @@ namespace Insurancesys.web.Controllers
             }
 
             if (user.Role == (int)Roles.SuperAdmin)
-                return RedirectToAction("List", "AgencyOnboarding");
+                return RedirectToAction("AgencyList", "AgencyOnboarding");
 
             return RedirectToAction("Index", "Home");
         }

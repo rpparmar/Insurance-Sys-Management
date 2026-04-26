@@ -8,6 +8,8 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Collections.Immutable;
+using System.Data;
 using System.Security.Cryptography;
 using InsuranceSys.Domain.Enums;
 
@@ -157,6 +159,79 @@ namespace InsuranceSys.Infrastructure.Repositories
                 .ToListAsync();
         }
 
+        public async Task<DataSet> GetAgencyListGridAsync(ImmutableDictionary<string, object> paramCollections)
+        {
+            var masterConnStr = _configuration.GetConnectionString(MasterConnection)
+                ?? throw new InvalidOperationException("MasterConnection not configured.");
+
+            await using var connection = new SqlConnection(masterConnStr);
+            await connection.OpenAsync();
+
+            await using var cmd = new SqlCommand("Agencies_GetAll", connection)
+            {
+                CommandType = CommandType.StoredProcedure,
+                CommandTimeout = 120
+            };
+
+            foreach (var kv in paramCollections)
+                cmd.Parameters.AddWithValue(kv.Key, kv.Value ?? DBNull.Value);
+
+            var ds = new DataSet();
+            using (var da = new SqlDataAdapter(cmd))
+            {
+                da.Fill(ds);
+            }
+
+            return ds;
+        }
+
+        public async Task<AgencyDetailsDto?> GetAgencyByIdAsync(int agencyId)
+        {
+            return await _masterDb.AgencyDetails
+                .AsNoTracking()
+                .Where(t => t.AgencyId == agencyId)
+                .Select(t => new AgencyDetailsDto
+                {
+                    AgencyId = t.AgencyId,
+                    AgencyCode = t.AgencyCode,
+                    AgencyName = t.AgencyName,
+                    ContactEmail = t.ContactEmail,
+                    ContactPhone = t.ContactPhone,
+                    DatabaseName = t.DatabaseName,
+                    DatabaseServer = t.DatabaseServer,
+                    IsActive = t.IsActive,
+                    CreatedAtUtc = t.CreatedAtUtc,
+                    CreatedByUsername = t.CreatedByUser != null ? t.CreatedByUser.DisplayName : null
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        /// <summary>Returns 1 on success, 0 if not found, -1 duplicate name, -2 duplicate code.</summary>
+        public async Task<int> UpdateAgencyDetailsAsync(AgencyDetailsDto dto)
+        {
+            var entity = await _masterDb.AgencyDetails.FindAsync(dto.AgencyId);
+            if (entity == null)
+                return 0;
+
+            var trimmedName = dto.AgencyName.Trim();
+            if (await IsAgencyNameExistsAsync(trimmedName, dto.AgencyId))
+                return -1;
+
+            var codeForStorage = string.IsNullOrWhiteSpace(dto.AgencyCode) ? null : dto.AgencyCode.Trim();
+            if (codeForStorage != null && await IsAgencyCodeExistsAsync(codeForStorage, dto.AgencyId))
+                return -2;
+
+            entity.AgencyName = trimmedName;
+            entity.AgencyCode = codeForStorage;
+            entity.ContactEmail = string.IsNullOrWhiteSpace(dto.ContactEmail) ? null : dto.ContactEmail.Trim();
+            entity.ContactPhone = string.IsNullOrWhiteSpace(dto.ContactPhone) ? null : dto.ContactPhone.Trim();
+            entity.IsActive = dto.IsActive;
+            entity.UpdatedAtUtc = DateTime.UtcNow;
+
+            await _masterDb.SaveChangesAsync();
+            return 1;
+        }
+
         public async Task<bool> DeactivateAgencyAsync(int agencyId)
         {
             var agencyDetail = await _masterDb.AgencyDetails.FindAsync(agencyId);
@@ -193,17 +268,18 @@ namespace InsuranceSys.Infrastructure.Repositories
             return core.Length > 120 ? core[..120] : core;
         }
 
-        public async Task<bool> IsAgencyCodeExistsAsync(string agencyCode)
+        public async Task<bool> IsAgencyCodeExistsAsync(string agencyCode, int? excludeAgencyId = null)
         {
             if (string.IsNullOrWhiteSpace(agencyCode))
                 return false;
 
             var trimmed = agencyCode.Trim();
             return await _masterDb.AgencyDetails
+                .Where(t => excludeAgencyId == null || t.AgencyId != excludeAgencyId.Value)
                 .AnyAsync(t => t.AgencyCode != null && t.AgencyCode == trimmed);
         }
 
-        public async Task<bool> IsAgencyNameExistsAsync(string agencyName)
+        public async Task<bool> IsAgencyNameExistsAsync(string agencyName, int? excludeAgencyId = null)
         {
             if (string.IsNullOrWhiteSpace(agencyName))
                 return false;
@@ -211,6 +287,7 @@ namespace InsuranceSys.Infrastructure.Repositories
             var trimmed = agencyName.Trim();
             var lower = trimmed.ToLowerInvariant();
             return await _masterDb.AgencyDetails
+                .Where(t => excludeAgencyId == null || t.AgencyId != excludeAgencyId.Value)
                 .AnyAsync(t => t.AgencyName.ToLower() == lower);
         }
 

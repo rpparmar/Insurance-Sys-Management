@@ -1,6 +1,8 @@
+using Insurancesys.web.Helper;
 using Insurancesys.web.Models;
 using InsuranceSys.Application.DTO;
 using InsuranceSys.Application.Interface;
+using InsuranceSys.Domain;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +14,10 @@ namespace Insurancesys.web.Controllers
     [Authorize(Roles = "SuperAdmin", AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
     public class AgencyOnboardingController : Controller
     {
+        private const string SessionEditingAgencyId = "EditingAgencyId";
+        private const string SessionOriginalAgencyName = "Original_AgencyName";
+        private const string SessionOriginalAgencyCode = "Original_AgencyCode";
+
         private readonly IAgencyOnboardingService _onboardingService;
 
         public AgencyOnboardingController(IAgencyOnboardingService onboardingService)
@@ -19,30 +25,118 @@ namespace Insurancesys.web.Controllers
             _onboardingService = onboardingService;
         }
 
+        [Route("Agencies")]
         [HttpGet]
-        public async Task<IActionResult> List()
+        public IActionResult AgencyList()
         {
-            var tenants = await _onboardingService.GetAllAgencyAsync();
-            return View(tenants);
+            return View("AgencyList");
         }
 
-        [HttpGet]
+        [HttpPost]        
+        public async Task<IActionResult> GetData()
+        {
+            var result = await DataTableHelper.BuildGridResponseAsync(Request, _onboardingService.GetAgencyListGridAsync);
+            return Json(result);
+        }
+
+        [HttpGet("Agencies/Add")]
         public IActionResult AddEditAgency()
         {
-            return View(new AgencyOnboardingViewModel());
+            ClearAgencyEditSession();
+            return View(new AgencyOnboardingViewModel { IsEditMode = false, IsActive = true });
+        }
+
+        [HttpGet("Agencies/Edit/{id:int}")]
+        public async Task<IActionResult> AddEditAgency(int id)
+        {
+            var dto = await _onboardingService.GetAgencyByIdAsync(id);
+            if (dto == null)
+            {
+                SetTempDataForNoRecord();
+                return RedirectToAction(nameof(AgencyList));
+            }
+
+            HttpContext.Session.SetString(SessionEditingAgencyId, id.ToString());
+            HttpContext.Session.SetString(SessionOriginalAgencyName, dto.AgencyName);
+            HttpContext.Session.SetString(SessionOriginalAgencyCode, dto.AgencyCode ?? string.Empty);
+
+            var model = new AgencyOnboardingViewModel
+            {
+                AgencyId = dto.AgencyId,
+                IsEditMode = true,
+                AgencyCode = dto.AgencyCode,
+                AgencyName = dto.AgencyName,
+                ContactEmail = dto.ContactEmail,
+                ContactPhone = dto.ContactPhone,
+                IsActive = dto.IsActive,
+                DatabaseNameDisplay = dto.DatabaseName
+            };
+
+            return View(model);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddEditAgency(AgencyOnboardingViewModel model)
         {
+            if (model.IsEditMode)
+            {
+                ModelState.Remove(nameof(model.AdminUsername));
+                ModelState.Remove(nameof(model.AdminPassword));
+                ModelState.Remove(nameof(model.ConfirmPassword));
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(model.AdminUsername))
+                    ModelState.AddModelError(nameof(model.AdminUsername), "Enter username");
+                if (string.IsNullOrWhiteSpace(model.AdminPassword))
+                    ModelState.AddModelError(nameof(model.AdminPassword), "Enter password");
+                else if (model.AdminPassword.Length < 8)
+                    ModelState.AddModelError(nameof(model.AdminPassword), "Password must be at least 8 characters");
+                if (model.AdminPassword != model.ConfirmPassword)
+                    ModelState.AddModelError(nameof(model.ConfirmPassword), "Passwords do not match");
+            }
+
             if (!ModelState.IsValid)
                 return View(model);
+
+            if (model.IsEditMode)
+            {
+                var updateDto = new AgencyDetailsDto
+                {
+                    AgencyId = model.AgencyId,
+                    AgencyName = model.AgencyName.Trim(),
+                    AgencyCode = string.IsNullOrWhiteSpace(model.AgencyCode) ? null : model.AgencyCode.Trim(),
+                    ContactEmail = string.IsNullOrWhiteSpace(model.ContactEmail) ? null : model.ContactEmail.Trim(),
+                    ContactPhone = string.IsNullOrWhiteSpace(model.ContactPhone) ? null : model.ContactPhone.Trim(),
+                    IsActive = model.IsActive
+                };
+
+                var rows = await _onboardingService.UpdateAgencyDetailsAsync(updateDto);
+                TempData["RowsAffected"] = rows == 1 ? 1 : 0;
+                if (rows == 1)
+                {
+                    TempData["Message"] = Constants.SuccessMessages.MsgUpdateSuccess;
+                    ClearAgencyEditSession();
+                    return RedirectToAction(nameof(AgencyList));
+                }
+
+                if (rows == -1)
+                    ModelState.AddModelError(nameof(model.AgencyName), "An agency with this name already exists.");
+                else if (rows == -2)
+                    ModelState.AddModelError(nameof(model.AgencyCode), "This agency code is already in use.");
+                else if (rows == 0)
+                    TempData["Message"] = Constants.AlertMessages.MsgNoRecords;
+                else
+                    TempData["Message"] = Constants.ErrorMessages.MsgUpdateFailure;
+
+                return View(model);
+            }
 
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int.TryParse(userIdClaim, out var createdByUserId);
 
-            var desiredDatabaseName = await GenerateUniqueDatabaseNameAsync(model.AdminUsername);
+            var desiredDatabaseName = await GenerateUniqueDatabaseNameAsync(model.AdminUsername!.Trim());
             if (desiredDatabaseName == null)
             {
                 TempData["ErrorMessage"] = "Could not allocate a unique database name. Please try again.";
@@ -56,8 +150,8 @@ namespace Insurancesys.web.Controllers
                 ContactEmail = string.IsNullOrWhiteSpace(model.ContactEmail) ? null : model.ContactEmail.Trim(),
                 ContactPhone = string.IsNullOrWhiteSpace(model.ContactPhone) ? null : model.ContactPhone.Trim(),
                 DesiredDatabaseName = desiredDatabaseName,
-                AdminUsername = model.AdminUsername.Trim(),
-                AdminPassword = model.AdminPassword,
+                AdminUsername = model.AdminUsername!.Trim(),
+                AdminPassword = model.AdminPassword!,
                 Notes = null
             };
 
@@ -65,12 +159,32 @@ namespace Insurancesys.web.Controllers
 
             if (success)
             {
-                TempData["SuccessMessage"] = message;
-                return RedirectToAction(nameof(List));
+                TempData["Message"] = message;
+                TempData["RowsAffected"] = 1;
+                return RedirectToAction(nameof(AgencyList));
             }
 
             TempData["ErrorMessage"] = message;
             return View(model);
+        }
+
+        private void ClearAgencyEditSession()
+        {
+            HttpContext.Session.Remove(SessionEditingAgencyId);
+            HttpContext.Session.Remove(SessionOriginalAgencyName);
+            HttpContext.Session.Remove(SessionOriginalAgencyCode);
+        }
+
+        private void SetTempDataForNoRecord()
+        {
+            TempData["RowsAffected"] = 0;
+            TempData["Message"] = Constants.AlertMessages.MsgNoRecords;
+        }
+
+        private int? GetEditingAgencyIdFromSession()
+        {
+            var s = HttpContext.Session.GetString(SessionEditingAgencyId);
+            return int.TryParse(s, out var id) ? id : null;
         }
 
         /// <summary>
@@ -118,7 +232,13 @@ namespace Insurancesys.web.Controllers
             if (string.IsNullOrWhiteSpace(agencyCode))
                 return Json(true);
 
-            var exists = await _onboardingService.IsAgencyCodeExistsAsync(agencyCode.Trim());
+            var excludeId = GetEditingAgencyIdFromSession();
+            var original = HttpContext.Session.GetString(SessionOriginalAgencyCode) ?? string.Empty;
+            var trimmed = agencyCode.Trim();
+            if (excludeId.HasValue && string.Equals(trimmed, original, StringComparison.Ordinal))
+                return Json(true);
+
+            var exists = await _onboardingService.IsAgencyCodeExistsAsync(trimmed, excludeId);
             return Json(exists ? "This agency code is already in use." : (object)true);
         }
 
@@ -128,7 +248,13 @@ namespace Insurancesys.web.Controllers
             if (string.IsNullOrWhiteSpace(agencyName))
                 return Json(true);
 
-            var exists = await _onboardingService.IsAgencyNameExistsAsync(agencyName.Trim());
+            var excludeId = GetEditingAgencyIdFromSession();
+            var original = HttpContext.Session.GetString(SessionOriginalAgencyName) ?? string.Empty;
+            var trimmed = agencyName.Trim();
+            if (excludeId.HasValue && string.Equals(trimmed, original, StringComparison.OrdinalIgnoreCase))
+                return Json(true);
+
+            var exists = await _onboardingService.IsAgencyNameExistsAsync(trimmed, excludeId);
             return Json(exists ? "An agency with this name already exists." : (object)true);
         }
 
@@ -138,21 +264,18 @@ namespace Insurancesys.web.Controllers
             if (string.IsNullOrWhiteSpace(adminUsername))
                 return Json(true);
 
+            if (GetEditingAgencyIdFromSession().HasValue)
+                return Json(true);
+
             var exists = await _onboardingService.IsAdminUsernameExistsAsync(adminUsername.Trim());
             return Json(exists ? "This admin username is already in use." : (object)true);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Deactivate(int agencyId)
+        [HttpDelete]
+        public async Task<IActionResult> Delete(int id)
         {
-            var result = await _onboardingService.DeactivateAgencyAsync(agencyId);
-            if (result)
-                TempData["SuccessMessage"] = "Agency deactivated successfully.";
-            else
-                TempData["ErrorMessage"] = "Failed to deactivate agency.";
-
-            return RedirectToAction(nameof(List));
+            var ok = await _onboardingService.DeactivateAgencyAsync(id);
+            return new JsonResult(ok);
         }
     }
 }
