@@ -8,6 +8,8 @@ using InsuranceSys.Infrastructure.Repositories;
 using InsuranceSys.Infrastructure.Utility;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -40,8 +42,14 @@ namespace Insurancesys.web
             builder.Host.UseSerilog();
             #endregion
 
-            builder.Services.AddControllersWithViews().AddRazorRuntimeCompilation(); // Optional - Add services to the container - used to have cshtml changes runtime.
-            builder.Services.AddControllers();
+            builder.Services
+                .AddControllersWithViews(options =>
+                {
+                    options.RespectBrowserAcceptHeader = true;
+                    options.ReturnHttpNotAcceptable = true;
+                })
+                .AddXmlSerializerFormatters()
+                .AddRazorRuntimeCompilation(); // Optional - allows cshtml runtime updates (dev)
 
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddMemoryCache();
@@ -100,6 +108,20 @@ namespace Insurancesys.web
                 });
             #endregion
 
+            #region API versioning
+            builder.Services.AddApiVersioning(options =>
+                {
+                    options.DefaultApiVersion = new ApiVersion(1, 0);
+
+                    options.AssumeDefaultVersionWhenUnspecified = true;
+
+                    options.ReportApiVersions = true;
+
+                    options.ApiVersionReader =
+                        new UrlSegmentApiVersionReader();
+                });
+
+            #endregion
             #region Initialize Encryption
             var encryptionKey = builder.Configuration["Encryption:MasterKey"];
             if (!string.IsNullOrEmpty(encryptionKey))
@@ -131,6 +153,8 @@ namespace Insurancesys.web
             app.UseMiddleware<ExceptionHandlingMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            app.MapControllers();
 
             app.MapControllerRoute(
                 name: "default",

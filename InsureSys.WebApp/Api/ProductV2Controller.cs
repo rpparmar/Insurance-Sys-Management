@@ -10,11 +10,11 @@ namespace Insurancesys.web.Api
 {
     //[Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)] // Use JWT authentication
     
-    [ApiVersion("1.0")]
+    [ApiVersion("2.0")]
     //[Route("api/[controller]")]
     [Route("api/v{version:apiVersion}/Product")]
     [ApiController]
-    public class ProductController : ControllerBase
+    public class ProductV2Controller : ControllerBase
     {
         //private readonly IProductService _productService;
         //public ProductController(IProductService productService)
@@ -25,9 +25,10 @@ namespace Insurancesys.web.Api
         [HttpGet]
         public ActionResult Get()
         {
-            return Ok(new ProductV1Response
+            return Ok(new ProductV2Response
             {
-                Message = "Products from V1"
+                Message = "Products from V2",
+                Features = new List<string> { "xml-support", "versioned-route" }
             });
         }
     }
