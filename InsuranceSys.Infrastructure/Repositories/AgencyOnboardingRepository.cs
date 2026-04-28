@@ -237,6 +237,7 @@ namespace InsuranceSys.Infrastructure.Repositories
             var agencyDetail = await _masterDb.AgencyDetails.FindAsync(agencyId);
             if (agencyDetail == null) return false;
 
+            agencyDetail.IsDeleted = true;
             agencyDetail.IsActive = false;
             agencyDetail.UpdatedAtUtc = DateTime.UtcNow;
             await _masterDb.SaveChangesAsync();

@@ -20,7 +20,8 @@ BEGIN
 
     SELECT COUNT(*) AS TotalRecords
     FROM [dbo].[AgencyDetails] AS a
-    WHERE (
+    WHERE ISNULL(a.[IsDeleted], 0) <> 1
+      AND (
             NULLIF(LTRIM(RTRIM(@SearchTerm)), N'') IS NULL
             OR a.[AgencyName] LIKE N'%' + @SearchTerm + N'%'
             OR (a.[ContactEmail] IS NOT NULL AND a.[ContactEmail] LIKE N'%' + @SearchTerm + N'%')
@@ -52,7 +53,8 @@ BEGIN
         a.[ContactPhone] AS [ContactNo],
         a.[IsActive]
     FROM [dbo].[AgencyDetails] AS a
-    WHERE (
+    WHERE ISNULL(a.[IsDeleted], 0) <> 1
+      AND (
             NULLIF(LTRIM(RTRIM(@SearchTerm)), N'''') IS NULL
             OR a.[AgencyName] LIKE N''%'' + @SearchTerm + N''%''
             OR (a.[ContactEmail] IS NOT NULL AND a.[ContactEmail] LIKE N''%'' + @SearchTerm + N''%'')

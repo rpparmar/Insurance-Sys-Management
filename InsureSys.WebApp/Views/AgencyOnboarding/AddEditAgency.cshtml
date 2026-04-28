@@ -80,7 +80,7 @@
                                             @Html.AccordianBaseFormCheckBox("Active", nameof(Model.IsActive))
 
                                             @Html.AccordianBaseTextBoxWithTooltip(
-                                                     label: "Admin Username",
+                                                     label: "Username",
                                                      forExpression: nameof(Model.AdminUsername),
                                                      tooltip: "Use 1 to 100 characters: letters, numbers, underscore, and at-sign only. No spaces. Used for agency login.",
                                                      options: new Insurancesys.web.Helper.HtmlHelpers.AccordianTextBoxWithTooltipOptions
@@ -100,7 +100,7 @@
 
                                             @if (!Model.IsEditMode)
                                             {
-                                                @Html.AccordianBasePasswordBox("Admin Password", nameof(Model.AdminPassword), new Insurancesys.web.Helper.HtmlHelpers.AccordianPasswordOptions { IsRequired = true, Placeholder = "Minimum 8 characters", AutoComplete = "new-password" })
+                                                @Html.AccordianBasePasswordBox("Password", nameof(Model.AdminPassword), new Insurancesys.web.Helper.HtmlHelpers.AccordianPasswordOptions { IsRequired = true, Placeholder = "Minimum 8 characters", AutoComplete = "new-password" })
                                                 @Html.AccordianBasePasswordBox("Confirm Password", nameof(Model.ConfirmPassword), new Insurancesys.web.Helper.HtmlHelpers.AccordianPasswordOptions { IsRequired = true, Placeholder = "Re-enter password", AutoComplete = "new-password" })
                                             }
                                         </div>
@@ -116,21 +116,8 @@
 </div>
 
 @section Scripts {
-    <script>
-        (function () {
-            if (typeof $ !== 'undefined' && $.fn.tooltip) {
-                $('[data-toggle="tooltip"]').tooltip();
-            }
-
-            var $btn = $('#btnEnableAdminUsernameEdit');
-            if ($btn.length) {
-                $btn.on('click', function () {
-                    var $txt = $('#AdminUsername');
-                    $('#hdnIsAdminUsernameEditEnabled').val('true');
-                    $txt.removeAttr('readonly');
-                    $txt.focus();
-                });
-            }
-        })();
+    <script type="text/javascript">
+        var globalvar = { IsformView: true };
     </script>
+    <script src="~/js/pages/agencymaster/_agency.js"></script>
 }
