@@ -66,20 +66,12 @@
                                 <h4 class="menu-text">Agency Management</h4>
                                 <i class="menu-icon ki ki-bold-more-hor icon-md"></i>
                             </li>
-                            <li class="menu-item @SetActiveClassOnLink("AgencyOnboarding", "AgencyList")" aria-haspopup="true">
+                            <li class="menu-item @SetActiveClassOnLink("AgencyOnboarding", "AgencyList,AddEditAgency")" aria-haspopup="true">
                                 <a asp-controller="AgencyOnboarding" asp-action="AgencyList" class="menu-link">
                                     <span class="svg-icon menu-icon">
                                         <span class="fas fa-building"></span>
                                     </span>
                                     <span class="menu-text">All Agencies</span>
-                                </a>
-                            </li>
-                            <li class="menu-item @SetActiveClassOnLink("AgencyOnboarding", "AddEditAgency")" aria-haspopup="true">
-                                <a href="@Url.Content("~/Agencies/Add")" class="menu-link">
-                                    <span class="svg-icon menu-icon">
-                                        <span class="fas fa-plus-circle"></span>
-                                    </span>
-                                    <span class="menu-text">Add Agency</span>
                                 </a>
                             </li>
                             <!--end::Tenant Management-->

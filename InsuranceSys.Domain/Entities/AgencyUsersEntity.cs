@@ -37,7 +37,8 @@ namespace InsuranceSys.Domain.Entities
         public int Role { get; set; }
 
         public bool IsActive { get; set; } = true;
-
+        public bool IsDeleted { get; set; } = false;
+        
         public DateTime? LastLoginAtUtc { get; set; }
 
         public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;

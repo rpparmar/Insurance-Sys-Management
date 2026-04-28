@@ -17,6 +17,7 @@ namespace Insurancesys.web.Controllers
         private const string SessionEditingAgencyId = "EditingAgencyId";
         private const string SessionOriginalAgencyName = "Original_AgencyName";
         private const string SessionOriginalAgencyCode = "Original_AgencyCode";
+        private const string SessionOriginalAdminUsername = "Original_AdminUsername";
 
         private readonly IAgencyOnboardingService _onboardingService;
 
@@ -59,6 +60,8 @@ namespace Insurancesys.web.Controllers
             HttpContext.Session.SetString(SessionEditingAgencyId, id.ToString());
             HttpContext.Session.SetString(SessionOriginalAgencyName, dto.AgencyName);
             HttpContext.Session.SetString(SessionOriginalAgencyCode, dto.AgencyCode ?? string.Empty);
+            var adminUsername = await _onboardingService.GetAgencyAdminUsernameAsync(id) ?? string.Empty;
+            HttpContext.Session.SetString(SessionOriginalAdminUsername, adminUsername);
 
             var model = new AgencyOnboardingViewModel
             {
@@ -69,7 +72,9 @@ namespace Insurancesys.web.Controllers
                 ContactEmail = dto.ContactEmail,
                 ContactPhone = dto.ContactPhone,
                 IsActive = dto.IsActive,
-                DatabaseNameDisplay = dto.DatabaseName
+                DatabaseNameDisplay = dto.DatabaseName,
+                AdminUsername = adminUsername,
+                IsAdminUsernameEditEnabled = false
             };
 
             return View(model);
@@ -77,13 +82,22 @@ namespace Insurancesys.web.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddEditAgency(AgencyOnboardingViewModel model)
+        public async Task<IActionResult> SaveAgency(AgencyOnboardingViewModel model)
         {
             if (model.IsEditMode)
             {
-                ModelState.Remove(nameof(model.AdminUsername));
                 ModelState.Remove(nameof(model.AdminPassword));
                 ModelState.Remove(nameof(model.ConfirmPassword));
+
+                if (!model.IsAdminUsernameEditEnabled)
+                {
+                    ModelState.Remove(nameof(model.AdminUsername));
+                }
+                else
+                {
+                    if (string.IsNullOrWhiteSpace(model.AdminUsername))
+                        ModelState.AddModelError(nameof(model.AdminUsername), "Enter username");
+                }
             }
             else
             {
@@ -102,6 +116,21 @@ namespace Insurancesys.web.Controllers
 
             if (model.IsEditMode)
             {
+                if (model.IsAdminUsernameEditEnabled)
+                {
+                    var originalAdmin = HttpContext.Session.GetString(SessionOriginalAdminUsername) ?? string.Empty;
+                    var desired = (model.AdminUsername ?? string.Empty).Trim();
+                    if (!string.Equals(originalAdmin, desired, StringComparison.Ordinal))
+                    {
+                        var u = await _onboardingService.UpdateAgencyAdminUsernameAsync(model.AgencyId, desired);
+                        if (u == -1)
+                        {
+                            ModelState.AddModelError(nameof(model.AdminUsername), "This admin username is already in use.");
+                            return View(model);
+                        }
+                    }
+                }
+
                 var updateDto = new AgencyDetailsDto
                 {
                     AgencyId = model.AgencyId,
@@ -173,6 +202,7 @@ namespace Insurancesys.web.Controllers
             HttpContext.Session.Remove(SessionEditingAgencyId);
             HttpContext.Session.Remove(SessionOriginalAgencyName);
             HttpContext.Session.Remove(SessionOriginalAgencyCode);
+            HttpContext.Session.Remove(SessionOriginalAdminUsername);
         }
 
         private void SetTempDataForNoRecord()
@@ -264,10 +294,12 @@ namespace Insurancesys.web.Controllers
             if (string.IsNullOrWhiteSpace(adminUsername))
                 return Json(true);
 
-            if (GetEditingAgencyIdFromSession().HasValue)
+            var original = HttpContext.Session.GetString(SessionOriginalAdminUsername) ?? string.Empty;
+            var trimmed = adminUsername.Trim();
+            if (GetEditingAgencyIdFromSession().HasValue && string.Equals(original, trimmed, StringComparison.Ordinal))
                 return Json(true);
 
-            var exists = await _onboardingService.IsAdminUsernameExistsAsync(adminUsername.Trim());
+            var exists = await _onboardingService.IsAdminUsernameExistsAsync(trimmed);
             return Json(exists ? "This admin username is already in use." : (object)true);
         }
 

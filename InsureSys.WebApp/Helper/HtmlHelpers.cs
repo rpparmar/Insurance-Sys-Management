@@ -207,6 +207,214 @@ namespace Insurancesys.web.Helper
             return formGroupRow;
         }
 
+        public sealed class AccordianTextBoxWithTooltipOptions
+        {
+            public bool IsRequired { get; set; }
+            public string Placeholder { get; set; } = "";
+            public int MaxLength { get; set; }
+            public bool IsRegExpression { get; set; }
+            public bool IsDisabled { get; set; }
+            public bool IsReadOnly { get; set; }
+
+            public bool ShowEditButton { get; set; }
+            public string EditButtonId { get; set; } = "";
+            public string EditButtonTitle { get; set; } = "Edit";
+            public string EditButtonCssClass { get; set; } = "btn btn-sm btn-clean btn-icon ml-2";
+            public string EditButtonIconCssClass { get; set; } = "la la-edit text-primary";
+        }
+
+        public static IHtmlContent AccordianBaseTextBoxWithTooltip(this IHtmlHelper htmlHelper, string label, string forExpression, string tooltip, AccordianTextBoxWithTooltipOptions? options = null)
+        {
+            options ??= new AccordianTextBoxWithTooltipOptions();
+
+            var labelContent = new TagBuilder("label");
+            labelContent.InnerHtml.Append(label);
+            labelContent.AddCssClass("col-form-label");
+            if (options.IsRequired)
+                labelContent.AddCssClass("required");
+
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                { "class", "form-control maximum-length-setup" },
+                { "placeholder", options.Placeholder }
+            };
+            if (options.MaxLength > 0)
+                htmlAttributes["maxlength"] = options.MaxLength;
+            if (options.IsDisabled)
+                htmlAttributes["disabled"] = "disabled";
+            if (options.IsReadOnly)
+                htmlAttributes["readonly"] = "readonly";
+
+            var inputContent = htmlHelper.TextBox(forExpression, null, htmlAttributes);
+
+            var iconSpan = new TagBuilder("span");
+            iconSpan.AddCssClass("ml-2");
+            iconSpan.Attributes["data-toggle"] = "tooltip";
+            iconSpan.Attributes["data-placement"] = "right";
+            iconSpan.Attributes["tabindex"] = "0";
+            iconSpan.Attributes["title"] = tooltip;
+            iconSpan.InnerHtml.AppendHtml("<i class=\"fas fa-info-circle text-muted\" aria-hidden=\"true\"></i>");
+
+            var inputWrap = new TagBuilder("div");
+            inputWrap.AddCssClass("d-flex align-items-center flex-nowrap");
+            inputWrap.InnerHtml.AppendHtml(inputContent);
+            inputWrap.InnerHtml.AppendHtml(iconSpan);
+
+            if (options.ShowEditButton)
+            {
+                var editButton = new TagBuilder("button");
+                editButton.Attributes["type"] = "button";
+                if (!string.IsNullOrWhiteSpace(options.EditButtonId))
+                    editButton.Attributes["id"] = options.EditButtonId;
+                editButton.AddCssClass(options.EditButtonCssClass);
+                editButton.Attributes["title"] = options.EditButtonTitle;
+                editButton.InnerHtml.AppendHtml($"<i class=\"{options.EditButtonIconCssClass}\"></i>");
+                inputWrap.InnerHtml.AppendHtml(editButton);
+            }
+
+            var inputColumn = new TagBuilder("div");
+            inputColumn.AddCssClass("col-md-4 col-xs-12");
+            inputColumn.InnerHtml.AppendHtml(inputWrap);
+            var validationMessage = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger w-100" });
+            inputColumn.InnerHtml.AppendHtml(validationMessage);
+
+            var labelColumn = new TagBuilder("div");
+            labelColumn.AddCssClass("col-md-5 col-xs-12 text-md-right");
+            labelColumn.InnerHtml.AppendHtml(labelContent);
+
+            var formGroupRow = new TagBuilder("div");
+            formGroupRow.AddCssClass("form-group row");
+            formGroupRow.InnerHtml.AppendHtml(labelColumn);
+            formGroupRow.InnerHtml.AppendHtml(inputColumn);
+
+            return formGroupRow;
+        }
+
+        public sealed class AccordianPasswordOptions
+        {
+            public bool IsRequired { get; set; }
+            public string Placeholder { get; set; } = "";
+            public string AutoComplete { get; set; } = "new-password";
+        }
+
+        public static IHtmlContent AccordianBasePasswordBox(this IHtmlHelper htmlHelper, string label, string forExpression, AccordianPasswordOptions? options = null)
+        {
+            options ??= new AccordianPasswordOptions();
+
+            var labelContent = new TagBuilder("label");
+            labelContent.InnerHtml.Append(label);
+            labelContent.AddCssClass("col-form-label");
+            if (options.IsRequired)
+                labelContent.AddCssClass("required");
+
+            var labelColumn = new TagBuilder("div");
+            labelColumn.AddCssClass("col-md-5 col-xs-12 text-md-right");
+            labelColumn.InnerHtml.AppendHtml(labelContent);
+
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                { "class", "form-control" },
+                { "placeholder", options.Placeholder },
+                { "autocomplete", options.AutoComplete }
+            };
+
+            var inputContent = htmlHelper.Password(forExpression, null, htmlAttributes);
+
+            var inputColumn = new TagBuilder("div");
+            inputColumn.AddCssClass("col-md-4 col-xs-12");
+            inputColumn.InnerHtml.AppendHtml(inputContent);
+            inputColumn.InnerHtml.AppendHtml(htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" }));
+
+            var formGroupRow = new TagBuilder("div");
+            formGroupRow.AddCssClass("form-group row");
+            formGroupRow.InnerHtml.AppendHtml(labelColumn);
+            formGroupRow.InnerHtml.AppendHtml(inputColumn);
+
+            return formGroupRow;
+        }
+
+        public static IHtmlContent AccordianBasePhoneNumberWithCode(this IHtmlHelper htmlHelper, string label, string forExpression, bool isRequired = false, string placeholder = "Enter 10-digit phone number", string countryCode = "+91", bool isDisabled = false)
+        {
+            var labelContent = new TagBuilder("label");
+            labelContent.InnerHtml.Append(label);
+            labelContent.AddCssClass("col-form-label");
+            if (isRequired)
+                labelContent.AddCssClass("required");
+
+            var labelColumn = new TagBuilder("div");
+            labelColumn.AddCssClass("col-md-5 col-xs-12 text-md-right");
+            labelColumn.InnerHtml.AppendHtml(labelContent);
+
+            var inputGroup = new TagBuilder("div");
+            inputGroup.AddCssClass("input-group");
+
+            var prependDiv = new TagBuilder("div");
+            prependDiv.AddCssClass("input-group-prepend");
+            prependDiv.InnerHtml.AppendHtml($"<span class='input-group-text'>{countryCode}</span>");
+            inputGroup.InnerHtml.AppendHtml(prependDiv);
+
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                { "class", "form-control" },
+                { "placeholder", placeholder },
+                { "maxlength", 10 },
+                { "pattern", "[6-9][0-9]{9}" },
+                { "type", "tel" },
+                { "inputmode", "numeric" }
+            };
+            if (isDisabled)
+                htmlAttributes["disabled"] = "disabled";
+            if (isRequired)
+            {
+                htmlAttributes["data-val"] = "true";
+                htmlAttributes["data-val-required"] = $"{label} is required";
+                htmlAttributes["data-val-regex"] = "Please enter a valid 10-digit phone number";
+                htmlAttributes["data-val-regex-pattern"] = "^[6-9][0-9]{9}$";
+            }
+
+            var inputTag = htmlHelper.TextBox(forExpression, null, htmlAttributes);
+            inputGroup.InnerHtml.AppendHtml(inputTag);
+
+            var inputColumn = new TagBuilder("div");
+            inputColumn.AddCssClass("col-md-4 col-xs-12");
+            inputColumn.InnerHtml.AppendHtml(inputGroup);
+
+            if (isRequired)
+            {
+                var validationMessage = htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" });
+                inputColumn.InnerHtml.AppendHtml(validationMessage);
+            }
+
+            var formGroupRow = new TagBuilder("div");
+            formGroupRow.AddCssClass("form-group row");
+            formGroupRow.InnerHtml.AppendHtml(labelColumn);
+            formGroupRow.InnerHtml.AppendHtml(inputColumn);
+
+            return formGroupRow;
+        }
+
+        public static IHtmlContent AccordianBaseFormCheckBox(this IHtmlHelper htmlHelper, string label, string forExpression, string id = "", bool useSwitch = true)
+        {
+            var labelContent = new TagBuilder("label");
+            labelContent.InnerHtml.Append(label);
+            labelContent.AddCssClass("col-form-label");
+
+            var labelColumn = new TagBuilder("div");
+            labelColumn.AddCssClass("col-md-5 col-xs-12 text-md-right");
+            labelColumn.InnerHtml.AppendHtml(labelContent);
+
+            var inputColumn = new TagBuilder("div");
+            inputColumn.AddCssClass("col-md-4 col-xs-12");
+            inputColumn.InnerHtml.AppendHtml(BuildCheckBoxSwitchContent(htmlHelper, forExpression, id, useSwitch));
+
+            var formGroupRow = new TagBuilder("div");
+            formGroupRow.AddCssClass("form-group row");
+            formGroupRow.InnerHtml.AppendHtml(labelColumn);
+            formGroupRow.InnerHtml.AppendHtml(inputColumn);
+
+            return formGroupRow;
+        }
+
         public static IHtmlContent AccordianBaseDropdown(this IHtmlHelper htmlHelper, string label, string forExpression, IEnumerable<SelectListItem> selectList, bool isRequired = false, string placeholder = "", bool isRegExpression = false)
         {
             // Create label element

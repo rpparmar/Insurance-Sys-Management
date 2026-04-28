@@ -36,14 +36,19 @@ namespace Insurancesys.web.Models
 
         [RegularExpression(@"^[a-zA-Z0-9_@]+$", ErrorMessage = "Use only letters, numbers, underscore (_), and at-sign (@). No spaces.")]
         [Remote(action: "IsAdminUsernameAvailable", controller: "AgencyOnboarding")]
+        [Required(ErrorMessage = "Enter username")]
         [Display(Name = "Admin Username")]
         public string? AdminUsername { get; set; }
 
+        public bool IsAdminUsernameEditEnabled { get; set; }
+
+        [Required(ErrorMessage = "Enter password")]
         [MinLength(8, ErrorMessage = "Password must be at least 8 characters")]
         [DataType(DataType.Password)]
         [Display(Name = "Admin Password")]
         public string? AdminPassword { get; set; }
 
+        [Required(ErrorMessage = "Re-enter password")]
         [Compare(nameof(AdminPassword), ErrorMessage = "Passwords do not match")]
         [DataType(DataType.Password)]
         [Display(Name = "Confirm Password")]

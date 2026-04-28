@@ -38,10 +38,11 @@
         </div>
     }
 
-    <form id="frmAgency" class="form fv-plugins-bootstrap fv-plugins-framework" asp-action="AddEditAgency" asp-controller="AgencyOnboarding" method="post">
+    <form id="frmAgency" class="form fv-plugins-bootstrap fv-plugins-framework" asp-action="SaveAgency" asp-controller="AgencyOnboarding" method="post">
         @Html.AntiForgeryToken()
         @Html.HiddenFor(m => m.AgencyId)
         @Html.HiddenFor(m => m.IsEditMode)
+        @Html.HiddenFor(m => m.IsAdminUsernameEditEnabled, new { id = "hdnIsAdminUsernameEditEnabled" })
         <div class="row">
             <div class="col-md-12">
                 <div class="card card-custom card-sticky" id="kt_page_sticky_card">
@@ -51,7 +52,7 @@
                             <a asp-controller="AgencyOnboarding" asp-action="AgencyList" class="btn btn-danger font-weight-bolder mr-2">
                                 <i class="ki ki-long-arrow-back icon-sm"></i>Back
                             </a>
-                            <button type="submit" class="btn btn-primary font-weight-bolder">
+                            <button type="submit" form="frmAgency" class="btn btn-primary font-weight-bolder">
                                 <i class="ki ki-check icon-sm"></i>@(Model.IsEditMode ? "Save" : "Create Agency")
                             </button>
                         </div>
@@ -60,95 +61,50 @@
                         <div asp-validation-summary="ModelOnly" class="text-danger mb-5"></div>
                         <div class="row justify-content-center align-items-center">
                             <div class="col-md-12">
-                                <div class="accordion accordion-solid accordion-toggle-arrow" id="accordionAgencyOnboarding">
+                                <div class="accordion accordion-solid" id="accordionAgencyDetails">
                                     <div class="card" style="display: block;">
-                                        <div class="card-header card-head" id="headingAgencyDetails">
-                                            <div class="card-title" data-toggle="collapse" data-target="#collapseAgencyDetails" aria-expanded="true">
-                                                <i class="flaticon2-layers-1"></i>
+                                        <div class="card-header card-head">
+                                            <div class="card-title">
+                                                <i class="far fa-building"></i>
                                                 Agency &amp; contact
                                             </div>
                                         </div>
-                                        <div id="collapseAgencyDetails" class="collapse show" data-parent="#accordionAgencyOnboarding" style="align-self:center">
-                                            <div class="card-body">
-                                                @if (Model.IsEditMode && !string.IsNullOrEmpty(Model.DatabaseNameDisplay))
-                                                {
-                                                    <div class="form-group row">
-                                                        <div class="col-md-5 col-xs-12 text-md-right">
-                                                            <label class="col-form-label">Database</label>
-                                                        </div>
-                                                        <div class="col-md-4 col-xs-12">
-                                                            <input type="text" class="form-control" readonly value="@Model.DatabaseNameDisplay" />
-                                                        </div>
-                                                    </div>
-                                                }
-                                                @Html.AccordianBaseTextBox("Agency/Agent Name", nameof(Model.AgencyName), true, "Agency or agent full name", 200)
-                                                @Html.AccordianBaseTextBox("Agency Code", nameof(Model.AgencyCode), false, "Optional short code", 50, isRegExpression: true)
-                                                <p class="form-text text-muted col-12 offset-md-5 pl-md-0 mb-3">Letters, numbers, and underscores only. Leave blank if not needed.</p>
-                                                @Html.AccordianBaseTextBox("Contact Email", nameof(Model.ContactEmail), false, "email@example.com", 256, isRegExpression: true)
-                                                @Html.AccordianBaseTextBox("Contact Phone", nameof(Model.ContactPhone), false, "Phone number", 20)
-                                                @if (Model.IsEditMode)
-                                                {
-                                                    <div class="form-group row">
-                                                        <div class="col-md-5 col-xs-12 text-md-right">
-                                                            @Html.LabelFor(m => m.IsActive, new { @class = "col-form-label" })
-                                                        </div>
-                                                        <div class="col-md-4 col-xs-12 pt-2">
-                                                            @Html.CheckBoxFor(m => m.IsActive, new { @class = "" })
-                                                        </div>
-                                                    </div>
-                                                }
-                                                @if (!Model.IsEditMode)
-                                                {
-                                                    <p class="form-text text-muted col-12 offset-md-5 pl-md-0 mb-0">A dedicated database name is created automatically when you save.</p>
-                                                }
-                                            </div>
+                                        <div class="card-body">
+                                            @Html.AccordianBaseTextBox("Agency/Agent Name", nameof(Model.AgencyName), true, "Agency or agent full name", 200)
+                                            @Html.AccordianBaseTextBox("Agency Code", nameof(Model.AgencyCode), false, "Optional short code", 50, isRegExpression: true)
+                                            @* <p class="form-text text-muted col-12 offset-md-5 pl-md-0 mb-3">Letters, numbers, and underscores only. Leave blank if not needed.</p> *@
+
+                                            @Html.AccordianBaseTextBox("Contact Email", nameof(Model.ContactEmail), false, "email@example.com", 256, isRegExpression: true)
+                                            @Html.AccordianBasePhoneNumberWithCode("Contact Phone", nameof(Model.ContactPhone), isRequired: false, placeholder: "Enter 10-digit phone number")
+
+                                            @Html.AccordianBaseFormCheckBox("Active", nameof(Model.IsActive))
+
+                                            @Html.AccordianBaseTextBoxWithTooltip(
+                                                     label: "Admin Username",
+                                                     forExpression: nameof(Model.AdminUsername),
+                                                     tooltip: "Use 1 to 100 characters: letters, numbers, underscore, and at-sign only. No spaces. Used for agency login.",
+                                                     options: new Insurancesys.web.Helper.HtmlHelpers.AccordianTextBoxWithTooltipOptions
+                                                     {
+                                                         IsRequired = !Model.IsEditMode,
+                                                         Placeholder = "Login username for this agency",
+                                                         MaxLength = 100,
+                                                         IsRegExpression = true,
+                                                         IsReadOnly = Model.IsEditMode,
+                                                         ShowEditButton = Model.IsEditMode && User.IsInRole("SuperAdmin"),
+                                                         EditButtonId = "btnEnableAdminUsernameEdit",
+                                                         EditButtonTitle = "Edit username",
+                                                         EditButtonCssClass = "btn btn-sm btn-clean btn-icon ml-2",
+                                                         EditButtonIconCssClass = "flaticon-edit text-primary"
+                                                     }
+                                                     )
+
+                                            @if (!Model.IsEditMode)
+                                            {
+                                                @Html.AccordianBasePasswordBox("Admin Password", nameof(Model.AdminPassword), new Insurancesys.web.Helper.HtmlHelpers.AccordianPasswordOptions { IsRequired = true, Placeholder = "Minimum 8 characters", AutoComplete = "new-password" })
+                                                @Html.AccordianBasePasswordBox("Confirm Password", nameof(Model.ConfirmPassword), new Insurancesys.web.Helper.HtmlHelpers.AccordianPasswordOptions { IsRequired = true, Placeholder = "Re-enter password", AutoComplete = "new-password" })
+                                            }
                                         </div>
                                     </div>
-                                    @if (!Model.IsEditMode)
-                                    {
-                                        <div class="card" style="display: block;">
-                                            <div class="card-header card-head" id="headingAdminCredentials">
-                                                <div class="card-title" data-toggle="collapse" data-target="#collapseAdminCredentials" aria-expanded="true">
-                                                    <i class="icon-sm-sm-2x text-dark-50 flaticon-user-settings"></i>
-                                                    Admin credentials
-                                                </div>
-                                            </div>
-                                            <div id="collapseAdminCredentials" class="collapse show" data-parent="#accordionAgencyOnboarding" style="align-self:center">
-                                                <div class="card-body">
-                                                    <div class="form-group row">
-                                                        <div class="col-md-5 col-xs-12 text-md-right">
-                                                            @Html.LabelFor(m => m.AdminUsername, new { @class = "col-form-label required" })
-                                                        </div>
-                                                        <div class="col-md-4 col-xs-12 d-flex align-items-start flex-wrap">
-                                                            @Html.TextBoxFor(m => m.AdminUsername, new { @class = "form-control maximum-length-setup", placeholder = "Login username for this agency", autocomplete = "username", maxlength = 100 })
-                                                            <span class="ml-2 mt-1" data-toggle="tooltip" data-placement="right" tabindex="0" title="Use 1 to 100 characters: letters, numbers, underscore, and at-sign only. No spaces. Used for agency login.">
-                                                                <i class="fas fa-info-circle text-muted" aria-hidden="true"></i>
-                                                            </span>
-                                                            @Html.ValidationMessageFor(m => m.AdminUsername, "", new { @class = "text-danger w-100" })
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group row">
-                                                        <div class="col-md-5 col-xs-12 text-md-right">
-                                                            @Html.LabelFor(m => m.AdminPassword, new { @class = "col-form-label required" })
-                                                        </div>
-                                                        <div class="col-md-4 col-xs-12">
-                                                            @Html.PasswordFor(m => m.AdminPassword, new { @class = "form-control", placeholder = "Minimum 8 characters", autocomplete = "new-password" })
-                                                            @Html.ValidationMessageFor(m => m.AdminPassword, "", new { @class = "text-danger" })
-                                                        </div>
-                                                    </div>
-                                                    <div class="form-group row">
-                                                        <div class="col-md-5 col-xs-12 text-md-right">
-                                                            @Html.LabelFor(m => m.ConfirmPassword, new { @class = "col-form-label required" })
-                                                        </div>
-                                                        <div class="col-md-4 col-xs-12">
-                                                            @Html.PasswordFor(m => m.ConfirmPassword, new { @class = "form-control", placeholder = "Re-enter password", autocomplete = "new-password" })
-                                                            @Html.ValidationMessageFor(m => m.ConfirmPassword, "", new { @class = "text-danger" })
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    }
                                 </div>
                             </div>
                         </div>
@@ -164,6 +120,16 @@
         (function () {
             if (typeof $ !== 'undefined' && $.fn.tooltip) {
                 $('[data-toggle="tooltip"]').tooltip();
+            }
+
+            var $btn = $('#btnEnableAdminUsernameEdit');
+            if ($btn.length) {
+                $btn.on('click', function () {
+                    var $txt = $('#AdminUsername');
+                    $('#hdnIsAdminUsernameEditEnabled').val('true');
+                    $txt.removeAttr('readonly');
+                    $txt.focus();
+                });
             }
         })();
     </script>

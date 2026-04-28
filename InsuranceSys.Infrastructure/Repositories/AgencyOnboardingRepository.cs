@@ -301,6 +301,45 @@ namespace InsuranceSys.Infrastructure.Repositories
                 .AnyAsync(u => u.Username == trimmed);
         }
 
+        public async Task<string?> GetAgencyAdminUsernameAsync(int agencyId)
+        {
+            return await _masterDb.AgencyUsers
+                .AsNoTracking()
+                .Where(u => u.AgencyId == agencyId && u.Role == (int)Roles.AgencyAdmin)
+                .OrderBy(u => u.UserId)
+                .Select(u => u.Username)
+                .FirstOrDefaultAsync();
+        }
+
+        /// <summary>Returns 1 on success, 0 if agency admin user not found, -1 duplicate username.</summary>
+        public async Task<int> UpdateAgencyAdminUsernameAsync(int agencyId, string newUsername)
+        {
+            if (string.IsNullOrWhiteSpace(newUsername))
+                return -1;
+
+            var trimmed = newUsername.Trim();
+
+            var user = await _masterDb.AgencyUsers
+                .Where(u => u.AgencyId == agencyId && u.Role == (int)Roles.AgencyAdmin)
+                .OrderBy(u => u.UserId)
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+                return 0;
+
+            if (string.Equals(user.Username, trimmed, StringComparison.Ordinal))
+                return 1;
+
+            var exists = await _masterDb.AgencyUsers.AnyAsync(u => u.UserId != user.UserId && u.Username == trimmed);
+            if (exists)
+                return -1;
+
+            user.Username = trimmed;
+            user.UpdatedAtUtc = DateTime.UtcNow;
+            await _masterDb.SaveChangesAsync();
+            return 1;
+        }
+
         public async Task<bool> IsDatabaseNameExistsAsync(string databaseName)
         {
             return await _masterDb.AgencyDetails
