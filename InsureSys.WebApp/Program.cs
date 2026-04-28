@@ -1,4 +1,5 @@
 using Insurancesys.web.Middleware;
+using Insurancesys.web.Services;
 using Insurancesys.web.Utility;
 using InsuranceSys.Application;
 using InsuranceSys.Application.Interface;
@@ -74,38 +75,58 @@ namespace Insurancesys.web
 
             RegisterDependency(builder);
 
-            #region JWT Authentication for Unauthorized Access
-            // Configure JWT authentication
-            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+            #region Authentication — Cookie (default for MVC) + JWT Bearer (for API controllers)
+            var jwtSecret = builder.Configuration["JwtSettings:SecretKey"]
+                ?? throw new InvalidOperationException("JwtSettings:SecretKey is not configured.");
+            var jwtIssuer = builder.Configuration["JwtSettings:Issuer"] ?? "InsureSysManagement";
+            var jwtAudience = builder.Configuration["JwtSettings:Audience"] ?? "InsureSysManagement";
+
+            builder.Services.AddAuthentication(options =>
+            {
+                // Cookie is the default for all MVC/Razor actions that use [Authorize] without a scheme.
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            })
+            .AddCookie(options =>
+            {
+                options.Cookie.Name = "CookieAuth";
+                options.LoginPath = "/";
+                options.AccessDeniedPath = "/Login/Login";
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                options.SlidingExpiration = true;
+            })
             .AddJwtBearer(options =>
             {
+                // JWT Bearer is used only by API controllers that explicitly declare
+                // [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)].
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    ValidateIssuer = false, // Set to true if you have an issuer to validate
-                    ValidateAudience = false, // Set to true if you have an audience to validate
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtIssuer,
+                    ValidateAudience = true,
+                    ValidAudience = jwtAudience,
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("your_secret_key_here"))
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+                    ClockSkew = TimeSpan.Zero
                 };
             });
             #endregion
-            #region Cookie Authentication for Unauthorized Access
-            builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(options =>
+
+            #region CORS — allow Angular dev server and production origin
+            var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+                ?? Array.Empty<string>();
+
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AngularPolicy", policy =>
                 {
-                    options.Cookie.Name = "CookieAuth";
-                    options.LoginPath = "/";
-                    options.AccessDeniedPath = "/Login/Login";
-                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-                    options.SlidingExpiration = true;
-                    //options.Events = new CookieAuthenticationEvents
-                    //{
-                    //    OnRedirectToLogin = ctx =>
-                    //    {
-                    //        return Task.FromResult<object>(null);
-                    //    }
-                    //};
+                    policy.WithOrigins(allowedOrigins)
+                          .AllowAnyHeader()
+                          .AllowAnyMethod()
+                          .AllowCredentials();
                 });
+            });
             #endregion
 
             #region API versioning
@@ -150,6 +171,7 @@ namespace Insurancesys.web
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseCors("AngularPolicy");
             app.UseMiddleware<ExceptionHandlingMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
@@ -165,6 +187,9 @@ namespace Insurancesys.web
 
         private static void RegisterDependency(WebApplicationBuilder builder)
         {
+            // JWT token generation service (singleton — stateless, uses IConfiguration)
+            builder.Services.AddSingleton<JwtService>();
+
             // Tenant infrastructure (Singleton for cache, Scoped for per-request components)
             builder.Services.AddSingleton<ITenantConnectionCache, TenantConnectionCache>();
             builder.Services.AddScoped<ITenantConnectionResolver, TenantConnectionResolver>();

@@ -29,7 +29,11 @@
 
   <ItemGroup>
     <PackageReference Include="BuildBundlerMinifier" Version="3.2.449" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.19" />
+    <!-- 8.x aligns Microsoft.IdentityModel.* + System.IdentityModel.Tokens.Jwt to one version.
+         JwtBearer 7.x left System.IdentityModel.Tokens.Jwt at 6.35 while other deps pulled
+         Microsoft.IdentityModel.Tokens 8.14 → runtime TypeLoadException on JsonConvert. -->
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.8" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="7.0.20" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Versioning" Version="5.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
