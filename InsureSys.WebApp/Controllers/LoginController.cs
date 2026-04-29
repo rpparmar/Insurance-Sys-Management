@@ -44,6 +44,19 @@ namespace Insurancesys.web.Controllers
                 return View(model);
             }
 
+            // Block logins for inactive/deleted agencies (SuperAdmin has no AgencyId).
+            if (user.AgencyId.HasValue)
+            {
+                var agency = user.AgencyDetails;
+                var isAgencyInactive = agency == null || !agency.IsActive;
+                var isAgencyDeleted = agency != null && agency.IsDeleted;
+                if (isAgencyInactive || isAgencyDeleted)
+                {
+                    ModelState.AddModelError("LoginError", "Your account is inactive. Please contact system administrator.");
+                    return View(model);
+                }
+            }
+
             var roleName = Enum.GetName(typeof(Roles), user.Role) ?? string.Empty;
             var claims = new List<Claim>
             {

@@ -58,7 +58,7 @@ namespace InsuranceSys.Infrastructure.Repositories
                 return (false, "An agency with this name already exists.");
 
             if (await IsAdminUsernameExistsAsync(dto.AdminUsername))
-                return (false, "This admin username is already in use.");
+                return (false, "This username is already in use.");
 
             var agencyCodeForStorage = string.IsNullOrWhiteSpace(dto.AgencyCode) ? null : dto.AgencyCode.Trim();
             if (agencyCodeForStorage != null && await IsAgencyCodeExistsAsync(agencyCodeForStorage))

@@ -125,7 +125,7 @@ namespace Insurancesys.web.Controllers
                         var u = await _onboardingService.UpdateAgencyAdminUsernameAsync(model.AgencyId, desired);
                         if (u == -1)
                         {
-                            ModelState.AddModelError(nameof(model.AdminUsername), "This admin username is already in use.");
+                            ModelState.AddModelError(nameof(model.AdminUsername), "This username is already in use.");
                             return View(model);
                         }
                     }
