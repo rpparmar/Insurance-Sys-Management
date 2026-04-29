@@ -37,6 +37,11 @@ namespace InsuranceSys.Infrastructure.Database
                 entity.HasIndex(e => e.AgencyId);
 
                 entity.Property(e => e.CreatedAtUtc).HasDefaultValueSql("SYSUTCDATETIME()");
+                entity.Property(e => e.IsSubUser).HasDefaultValue(false);
+
+                entity.Property(e => e.FirstName).HasMaxLength(25);
+                entity.Property(e => e.MiddleName).HasMaxLength(25);
+                entity.Property(e => e.LastName).HasMaxLength(25);
 
                 entity.HasOne(e => e.AgencyDetails)
                       .WithMany()

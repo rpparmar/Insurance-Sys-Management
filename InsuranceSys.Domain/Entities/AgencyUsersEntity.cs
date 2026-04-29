@@ -32,6 +32,17 @@ namespace InsuranceSys.Domain.Entities
         [MaxLength(200)]
         public string? DisplayName { get; set; }
 
+        [MaxLength(25)]
+        public string? FirstName { get; set; }
+
+        [MaxLength(25)]
+        public string? MiddleName { get; set; }
+
+        [MaxLength(25)]
+        public string? LastName { get; set; }
+
+        public bool IsSubUser { get; set; } = false;
+
         [Required]
         
         public int Role { get; set; }

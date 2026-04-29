@@ -390,6 +390,25 @@
                     </div>
                 </a>
                 <!--end:Item-->
+
+                @if (User.IsInRole("AgencyAdmin"))
+                {
+                    <a asp-controller="SubUsers" asp-action="SubUsersList" class="navi-item">
+                        <div class="navi-link">
+                            <div class="symbol symbol-40 bg-light mr-3">
+                                <div class="symbol-label">
+                                    <span class="svg-icon svg-icon-lg">
+                                        <i class="fas fa-user text-primary"></i>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="navi-text">
+                                <div class="font-weight-bold">Manage users</div>
+                                <div class="text-muted">Sub user management</div>
+                            </div>
+                        </div>
+                    </a>
+                }
                 
             </div>
             <!--end::Nav-->
