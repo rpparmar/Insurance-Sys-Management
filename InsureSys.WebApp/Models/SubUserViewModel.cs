@@ -32,10 +32,12 @@ namespace Insurancesys.web.Models
         [MaxLength(256)]
         public string? Email { get; set; }
 
+        [Required(ErrorMessage = "Enter password")]
         [MinLength(8, ErrorMessage = "Password must be at least 8 characters")]
         [DataType(DataType.Password)]
         public string? Password { get; set; }
 
+        [Required(ErrorMessage = "Re-enter password")]
         [Compare(nameof(Password), ErrorMessage = "Passwords do not match")]
         [DataType(DataType.Password)]
         public string? ConfirmPassword { get; set; }

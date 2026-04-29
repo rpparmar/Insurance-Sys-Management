@@ -40,18 +40,27 @@ namespace Insurancesys.web.Models
         [Display(Name = "Admin Username")]
         public string? AdminUsername { get; set; }
 
+        [Required(ErrorMessage = "Enter first name")]
+        [MaxLength(25)]
+        public string FirstName { get; set; } = string.Empty;
+
+        [MaxLength(25)]
+        public string? MiddleName { get; set; }
+
+        [Required(ErrorMessage = "Enter last name")]
+        [MaxLength(25)]
+        public string LastName { get; set; } = string.Empty;
+
         public bool IsAdminUsernameEditEnabled { get; set; }
 
         [Required(ErrorMessage = "Enter password")]
         [MinLength(8, ErrorMessage = "Password must be at least 8 characters")]
-        [DataType(DataType.Password)]
-        [Display(Name = "Admin Password")]
+        [DataType(DataType.Password)]        
         public string? AdminPassword { get; set; }
 
         [Required(ErrorMessage = "Re-enter password")]
         [Compare(nameof(AdminPassword), ErrorMessage = "Passwords do not match")]
-        [DataType(DataType.Password)]
-        [Display(Name = "Confirm Password")]
+        [DataType(DataType.Password)]        
         public string? ConfirmPassword { get; set; }
     }
 }

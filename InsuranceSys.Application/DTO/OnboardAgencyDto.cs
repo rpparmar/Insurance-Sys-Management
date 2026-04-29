@@ -9,6 +9,9 @@ namespace InsuranceSys.Application.DTO
         public string DesiredDatabaseName { get; set; } = string.Empty;
         public string AdminUsername { get; set; } = string.Empty;
         public string AdminPassword { get; set; } = string.Empty;
+        public string? FirstName { get; set; }
+        public string? MiddleName { get; set; }
+        public string? LastName { get; set; }
         public string? Notes { get; set; }
     }
 }

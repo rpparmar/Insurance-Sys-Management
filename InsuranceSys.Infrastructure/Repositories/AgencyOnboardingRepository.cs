@@ -121,7 +121,10 @@ namespace InsuranceSys.Infrastructure.Repositories
                     PasswordHash = hash,
                     PasswordSalt = salt,
                     Email = dto.ContactEmail,
-                    DisplayName = dto.AgencyName + " Admin",
+                    FirstName = string.IsNullOrWhiteSpace(dto.FirstName) ? null : dto.FirstName.Trim(),
+                    MiddleName = string.IsNullOrWhiteSpace(dto.MiddleName) ? null : dto.MiddleName.Trim(),
+                    LastName = string.IsNullOrWhiteSpace(dto.LastName) ? null : dto.LastName.Trim(),
+                    DisplayName = BuildDisplayName(dto.FirstName, dto.MiddleName, dto.LastName),
                     Role = (int)Roles.AgencyAdmin,
                     IsActive = true
                 };
@@ -331,6 +334,41 @@ namespace InsuranceSys.Infrastructure.Repositories
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<AgencyAdminProfileDto?> GetAgencyAdminProfileAsync(int agencyId)
+        {
+            return await _masterDb.AgencyUsers
+                .AsNoTracking()
+                .Where(u => u.AgencyId == agencyId && u.Role == (int)Roles.AgencyAdmin && !u.IsDeleted)
+                .OrderBy(u => u.UserId)
+                .Select(u => new AgencyAdminProfileDto
+                {
+                    FirstName = u.FirstName,
+                    MiddleName = u.MiddleName,
+                    LastName = u.LastName
+                })
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> UpdateAgencyAdminProfileAsync(int agencyId, AgencyAdminProfileDto dto)
+        {
+            var user = await _masterDb.AgencyUsers
+                .Where(u => u.AgencyId == agencyId && u.Role == (int)Roles.AgencyAdmin && !u.IsDeleted)
+                .OrderBy(u => u.UserId)
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+                return false;
+
+            user.FirstName = string.IsNullOrWhiteSpace(dto.FirstName) ? null : dto.FirstName.Trim();
+            user.MiddleName = string.IsNullOrWhiteSpace(dto.MiddleName) ? null : dto.MiddleName.Trim();
+            user.LastName = string.IsNullOrWhiteSpace(dto.LastName) ? null : dto.LastName.Trim();
+            user.DisplayName = BuildDisplayName(user.FirstName, user.LastName, user.Username);
+            user.UpdatedAtUtc = DateTime.UtcNow;
+
+            await _masterDb.SaveChangesAsync();
+            return true;
+        }
+
         /// <summary>Returns 1 on success, 0 if agency admin user not found, -1 duplicate username.</summary>
         public async Task<int> UpdateAgencyAdminUsernameAsync(int agencyId, string newUsername)
         {
@@ -358,6 +396,15 @@ namespace InsuranceSys.Infrastructure.Repositories
             user.UpdatedAtUtc = DateTime.UtcNow;
             await _masterDb.SaveChangesAsync();
             return 1;
+        }
+
+        private static string BuildDisplayName(string? firstName, string? middlename, string? lastName)
+        {
+            var fn = string.IsNullOrWhiteSpace(firstName) ? null : firstName.Trim();
+            var mn = string.IsNullOrWhiteSpace(middlename) ? null : middlename.Trim();
+            var ln = string.IsNullOrWhiteSpace(lastName) ? null : lastName.Trim();
+            var name = string.Join(' ', new[] { fn, mn,ln }.Where(s => !string.IsNullOrWhiteSpace(s)));
+            return name;
         }
 
         public async Task<bool> IsDatabaseNameExistsAsync(string databaseName)

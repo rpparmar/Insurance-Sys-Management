@@ -62,6 +62,7 @@ namespace Insurancesys.web.Controllers
             HttpContext.Session.SetString(SessionOriginalAgencyCode, dto.AgencyCode ?? string.Empty);
             var adminUsername = await _onboardingService.GetAgencyAdminUsernameAsync(id) ?? string.Empty;
             HttpContext.Session.SetString(SessionOriginalAdminUsername, adminUsername);
+            var adminProfile = await _onboardingService.GetAgencyAdminProfileAsync(id);
 
             var model = new AgencyOnboardingViewModel
             {
@@ -74,7 +75,10 @@ namespace Insurancesys.web.Controllers
                 IsActive = dto.IsActive,
                 DatabaseNameDisplay = dto.DatabaseName,
                 AdminUsername = adminUsername,
-                IsAdminUsernameEditEnabled = false
+                IsAdminUsernameEditEnabled = false,
+                FirstName = adminProfile?.FirstName ?? string.Empty,
+                MiddleName = adminProfile?.MiddleName,
+                LastName = adminProfile?.LastName ?? string.Empty
             };
 
             return View(model);
@@ -131,6 +135,22 @@ namespace Insurancesys.web.Controllers
                     }
                 }
 
+                // Update Agency Admin profile fields (First/Middle/Last) without changing existing flows.
+                var profileOk = await _onboardingService.UpdateAgencyAdminProfileAsync(
+                    model.AgencyId,
+                    new AgencyAdminProfileDto
+                    {
+                        FirstName = model.FirstName,
+                        MiddleName = model.MiddleName,
+                        LastName = model.LastName
+                    });
+                if (!profileOk)
+                {
+                    TempData["RowsAffected"] = 0;
+                    TempData["Message"] = Constants.ErrorMessages.MsgUpdateFailure;
+                    return View(model);
+                }
+
                 var updateDto = new AgencyDetailsDto
                 {
                     AgencyId = model.AgencyId,
@@ -181,6 +201,9 @@ namespace Insurancesys.web.Controllers
                 DesiredDatabaseName = desiredDatabaseName,
                 AdminUsername = model.AdminUsername!.Trim(),
                 AdminPassword = model.AdminPassword!,
+                FirstName = model.FirstName,
+                MiddleName = model.MiddleName,
+                LastName = model.LastName,
                 Notes = null
             };
 

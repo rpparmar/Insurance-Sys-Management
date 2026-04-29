@@ -41,6 +41,9 @@ $(function () {
             initDataTable();
         });
     }
+    else {
+        //additional script to be written for Add/Update form if required
+    }
 
     if (parseInt(globalvar.rowsaffected) > 0)
         toastr.success(globalvar.tostarMsg);
