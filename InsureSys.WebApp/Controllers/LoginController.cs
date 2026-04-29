@@ -39,20 +39,25 @@ namespace Insurancesys.web.Controllers
 
             var user = await _masterLoginService.AuthenticateAsync(model.Username, model.Password);
             if (user == null)
-            {                
+            {
                 ModelState.AddModelError("LoginError", "Invalid username or password.");
                 return View(model);
             }
 
-            // Block logins for inactive/deleted agencies (SuperAdmin has no AgencyId).
+            const string inactiveMessage = "Your account is inactive. Please contact system administrator.";
+
+            if (!user.IsActive)
+            {
+                ModelState.AddModelError("LoginError", inactiveMessage);
+                return View(model);
+            }
+
             if (user.AgencyId.HasValue)
             {
                 var agency = user.AgencyDetails;
-                var isAgencyInactive = agency == null || !agency.IsActive;
-                var isAgencyDeleted = agency != null && agency.IsDeleted;
-                if (isAgencyInactive || isAgencyDeleted)
+                if (agency == null || !agency.IsActive || agency.IsDeleted)
                 {
-                    ModelState.AddModelError("LoginError", "Your account is inactive. Please contact system administrator.");
+                    ModelState.AddModelError("LoginError", inactiveMessage);
                     return View(model);
                 }
             }

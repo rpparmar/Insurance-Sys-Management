@@ -20,7 +20,7 @@ namespace InsuranceSys.Infrastructure.Repositories
             var user = await _masterDb.AgencyUsers
                 .AsNoTracking()
                 .Include(u => u.AgencyDetails)
-                .FirstOrDefaultAsync(u => u.Username == username && u.IsActive);
+                .FirstOrDefaultAsync(u => u.Username == username && !u.IsDeleted);
 
             if (user == null)
                 return null;

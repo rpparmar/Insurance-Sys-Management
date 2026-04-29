@@ -41,6 +41,18 @@ namespace Insurancesys.web.Api
             if (user == null)
                 return Unauthorized(new { message = "Invalid username or password." });
 
+            const string inactiveMessage = "Your account is inactive. Please contact system administrator.";
+
+            if (!user.IsActive)
+                return Unauthorized(new { message = inactiveMessage });
+
+            if (user.AgencyId.HasValue)
+            {
+                var agency = user.AgencyDetails;
+                if (agency == null || !agency.IsActive || agency.IsDeleted)
+                    return Unauthorized(new { message = inactiveMessage });
+            }
+
             await _masterLoginService.UpdateLastLoginAsync(user.UserId);
 
             var token = _jwtService.GenerateToken(user);

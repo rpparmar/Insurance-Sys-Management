@@ -228,6 +228,15 @@ namespace InsuranceSys.Infrastructure.Repositories
             entity.IsActive = dto.IsActive;
             entity.UpdatedAtUtc = DateTime.UtcNow;
 
+            var agencyUsers = await _masterDb.AgencyUsers
+                .Where(u => u.AgencyId == dto.AgencyId && !u.IsDeleted)
+                .ToListAsync();
+            foreach (var u in agencyUsers)
+            {
+                u.IsActive = dto.IsActive;
+                u.UpdatedAtUtc = DateTime.UtcNow;
+            }
+
             await _masterDb.SaveChangesAsync();
             return 1;
         }
@@ -240,6 +249,16 @@ namespace InsuranceSys.Infrastructure.Repositories
             agencyDetail.IsDeleted = true;
             agencyDetail.IsActive = false;
             agencyDetail.UpdatedAtUtc = DateTime.UtcNow;
+
+            var agencyUsers = await _masterDb.AgencyUsers.AsNoTracking()
+                .Where(u => u.AgencyId == agencyId && !u.IsDeleted)
+                .ToListAsync();
+            foreach (var u in agencyUsers)
+            {
+                u.IsActive = false;
+                u.UpdatedAtUtc = DateTime.UtcNow;
+            }
+
             await _masterDb.SaveChangesAsync();
             return true;
         }
@@ -275,7 +294,7 @@ namespace InsuranceSys.Infrastructure.Repositories
                 return false;
 
             var trimmed = agencyCode.Trim();
-            return await _masterDb.AgencyDetails
+            return await _masterDb.AgencyDetails.AsNoTracking()
                 .Where(t => excludeAgencyId == null || t.AgencyId != excludeAgencyId.Value)
                 .AnyAsync(t => t.AgencyCode != null && t.AgencyCode == trimmed);
         }
@@ -287,7 +306,7 @@ namespace InsuranceSys.Infrastructure.Repositories
 
             var trimmed = agencyName.Trim();
             var lower = trimmed.ToLowerInvariant();
-            return await _masterDb.AgencyDetails
+            return await _masterDb.AgencyDetails.AsNoTracking()
                 .Where(t => excludeAgencyId == null || t.AgencyId != excludeAgencyId.Value)
                 .AnyAsync(t => t.AgencyName.ToLower() == lower);
         }
@@ -320,7 +339,7 @@ namespace InsuranceSys.Infrastructure.Repositories
 
             var trimmed = newUsername.Trim();
 
-            var user = await _masterDb.AgencyUsers
+            var user = await _masterDb.AgencyUsers.AsNoTracking()
                 .Where(u => u.AgencyId == agencyId && u.Role == (int)Roles.AgencyAdmin)
                 .OrderBy(u => u.UserId)
                 .FirstOrDefaultAsync();
