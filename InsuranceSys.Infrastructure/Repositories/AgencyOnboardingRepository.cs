@@ -230,9 +230,13 @@ namespace InsuranceSys.Infrastructure.Repositories
         /// <summary>Returns 1 on success, 0 if not found, -1 duplicate name, -2 duplicate code.</summary>
         public async Task<int> UpdateAgencyDetailsAsync(AgencyDetailsDto dto)
         {
-            var entity = await _masterDb.AgencyDetails.FindAsync(dto.AgencyId);
-            if (entity == null)
+            var _agencyDetail = await _masterDb.AgencyDetails.FindAsync(dto.AgencyId);
+            if (_agencyDetail == null)
                 return 0;
+
+            // Snapshot persisted agency active flag before mutating tracked entity fields.
+            var previousAgencyIsActive = _agencyDetail.IsActive;
+            var agencyActiveChanged = previousAgencyIsActive != dto.IsActive;
 
             var trimmedName = dto.AgencyName.Trim();
             if (await IsAgencyNameExistsAsync(trimmedName, dto.AgencyId))
@@ -242,37 +246,39 @@ namespace InsuranceSys.Infrastructure.Repositories
             if (codeForStorage != null && await IsAgencyCodeExistsAsync(codeForStorage, dto.AgencyId))
                 return -2;
 
-            entity.AgencyName = trimmedName;
-            entity.AgencyCode = codeForStorage;
-            entity.ContactEmail = string.IsNullOrWhiteSpace(dto.ContactEmail) ? null : dto.ContactEmail.Trim();
-            entity.ContactPhone = string.IsNullOrWhiteSpace(dto.ContactPhone) ? null : dto.ContactPhone.Trim();
-            entity.IsActive = dto.IsActive;
-            entity.UpdatedAtUtc = DateTime.UtcNow;
+            _agencyDetail.AgencyName = trimmedName;
+            _agencyDetail.AgencyCode = codeForStorage;
+            _agencyDetail.ContactEmail = string.IsNullOrWhiteSpace(dto.ContactEmail) ? null : dto.ContactEmail.Trim();
+            _agencyDetail.ContactPhone = string.IsNullOrWhiteSpace(dto.ContactPhone) ? null : dto.ContactPhone.Trim();
+            _agencyDetail.IsActive = dto.IsActive;
+            _agencyDetail.UpdatedAtUtc = DateTime.UtcNow;
 
             var agencyUsers = await _masterDb.AgencyUsers
                 .Where(u => u.AgencyId == dto.AgencyId && !u.IsDeleted)
                 .ToListAsync();
 
-            // Preserve current behavior: agency IsActive is propagated to all agency users.
-            foreach (var u in agencyUsers)
+            // Only propagate AgencyUsers.IsActive when AgencyDetails.IsActive actually toggles.            
+            if (agencyActiveChanged)
             {
-                u.IsActive = dto.IsActive;
-                u.UpdatedAtUtc = DateTime.UtcNow;
+                foreach (var u in agencyUsers)
+                {                    
+                    u.IsActive = dto.IsActive;                    
+                }
             }
 
             // Additionally (refactor): update the Agency Admin profile names from the same DTO,
             // keeping username update behavior in UpdateAgencyAdminUsernameAsync unchanged.
-            var _agencyUser = agencyUsers
+            var userProfile = agencyUsers
                 .Where(u => u.Role == (int)Roles.AgencyAdmin)
                 .OrderBy(u => u.UserId)
                 .FirstOrDefault();
-            if (_agencyUser != null)
+            if (userProfile != null)
             {
-                _agencyUser.FirstName = string.IsNullOrWhiteSpace(dto.AgencyFirstName) ? null : dto.AgencyFirstName.Trim();
-                _agencyUser.MiddleName = string.IsNullOrWhiteSpace(dto.AgencyMiddleName) ? null : dto.AgencyMiddleName.Trim();
-                _agencyUser.LastName = string.IsNullOrWhiteSpace(dto.AgencyLastName) ? null : dto.AgencyLastName.Trim();
-                _agencyUser.DisplayName = BuildDisplayName(_agencyUser.FirstName, _agencyUser.LastName, _agencyUser.Username);
-                _agencyUser.UpdatedAtUtc = DateTime.UtcNow;
+                userProfile.FirstName = string.IsNullOrWhiteSpace(dto.AgencyFirstName) ? null : dto.AgencyFirstName.Trim();
+                userProfile.MiddleName = string.IsNullOrWhiteSpace(dto.AgencyMiddleName) ? null : dto.AgencyMiddleName.Trim();
+                userProfile.LastName = string.IsNullOrWhiteSpace(dto.AgencyLastName) ? null : dto.AgencyLastName.Trim();
+                userProfile.DisplayName = BuildDisplayName(userProfile.FirstName, userProfile.MiddleName, userProfile.LastName);
+                userProfile.UpdatedAtUtc = DateTime.UtcNow;
             }
 
             await _masterDb.SaveChangesAsync();
@@ -403,7 +409,7 @@ namespace InsuranceSys.Infrastructure.Repositories
             var fn = string.IsNullOrWhiteSpace(firstName) ? null : firstName.Trim();
             var mn = string.IsNullOrWhiteSpace(middlename) ? null : middlename.Trim();
             var ln = string.IsNullOrWhiteSpace(lastName) ? null : lastName.Trim();
-            var name = string.Join(' ', new[] { fn, mn,ln }.Where(s => !string.IsNullOrWhiteSpace(s)));
+            var name = string.Join(' ', new[] { fn, mn, ln }.Where(s => !string.IsNullOrWhiteSpace(s)));
             return name;
         }
 

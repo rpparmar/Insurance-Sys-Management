@@ -71,8 +71,7 @@
                                         </div>
                                         <div class="card-body">
                                             @Html.AccordianBaseTextBox("Agency/Agent Name", nameof(Model.AgencyName), true, "Agency or agent full name", 200)
-                                            @Html.AccordianBaseTextBox("Agency Code", nameof(Model.AgencyCode), false, "Optional short code", 50, isRegExpression: true)
-                                            @* <p class="form-text text-muted col-12 offset-md-5 pl-md-0 mb-3">Letters, numbers, and underscores only. Leave blank if not needed.</p> *@
+                                            @Html.AccordianBaseTextBox("Agency Code", nameof(Model.AgencyCode), false, "Optional short code", 50, isRegExpression: true)                                            
                                             @Html.AccordianBaseTextBox("First Name", nameof(Model.FirstName), true, "First name", 25)
                                             @Html.AccordianBaseTextBox("Middle Name", nameof(Model.MiddleName), false, "Middle name", 25)
                                             @Html.AccordianBaseTextBox("Last Name", nameof(Model.LastName), true, "Last name", 25)

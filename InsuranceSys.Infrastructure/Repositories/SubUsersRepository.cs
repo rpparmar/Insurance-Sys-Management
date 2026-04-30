@@ -87,7 +87,7 @@ namespace InsuranceSys.Infrastructure.Repositories
                 FirstName = string.IsNullOrWhiteSpace(dto.FirstName) ? null : dto.FirstName.Trim(),
                 MiddleName = string.IsNullOrWhiteSpace(dto.MiddleName) ? null : dto.MiddleName.Trim(),
                 LastName = string.IsNullOrWhiteSpace(dto.LastName) ? null : dto.LastName.Trim(),
-                DisplayName = BuildDisplayName(dto.FirstName, dto.LastName, username),
+                DisplayName = BuildDisplayName(dto.FirstName, dto.MiddleName, dto.LastName),
                 Role = dto.Role,
                 IsActive = dto.IsActive,
                 IsDeleted = false,
@@ -131,7 +131,7 @@ namespace InsuranceSys.Infrastructure.Repositories
             entity.FirstName = string.IsNullOrWhiteSpace(dto.FirstName) ? null : dto.FirstName.Trim();
             entity.MiddleName = string.IsNullOrWhiteSpace(dto.MiddleName) ? null : dto.MiddleName.Trim();
             entity.LastName = string.IsNullOrWhiteSpace(dto.LastName) ? null : dto.LastName.Trim();
-            entity.DisplayName = BuildDisplayName(entity.FirstName, entity.LastName, username);
+            entity.DisplayName = BuildDisplayName(dto.FirstName, dto.MiddleName, dto.LastName);
             entity.Role = dto.Role;
             entity.IsActive = dto.IsActive;
             entity.IsSubUser = true;
@@ -194,12 +194,13 @@ namespace InsuranceSys.Infrastructure.Repositories
                 .AnyAsync(u => (excludeUserId == null || u.UserId != excludeUserId.Value) && u.Username == trimmed);
         }
 
-        private static string BuildDisplayName(string? firstName, string? lastName, string usernameFallback)
+        private static string BuildDisplayName(string? firstName, string? middlename, string? lastName)
         {
             var fn = string.IsNullOrWhiteSpace(firstName) ? null : firstName.Trim();
+            var mn = string.IsNullOrWhiteSpace(middlename) ? null : middlename.Trim();
             var ln = string.IsNullOrWhiteSpace(lastName) ? null : lastName.Trim();
-            var name = string.Join(' ', new[] { fn, ln }.Where(s => !string.IsNullOrWhiteSpace(s)));
-            return string.IsNullOrWhiteSpace(name) ? usernameFallback : name;
+            var name = string.Join(' ', new[] { fn, mn, ln }.Where(s => !string.IsNullOrWhiteSpace(s)));
+            return name;
         }
     }
 }
