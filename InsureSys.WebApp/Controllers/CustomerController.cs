@@ -14,7 +14,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace Insurancesys.web.Controllers
 {
-    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SuperAdmin,AgencyAdmin,Agent")]
+    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SuperAdmin,AgencyAdmin")]
     public class CustomerController(IMapper mapper, ICustomerService customerService, IDropDownBinderService dropDownBinderService, IInsuranceTypeService insuranceTypeService) : Controller
     {
         private readonly IMapper _mapper = mapper;
