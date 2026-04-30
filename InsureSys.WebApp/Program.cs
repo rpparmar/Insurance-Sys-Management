@@ -91,7 +91,7 @@ namespace Insurancesys.web
             {
                 options.Cookie.Name = "CookieAuth";
                 options.LoginPath = "/";
-                options.AccessDeniedPath = "/Login/Login";
+                options.AccessDeniedPath = "/Account/AccessDenied";
                 options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
                 options.SlidingExpiration = true;
             })

@@ -1,0 +1,28 @@
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Access Denied";
+    var safeReturnUrl = ViewData["SafeReturnUrl"] as string;
+}
+
+<div class="container-fluid">
+    <div class="card card-custom">
+        <div class="card-body">
+            <h3 class="font-weight-bold text-dark mb-3">Access Denied</h3>
+            <div class="text-muted mb-6">
+                You do not have permission to access this page.
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(safeReturnUrl))
+            {
+                <a href="@safeReturnUrl" class="btn btn-primary font-weight-bolder mr-2">
+                    Continue
+                </a>
+            }
+
+            <a asp-controller="Home" asp-action="Index" class="btn btn-light-primary font-weight-bolder">
+                Go to Home
+            </a>
+        </div>
+    </div>
+</div>
+
