@@ -44,7 +44,7 @@ namespace Insurancesys.web.Controllers
                 return View(model);
             }
 
-            const string inactiveMessage = "Your account is inactive. Please contact system administrator.";
+            const string inactiveMessage = "Your account is inactive. Please contact your administrator.";
 
             if (!user.IsActive)
             {

@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Insurancesys.web.Controllers
 {
-    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
+    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SuperAdmin,AgencyAdmin")]
     public class CountryController : Controller
     {
         private readonly ICountryService _countryService;

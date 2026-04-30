@@ -1,11 +1,14 @@
 using Insurancesys.web.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
 namespace Insurancesys.web.Controllers
 {
-	[Authorize]
+	[Authorize(
+        AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme,
+        Roles = "SuperAdmin,AgencyAdmin,Agent")]
 	public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;

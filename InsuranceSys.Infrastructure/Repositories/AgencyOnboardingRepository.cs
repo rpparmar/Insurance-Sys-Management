@@ -278,6 +278,7 @@ namespace InsuranceSys.Infrastructure.Repositories
                 userProfile.MiddleName = string.IsNullOrWhiteSpace(dto.AgencyMiddleName) ? null : dto.AgencyMiddleName.Trim();
                 userProfile.LastName = string.IsNullOrWhiteSpace(dto.AgencyLastName) ? null : dto.AgencyLastName.Trim();
                 userProfile.DisplayName = BuildDisplayName(userProfile.FirstName, userProfile.MiddleName, userProfile.LastName);
+                userProfile.Email= string.IsNullOrWhiteSpace(dto.ContactEmail) ? null : dto.ContactEmail.Trim();
                 userProfile.UpdatedAtUtc = DateTime.UtcNow;
             }
 

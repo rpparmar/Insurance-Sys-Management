@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Insurancesys.web.Controllers
 {
-    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)] // Use cookie authentication
+    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SuperAdmin,AgencyAdmin")] // Use cookie authentication
     public class LeadStatusController : Controller
     {
         private readonly IMapper _mapper;

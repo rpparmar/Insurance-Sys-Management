@@ -128,72 +128,76 @@
                                 </a>                                
                             </li>
                             <!--end::Business-->
-                            <!--begin::Masters-->
-                            <li class="menu-section">
-                                <h4 class="menu-text">Masters</h4>
-                                <i class="menu-icon ki ki-bold-more-hor icon-md"></i>
-                            </li>
-                            <li class="menu-item menu-item-submenu" aria-haspopup="true" data-menu-toggle="hover">
-                                <a href="javascript:;" class="menu-link menu-toggle">
-                                    <span class="svg-icon menu-icon">
-                                        <span class="fas fa-list"></span>
-                                    </span>
-                                    <span class="menu-text">Masters</span>
-                                    <i class="menu-arrow"></i>
-                                </a>
-                                <!-- Begin : Sub category-->
-                                <div class="menu-submenu">
-                                    <i class="menu-arrow"></i>
-                                    <ul class="menu-subnav">
-                                        <li class="menu-item @SetActiveClassOnLink("Company", "CompanyList,AddEditCompany")" aria-haspopup="true">
-                                            <a asp-controller="Company" asp-action="CompanyList" class="menu-link">
-                                                <i class="menu-bullet menu-bullet-dot"><span></span></i>
-                                                <span class="menu-text">Manage Company</span>
-                                            </a>
-                                        </li>
-                                        <li class="menu-item @SetActiveClassOnLink("Country", "CountryList,AddEditCountry")" aria-haspopup="true">
-                                            <a asp-controller="Country" asp-action="CountryList" class="menu-link">
-                                                <i class="menu-bullet menu-bullet-dot"><span></span></i>
-                                                <span class="menu-text">Manage Country</span>
-                                            </a>
-                                        </li>
-                                        <li class="menu-item @SetActiveClassOnLink("State", "StateList,AddEditState")" aria-haspopup="true">
-                                            <a asp-controller="State" asp-action="StateList" class="menu-link">
-                                                <i class="menu-bullet menu-bullet-dot"><span></span></i>
-                                                <span class="menu-text">Manage State</span>
-                                            </a>
-                                        </li>
-                                        <li class="menu-item @SetActiveClassOnLink("InsuranceType", "InsuranceTypeList,AddEditInsuranceType")" aria-haspopup="true">
-                                            <a asp-controller="InsuranceType" asp-action="InsuranceTypeList" class="menu-link">
-                                                <i class="menu-bullet menu-bullet-dot"><span></span></i>
-                                                <span class="menu-text">Manage Insurance Type</span>
-                                            </a>
-                                        </li>
-                                        <li class="menu-item @SetActiveClassOnLink("LeadStatus", "LeadStatusList,AddEditLeadStatus")" aria-haspopup="true">
-                                            <a asp-controller="LeadStatus" asp-action="LeadStatusList" class="menu-link">
-                                                <i class="menu-bullet menu-bullet-dot"><span></span></i>
-                                                <span class="menu-text">Manage Lead Status</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <!-- End : Sub category-->
-                            </li>
-                            <!--end::Masters-->
-                            <!--begin::Other-->
-                            <li class="menu-section">
-                                <h4 class="menu-text">Other</h4>
-                                <i class="menu-icon ki ki-bold-more-hor icon-md"></i>
-                            </li>
-                            <li class="menu-item @SetActiveClassOnLink("Demo", "FormControl")" aria-haspopup="true">
-                                <a asp-controller="Demo" asp-action="FormControl" class="menu-link">
-                                    <span class="svg-icon menu-icon">
-                                        <span class="fas fa-list"></span>
-                                    </span>
-                                    <span class="menu-text">Html Control</span>
-                                </a>
-                            </li>
-                            <!--end::Other-->
+                            @if (!User.IsInRole("Agent"))
+                            {
+                                <!--begin::Masters-->
+                                <li class="menu-section">
+                                    <h4 class="menu-text">Masters</h4>
+                                    <i class="menu-icon ki ki-bold-more-hor icon-md"></i>
+                                </li>
+                                <li class="menu-item menu-item-submenu" aria-haspopup="true" data-menu-toggle="hover">
+                                    <a href="javascript:;" class="menu-link menu-toggle">
+                                        <span class="svg-icon menu-icon">
+                                            <span class="fas fa-list"></span>
+                                        </span>
+                                        <span class="menu-text">Masters</span>
+                                        <i class="menu-arrow"></i>
+                                    </a>
+                                    <!-- Begin : Sub category-->
+                                    <div class="menu-submenu">
+                                        <i class="menu-arrow"></i>
+                                        <ul class="menu-subnav">
+                                            <li class="menu-item @SetActiveClassOnLink("Company", "CompanyList,AddEditCompany")" aria-haspopup="true">
+                                                <a asp-controller="Company" asp-action="CompanyList" class="menu-link">
+                                                    <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                                    <span class="menu-text">Manage Company</span>
+                                                </a>
+                                            </li>
+                                            <li class="menu-item @SetActiveClassOnLink("Country", "CountryList,AddEditCountry")" aria-haspopup="true">
+                                                <a asp-controller="Country" asp-action="CountryList" class="menu-link">
+                                                    <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                                    <span class="menu-text">Manage Country</span>
+                                                </a>
+                                            </li>
+                                            <li class="menu-item @SetActiveClassOnLink("State", "StateList,AddEditState")" aria-haspopup="true">
+                                                <a asp-controller="State" asp-action="StateList" class="menu-link">
+                                                    <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                                    <span class="menu-text">Manage State</span>
+                                                </a>
+                                            </li>
+                                            <li class="menu-item @SetActiveClassOnLink("InsuranceType", "InsuranceTypeList,AddEditInsuranceType")" aria-haspopup="true">
+                                                <a asp-controller="InsuranceType" asp-action="InsuranceTypeList" class="menu-link">
+                                                    <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                                    <span class="menu-text">Manage Insurance Type</span>
+                                                </a>
+                                            </li>
+                                            <li class="menu-item @SetActiveClassOnLink("LeadStatus", "LeadStatusList,AddEditLeadStatus")" aria-haspopup="true">
+                                                <a asp-controller="LeadStatus" asp-action="LeadStatusList" class="menu-link">
+                                                    <i class="menu-bullet menu-bullet-dot"><span></span></i>
+                                                    <span class="menu-text">Manage Lead Status</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <!-- End : Sub category-->
+                                </li>
+                                <!--end::Masters-->
+
+                                <!--begin::Other-->
+                                <li class="menu-section">
+                                    <h4 class="menu-text">Other</h4>
+                                    <i class="menu-icon ki ki-bold-more-hor icon-md"></i>
+                                </li>
+                                <li class="menu-item @SetActiveClassOnLink("Demo", "FormControl")" aria-haspopup="true">
+                                    <a asp-controller="Demo" asp-action="FormControl" class="menu-link">
+                                        <span class="svg-icon menu-icon">
+                                            <span class="fas fa-list"></span>
+                                        </span>
+                                        <span class="menu-text">Html Control</span>
+                                    </a>
+                                </li>
+                                <!--end::Other-->
+                            }
                         </ul>
                         <!--end::Menu Nav-->
                     </div>

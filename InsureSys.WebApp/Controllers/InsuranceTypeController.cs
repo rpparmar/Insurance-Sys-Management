@@ -17,7 +17,7 @@ using System.Data;
 
 namespace Insurancesys.web.Controllers
 {
-    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)] // Use cookie authentication
+    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SuperAdmin,AgencyAdmin")] // Use cookie authentication
     public class InsuranceTypeController : Controller
     {
         private readonly IInsuranceTypeService _insuranceTypeService;        
