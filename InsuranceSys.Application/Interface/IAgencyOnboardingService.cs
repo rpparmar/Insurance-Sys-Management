@@ -16,9 +16,7 @@ namespace InsuranceSys.Application.Interface
         Task<bool> IsAgencyNameExistsAsync(string agencyName, int? excludeAgencyId = null);
         Task<bool> IsAdminUsernameExistsAsync(string username);
         Task<string?> GetAgencyAdminUsernameAsync(int agencyId);
-        Task<AgencyAdminProfileDto?> GetAgencyAdminProfileAsync(int agencyId);
         Task<int> UpdateAgencyAdminUsernameAsync(int agencyId, string newUsername);
-        Task<bool> UpdateAgencyAdminProfileAsync(int agencyId, AgencyAdminProfileDto dto);
         Task<bool> IsDatabaseNameExistsAsync(string databaseName);
     }
 }

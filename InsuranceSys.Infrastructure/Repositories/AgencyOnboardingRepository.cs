@@ -190,22 +190,40 @@ namespace InsuranceSys.Infrastructure.Repositories
 
         public async Task<AgencyDetailsDto?> GetAgencyByIdAsync(int agencyId)
         {
-            return await _masterDb.AgencyDetails
-                .AsNoTracking()
-                .Where(t => t.AgencyId == agencyId)
-                .Select(t => new AgencyDetailsDto
-                {
-                    AgencyId = t.AgencyId,
-                    AgencyCode = t.AgencyCode,
-                    AgencyName = t.AgencyName,
-                    ContactEmail = t.ContactEmail,
-                    ContactPhone = t.ContactPhone,
-                    DatabaseName = t.DatabaseName,
-                    DatabaseServer = t.DatabaseServer,
-                    IsActive = t.IsActive,
-                    CreatedAtUtc = t.CreatedAtUtc,
-                    CreatedByUsername = t.CreatedByUser != null ? t.CreatedByUser.DisplayName : null
-                })
+            // Optimize: select the agency admin user once (SQL typically uses OUTER APPLY),
+            // instead of repeating the same correlated subquery 4 times.
+            return await
+                (from t in _masterDb.AgencyDetails.AsNoTracking()
+                 where t.AgencyId == agencyId
+                 let admin = _masterDb.AgencyUsers
+                     .Where(u => u.AgencyId == t.AgencyId && u.Role == (int)Roles.AgencyAdmin && !u.IsDeleted)
+                     .OrderBy(u => u.UserId)
+                     .Select(u => new
+                     {
+                         u.Username,
+                         u.FirstName,
+                         u.MiddleName,
+                         u.LastName
+                     })
+                     .FirstOrDefault()
+                 select new AgencyDetailsDto
+                 {
+                     AgencyId = t.AgencyId,
+                     AgencyCode = t.AgencyCode,
+                     AgencyName = t.AgencyName,
+                     ContactEmail = t.ContactEmail,
+                     ContactPhone = t.ContactPhone,
+                     DatabaseName = t.DatabaseName,
+                     DatabaseServer = t.DatabaseServer,
+                     IsActive = t.IsActive,
+                     CreatedAtUtc = t.CreatedAtUtc,
+                     CreatedByUsername = t.CreatedByUser != null ? t.CreatedByUser.DisplayName : null,
+
+                     AgencyUsername = admin != null ? admin.Username : null,
+                     AgencyFirstName = admin != null ? admin.FirstName : null,
+                     AgencyMiddleName = admin != null ? admin.MiddleName : null,
+                     AgencyLastName = admin != null ? admin.LastName : null
+                 })
                 .FirstOrDefaultAsync();
         }
 
@@ -234,10 +252,27 @@ namespace InsuranceSys.Infrastructure.Repositories
             var agencyUsers = await _masterDb.AgencyUsers
                 .Where(u => u.AgencyId == dto.AgencyId && !u.IsDeleted)
                 .ToListAsync();
+
+            // Preserve current behavior: agency IsActive is propagated to all agency users.
             foreach (var u in agencyUsers)
             {
                 u.IsActive = dto.IsActive;
                 u.UpdatedAtUtc = DateTime.UtcNow;
+            }
+
+            // Additionally (refactor): update the Agency Admin profile names from the same DTO,
+            // keeping username update behavior in UpdateAgencyAdminUsernameAsync unchanged.
+            var _agencyUser = agencyUsers
+                .Where(u => u.Role == (int)Roles.AgencyAdmin)
+                .OrderBy(u => u.UserId)
+                .FirstOrDefault();
+            if (_agencyUser != null)
+            {
+                _agencyUser.FirstName = string.IsNullOrWhiteSpace(dto.AgencyFirstName) ? null : dto.AgencyFirstName.Trim();
+                _agencyUser.MiddleName = string.IsNullOrWhiteSpace(dto.AgencyMiddleName) ? null : dto.AgencyMiddleName.Trim();
+                _agencyUser.LastName = string.IsNullOrWhiteSpace(dto.AgencyLastName) ? null : dto.AgencyLastName.Trim();
+                _agencyUser.DisplayName = BuildDisplayName(_agencyUser.FirstName, _agencyUser.LastName, _agencyUser.Username);
+                _agencyUser.UpdatedAtUtc = DateTime.UtcNow;
             }
 
             await _masterDb.SaveChangesAsync();
@@ -332,41 +367,6 @@ namespace InsuranceSys.Infrastructure.Repositories
                 .OrderBy(u => u.UserId)
                 .Select(u => u.Username)
                 .FirstOrDefaultAsync();
-        }
-
-        public async Task<AgencyAdminProfileDto?> GetAgencyAdminProfileAsync(int agencyId)
-        {
-            return await _masterDb.AgencyUsers
-                .AsNoTracking()
-                .Where(u => u.AgencyId == agencyId && u.Role == (int)Roles.AgencyAdmin && !u.IsDeleted)
-                .OrderBy(u => u.UserId)
-                .Select(u => new AgencyAdminProfileDto
-                {
-                    FirstName = u.FirstName,
-                    MiddleName = u.MiddleName,
-                    LastName = u.LastName
-                })
-                .FirstOrDefaultAsync();
-        }
-
-        public async Task<bool> UpdateAgencyAdminProfileAsync(int agencyId, AgencyAdminProfileDto dto)
-        {
-            var user = await _masterDb.AgencyUsers
-                .Where(u => u.AgencyId == agencyId && u.Role == (int)Roles.AgencyAdmin && !u.IsDeleted)
-                .OrderBy(u => u.UserId)
-                .FirstOrDefaultAsync();
-
-            if (user == null)
-                return false;
-
-            user.FirstName = string.IsNullOrWhiteSpace(dto.FirstName) ? null : dto.FirstName.Trim();
-            user.MiddleName = string.IsNullOrWhiteSpace(dto.MiddleName) ? null : dto.MiddleName.Trim();
-            user.LastName = string.IsNullOrWhiteSpace(dto.LastName) ? null : dto.LastName.Trim();
-            user.DisplayName = BuildDisplayName(user.FirstName, user.LastName, user.Username);
-            user.UpdatedAtUtc = DateTime.UtcNow;
-
-            await _masterDb.SaveChangesAsync();
-            return true;
         }
 
         /// <summary>Returns 1 on success, 0 if agency admin user not found, -1 duplicate username.</summary>

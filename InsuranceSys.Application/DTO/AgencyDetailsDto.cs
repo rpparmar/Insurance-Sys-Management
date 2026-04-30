@@ -12,5 +12,11 @@ namespace InsuranceSys.Application.DTO
         public bool IsActive { get; set; }
         public DateTime CreatedAtUtc { get; set; }
         public string? CreatedByUsername { get; set; }
+
+        // Agency Admin (master login user) projection fields for Edit UI
+        public string? AgencyUsername { get; set; }
+        public string? AgencyFirstName { get; set; }
+        public string? AgencyMiddleName { get; set; }
+        public string? AgencyLastName { get; set; }
     }
 }

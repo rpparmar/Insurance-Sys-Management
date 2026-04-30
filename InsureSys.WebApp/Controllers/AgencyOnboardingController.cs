@@ -60,9 +60,8 @@ namespace Insurancesys.web.Controllers
             HttpContext.Session.SetString(SessionEditingAgencyId, id.ToString());
             HttpContext.Session.SetString(SessionOriginalAgencyName, dto.AgencyName);
             HttpContext.Session.SetString(SessionOriginalAgencyCode, dto.AgencyCode ?? string.Empty);
-            var adminUsername = await _onboardingService.GetAgencyAdminUsernameAsync(id) ?? string.Empty;
+            var adminUsername = dto.AgencyUsername ?? string.Empty;
             HttpContext.Session.SetString(SessionOriginalAdminUsername, adminUsername);
-            var adminProfile = await _onboardingService.GetAgencyAdminProfileAsync(id);
 
             var model = new AgencyOnboardingViewModel
             {
@@ -76,9 +75,9 @@ namespace Insurancesys.web.Controllers
                 DatabaseNameDisplay = dto.DatabaseName,
                 AdminUsername = adminUsername,
                 IsAdminUsernameEditEnabled = false,
-                FirstName = adminProfile?.FirstName ?? string.Empty,
-                MiddleName = adminProfile?.MiddleName,
-                LastName = adminProfile?.LastName ?? string.Empty
+                FirstName = dto.AgencyFirstName ?? string.Empty,
+                MiddleName = dto.AgencyMiddleName,
+                LastName = dto.AgencyLastName ?? string.Empty
             };
 
             return View(model);
@@ -99,29 +98,6 @@ namespace Insurancesys.web.Controllers
                 }
                 else
                 {
-                    if (string.IsNullOrWhiteSpace(model.AdminUsername))
-                        ModelState.AddModelError(nameof(model.AdminUsername), "Enter username");
-                }
-            }
-            else
-            {
-                if (string.IsNullOrWhiteSpace(model.AdminUsername))
-                    ModelState.AddModelError(nameof(model.AdminUsername), "Enter username");
-                if (string.IsNullOrWhiteSpace(model.AdminPassword))
-                    ModelState.AddModelError(nameof(model.AdminPassword), "Enter password");
-                else if (model.AdminPassword.Length < 8)
-                    ModelState.AddModelError(nameof(model.AdminPassword), "Password must be at least 8 characters");
-                if (model.AdminPassword != model.ConfirmPassword)
-                    ModelState.AddModelError(nameof(model.ConfirmPassword), "Passwords do not match");
-            }
-
-            if (!ModelState.IsValid)
-                return View(model);
-
-            if (model.IsEditMode)
-            {
-                if (model.IsAdminUsernameEditEnabled)
-                {
                     var originalAdmin = HttpContext.Session.GetString(SessionOriginalAdminUsername) ?? string.Empty;
                     var desired = (model.AdminUsername ?? string.Empty).Trim();
                     if (!string.Equals(originalAdmin, desired, StringComparison.Ordinal))
@@ -134,34 +110,27 @@ namespace Insurancesys.web.Controllers
                         }
                     }
                 }
+            }
 
-                // Update Agency Admin profile fields (First/Middle/Last) without changing existing flows.
-                var profileOk = await _onboardingService.UpdateAgencyAdminProfileAsync(
-                    model.AgencyId,
-                    new AgencyAdminProfileDto
-                    {
-                        FirstName = model.FirstName,
-                        MiddleName = model.MiddleName,
-                        LastName = model.LastName
-                    });
-                if (!profileOk)
-                {
-                    TempData["RowsAffected"] = 0;
-                    TempData["Message"] = Constants.ErrorMessages.MsgUpdateFailure;
-                    return View(model);
-                }
+            if (!ModelState.IsValid)
+                return View(model);
 
-                var updateDto = new AgencyDetailsDto
+            if (model.IsEditMode)
+            {                
+                var _agencyDetails = new AgencyDetailsDto
                 {
                     AgencyId = model.AgencyId,
                     AgencyName = model.AgencyName.Trim(),
                     AgencyCode = string.IsNullOrWhiteSpace(model.AgencyCode) ? null : model.AgencyCode.Trim(),
                     ContactEmail = string.IsNullOrWhiteSpace(model.ContactEmail) ? null : model.ContactEmail.Trim(),
                     ContactPhone = string.IsNullOrWhiteSpace(model.ContactPhone) ? null : model.ContactPhone.Trim(),
-                    IsActive = model.IsActive
+                    IsActive = model.IsActive,
+                    AgencyFirstName = model.FirstName,
+                    AgencyMiddleName = model.MiddleName,
+                    AgencyLastName = model.LastName
                 };
 
-                var rows = await _onboardingService.UpdateAgencyDetailsAsync(updateDto);
+                var rows = await _onboardingService.UpdateAgencyDetailsAsync(_agencyDetails);
                 TempData["RowsAffected"] = rows == 1 ? 1 : 0;
                 if (rows == 1)
                 {

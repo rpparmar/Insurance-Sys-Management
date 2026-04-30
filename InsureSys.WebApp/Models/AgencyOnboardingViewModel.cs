@@ -12,13 +12,12 @@ namespace Insurancesys.web.Models
         [Display(Name = "Database")]
         public string? DatabaseNameDisplay { get; set; }
 
-        [MaxLength(50)]
+        
         [RegularExpression(@"^$|^[A-Za-z0-9_]+$", ErrorMessage = "Only letters, numbers, and underscores allowed")]
         [Remote(action: "IsAgencyCodeAvailable", controller: "AgencyOnboarding")]
         public string? AgencyCode { get; set; }
 
-        [Required(ErrorMessage = "Enter agency/agent name")]
-        [MaxLength(200)]
+        [Required(ErrorMessage = "Enter agency/agent name")]        
         [Remote(action: "IsAgencyNameAvailable", controller: "AgencyOnboarding")]
         [Display(Name = "Agency/Agent Name")]
         public string AgencyName { get; set; } = string.Empty;
@@ -27,7 +26,7 @@ namespace Insurancesys.web.Models
         [Display(Name = "Contact Email")]
         public string? ContactEmail { get; set; }
 
-        [MaxLength(20)]
+        
         [Display(Name = "Contact Phone")]
         public string? ContactPhone { get; set; }
 
@@ -40,15 +39,12 @@ namespace Insurancesys.web.Models
         [Display(Name = "Admin Username")]
         public string? AdminUsername { get; set; }
 
-        [Required(ErrorMessage = "Enter first name")]
-        [MaxLength(25)]
+        [Required(ErrorMessage = "Enter first name")]        
         public string FirstName { get; set; } = string.Empty;
 
-        [MaxLength(25)]
         public string? MiddleName { get; set; }
 
-        [Required(ErrorMessage = "Enter last name")]
-        [MaxLength(25)]
+        [Required(ErrorMessage = "Enter last name")]        
         public string LastName { get; set; } = string.Empty;
 
         public bool IsAdminUsernameEditEnabled { get; set; }
