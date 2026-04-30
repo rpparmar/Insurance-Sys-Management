@@ -1,7 +1,11 @@
+@using Insurancesys.web.Helper
 @{
-    string _userName = User.Identity?.Name ?? "SuperAdmin";
-    string _userRole = "Super Administrator";
-    string _firstLetter = _userName.Substring(0, 1).ToUpper();
+    string _userName = User.GetDisplayName();
+    string _userRole = User.GetRoleName();
+    string _email = User.GetEmail();
+    string _firstName = User.GetFirstName();
+    string _lastName = User.GetLastName();
+    string _firstLetter = User.GetAvatarLetter();
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -120,22 +124,35 @@
             <a href="#" class="btn btn-xs btn-icon btn-light btn-hover-primary" id="kt_quick_user_close">
                 <i class="ki ki-close icon-xs text-muted"></i>
             </a>
-        </div>
+        </div>        
         <div class="offcanvas-content pr-5 mr-n5">
+            <!--begin::Header-->
             <div class="d-flex align-items-center mt-5">
                 <div class="symbol symbol-100 mr-5">
-                    <div class="symbol-label" style="background-image:url('/assets/media/users/default.jpg')"></div>
-                    <i class="symbol-badge bg-warning"></i>
+                    <div class="symbol-label" style="background-image:url('../assets/media/users/default.jpg')"></div>
+                    <i class="symbol-badge bg-success"></i>
                 </div>
                 <div class="d-flex flex-column">
-                    <span class="font-weight-bold font-size-h5 text-dark-75">@_userName</span>
+                    <a href="#" class="font-weight-bold font-size-h5 text-dark-75 text-hover-primary">@string.Concat(_firstName, " ", _lastName)</a>
                     <div class="text-muted mt-1">@_userRole</div>
                     <div class="navi mt-2">
+                        <span class="navi-link p-0 pb-2">
+                            <span class="navi-icon mr-1">
+                                <span class="svg-icon svg-icon-lg">
+                                    <i class="flaticon2-email text-primary"></i>
+                                </span>
+                            </span>
+                            <span class="navi-text text-muted text-hover-primary">@_email</span>
+                        </span>
                         <a asp-controller="Login" asp-action="Logout" class="btn btn-sm btn-light-primary font-weight-bolder py-2 px-5">Sign Out</a>
                     </div>
                 </div>
             </div>
+            <!--end::Header-->
+            <!--begin::Separator-->
             <div class="separator separator-dashed mt-8 mb-5"></div>
+            <!--end::Separator-->
+            
         </div>
     </div>
     <!--end::User Panel-->

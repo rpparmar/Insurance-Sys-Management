@@ -1,10 +1,11 @@
+@using Insurancesys.web.Helper
 @{
-    string _userName = "My Username";
-    string _userRole = "Admin";
-    string _email = "myemail@domain.com";
-    string _firstName = "First Name";
-    string _lastName = "Last Name";
-    string _firstLetter = _userName.Substring(0, 1).ToString();
+    string _userName = User.GetDisplayName();
+    string _userRole = User.GetRoleName();
+    string _email = User.GetEmail();
+    string _firstName = User.GetFirstName();
+    string _lastName = User.GetLastName();
+    string _firstLetter = User.GetAvatarLetter();
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -372,25 +373,7 @@
             <div class="separator separator-dashed mt-8 mb-5"></div>
             <!--end::Separator-->
             <!--begin::Nav-->
-            <div class="navi navi-spacer-x-0 p-0">
-                <!--begin::Item-->
-                <a href="custom/apps/user/profile-2.html" class="navi-item">
-                    <div class="navi-link">
-                        <div class="symbol symbol-40 bg-light mr-3">
-                            <div class="symbol-label">
-                                <span class="svg-icon svg-icon-lg">
-                                    <i class="fas fa-file-alt text-primary"></i>
-                                </span>
-                            </div>
-                        </div>
-                        <div class="navi-text">
-                            <div class="font-weight-bold">My Activities</div>
-                            <div class="text-muted">Logs and notifications</div>
-                        </div>
-                    </div>
-                </a>
-                <!--end:Item-->
-
+            <div class="navi navi-spacer-x-0 p-0">                
                 @if (User.IsInRole("AgencyAdmin"))
                 {
                     <a asp-controller="SubUsers" asp-action="SubUsersList" class="navi-item">

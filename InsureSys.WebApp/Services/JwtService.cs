@@ -33,7 +33,10 @@ namespace Insurancesys.web.Services
                 new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
                 new Claim(ClaimTypes.Name, user.Username),
                 new Claim(ClaimTypes.Role, roleName),
-                new Claim("DisplayName", user.DisplayName ?? user.Username)
+                new Claim("DisplayName", user.DisplayName ?? user.Username),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),
+                new Claim("FirstName", user.FirstName ?? string.Empty),
+                new Claim("LastName", user.LastName ?? string.Empty)
             };
 
             if (user.AgencyId.HasValue)
