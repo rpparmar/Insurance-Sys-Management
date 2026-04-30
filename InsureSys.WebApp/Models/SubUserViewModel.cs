@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace Insurancesys.web.Models
 {
-    public sealed class SubUserViewModel
+    public sealed class SubUserViewModel : IValidatableObject
     {
         public int UserId { get; set; }
 
@@ -32,18 +34,42 @@ namespace Insurancesys.web.Models
         [MaxLength(256)]
         public string? Email { get; set; }
 
-        [Required(ErrorMessage = "Enter password")]
         [MinLength(8, ErrorMessage = "Password must be at least 8 characters")]
         [DataType(DataType.Password)]
         public string? Password { get; set; }
 
-        [Required(ErrorMessage = "Re-enter password")]
         [Compare(nameof(Password), ErrorMessage = "Passwords do not match")]
         [DataType(DataType.Password)]
         public string? ConfirmPassword { get; set; }
 
         public bool IsActive { get; set; } = true;
         public bool IsEditMode { get; set; }
+
+        public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+        {
+            var passwordProvided = !string.IsNullOrWhiteSpace(Password);
+            var confirmProvided = !string.IsNullOrWhiteSpace(ConfirmPassword);
+
+            if (!IsEditMode)
+            {
+                if (!passwordProvided)
+                {
+                    yield return new ValidationResult("Enter password", new[] { nameof(Password) });
+                    yield break;
+                }
+            }
+            else
+            {
+                if (!passwordProvided && !confirmProvided)
+                    yield break;
+            }
+
+            if (passwordProvided && Password!.Length < 8)
+                yield return new ValidationResult("Password must be at least 8 characters", new[] { nameof(Password) });
+
+            if (!string.Equals(Password, ConfirmPassword, StringComparison.Ordinal))
+                yield return new ValidationResult("Passwords do not match", new[] { nameof(ConfirmPassword) });
+        }
     }
 }
 

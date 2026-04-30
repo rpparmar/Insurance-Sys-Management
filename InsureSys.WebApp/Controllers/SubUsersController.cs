@@ -109,18 +109,13 @@ namespace Insurancesys.web.Controllers
 
             if (model.IsEditMode)
             {
-                // password is optional on edit
-                ModelState.Remove(nameof(SubUserViewModel.Password));
-                ModelState.Remove(nameof(SubUserViewModel.ConfirmPassword));
-            }
-            else
-            {
-                if (string.IsNullOrWhiteSpace(model.Password))
-                    ModelState.AddModelError(nameof(SubUserViewModel.Password), "Enter password");
-                else if (model.Password.Length < 8)
-                    ModelState.AddModelError(nameof(SubUserViewModel.Password), "Password must be at least 8 characters");
-                if (model.Password != model.ConfirmPassword)
-                    ModelState.AddModelError(nameof(SubUserViewModel.ConfirmPassword), "Passwords do not match");
+                // Password is optional on edit only when left blank.
+                // If user enters a new password, keep ModelState keys so validation runs.
+                if (string.IsNullOrWhiteSpace(model.Password) && string.IsNullOrWhiteSpace(model.ConfirmPassword))
+                {
+                    ModelState.Remove(nameof(model.Password));
+                    ModelState.Remove(nameof(model.ConfirmPassword));
+                }
             }
 
             if (model.Role < (int)Roles.Agent)
