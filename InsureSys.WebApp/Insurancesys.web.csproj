@@ -61,4 +61,10 @@
   <ItemGroup>
     <Folder Include="App_Data\" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Update="App_Data\InsureSysManagement_Default.bak">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

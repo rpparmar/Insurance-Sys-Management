@@ -467,86 +467,96 @@ namespace InsuranceSys.Infrastructure.Repositories
 
         private async Task<bool> RestoreAgencyDatabaseAsync(string newDbName)
         {
-            var configuredBak = _configuration["TenantProvisioning:BackupFileName"];
-            var bakFileName = string.IsNullOrWhiteSpace(configuredBak) ? null : Path.GetFileName(configuredBak);
-            var bakFilePath = string.IsNullOrWhiteSpace(bakFileName)
-                ? null
-                : Path.Combine(_hostEnvironment.ContentRootPath, "App_Data", bakFileName);
-
-            if (string.IsNullOrEmpty(bakFilePath) || !File.Exists(bakFilePath))
-            {
-                _logger.LogWarning("Backup file not found at {Path}. Falling back.", bakFilePath);
-                return false;
-            }
-
-            var masterConnStr = _configuration.GetConnectionString(MasterConnection)!;
-
-            // 1) Fetch SQL instance default data path from app master DB via stored procedure.
-            await using var appMasterConnection = new SqlConnection(masterConnStr);
-            await appMasterConnection.OpenAsync();
-
-            SqlInstanceInfoDto? sqlInstance;
             try
             {
-                sqlInstance = await GetSqlInstanceInfoAsync(appMasterConnection);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to execute stored procedure Get_SQL_Instance.");
-                return false;
-            }
+                //var configuredBak = _configuration["TenantProvisioning:BackupFileName"];
+                //var bakFileName = string.IsNullOrWhiteSpace(configuredBak) ? null : Path.GetFileName(configuredBak);
+                //var bakFilePath = string.IsNullOrWhiteSpace(bakFileName)
+                //    ? null
+                //    : Path.Combine(_hostEnvironment.ContentRootPath, "App_Data", bakFileName);
 
-            var instanceDefaultDataPath = sqlInstance?.InstanceDefaultDataPath?.Trim();
-            if (string.IsNullOrWhiteSpace(instanceDefaultDataPath))
-            {
-                _logger.LogError(
-                    "Stored procedure Get_SQL_Instance returned empty InstanceDefaultDataPath. InstanceName={InstanceName}",
-                    sqlInstance?.InstanceName);
-                return false;
-            }
+                //if (string.IsNullOrEmpty(bakFilePath) || !File.Exists(bakFilePath))
+                //{
+                //    _logger.LogWarning("Backup file not found at {Path}. Falling back.", bakFilePath);
+                //    return false;
+                //}
+                var sqlServerBakPath = _configuration["TenantProvisioning:SqlServerBackupPath"];
+                var masterConnStr = _configuration.GetConnectionString(MasterConnection)!;
 
-            // 2) Restore operations must be executed in master DB context.
-            var restoreConnBuilder = new SqlConnectionStringBuilder(masterConnStr)
-            {
-                InitialCatalog = "master"
-            };
+                // 1) Fetch SQL instance default data path from app master DB via stored procedure.
+                await using var appMasterConnection = new SqlConnection(masterConnStr);
+                await appMasterConnection.OpenAsync();
 
-            await using var connection = new SqlConnection(restoreConnBuilder.ConnectionString);
-            await connection.OpenAsync();
-
-            var fileListSql = "RESTORE FILELISTONLY FROM DISK = @BakPath";
-            string? logicalData = null, logicalLog = null;
-
-            await using (var cmd = new SqlCommand(fileListSql, connection))
-            {
-                cmd.Parameters.AddWithValue("@BakPath", bakFilePath);
-                await using var reader = await cmd.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
+                SqlInstanceInfoDto? sqlInstance;
+                try
                 {
-                    var type = reader["Type"].ToString();
-                    var logicalName = reader["LogicalName"].ToString();
-                    if (type == "D") logicalData = logicalName;
-                    else if (type == "L") logicalLog = logicalName;
+                    sqlInstance = await GetSqlInstanceInfoAsync(appMasterConnection);
                 }
-            }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to execute stored procedure Get_SQL_Instance.");
+                    return false;
+                }
 
-            if (logicalData == null || logicalLog == null)
-            {
-                _logger.LogError("Could not read logical file names from backup.");
-                return false;
-            }
+                var instanceDefaultDataPath = sqlInstance?.InstanceDefaultDataPath?.Trim();
+                if (string.IsNullOrWhiteSpace(instanceDefaultDataPath))
+                {
+                    _logger.LogError(
+                        "Stored procedure Get_SQL_Instance returned empty InstanceDefaultDataPath. InstanceName={InstanceName}",
+                        sqlInstance?.InstanceName);
+                    return false;
+                }
 
-            var mdfPath = Path.Combine(instanceDefaultDataPath, newDbName + "_Data.mdf");
-            var ldfPath = Path.Combine(instanceDefaultDataPath, newDbName + "_Log.ldf");
+                // 2) Restore operations must be executed in master DB context.
+                var restoreConnBuilder = new SqlConnectionStringBuilder(masterConnStr)
+                {
+                    InitialCatalog = "master"
+                };
 
-            _logger.LogInformation(
-                "Restoring agency DB {DbName} using instance default path {InstancePath}. MDF={MdfPath} LDF={LdfPath}",
-                newDbName,
-                instanceDefaultDataPath,
-                mdfPath,
-                ldfPath);
+                await using var connection = new SqlConnection(restoreConnBuilder.ConnectionString);
+                await connection.OpenAsync();
 
-            var restoreSql = $@"
+                var fileListSql = "RESTORE FILELISTONLY FROM DISK = @BakPath";
+                string? logicalData = null, logicalLog = null;
+
+                try
+                {
+                    await using (var cmd = new SqlCommand(fileListSql, connection))
+                    {
+                        cmd.Parameters.AddWithValue("@BakPath", sqlServerBakPath);
+                        await using var reader = await cmd.ExecuteReaderAsync();
+                        while (await reader.ReadAsync())
+                        {
+                            var type = reader["Type"].ToString();
+                            var logicalName = reader["LogicalName"].ToString();
+                            if (type == "D") logicalData = logicalName;
+                            else if (type == "L") logicalLog = logicalName;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, message: ex.Message);
+                    return false;
+                }
+
+                if (logicalData == null || logicalLog == null)
+                {
+                    _logger.LogError("Could not read logical file names from backup.");
+                    return false;
+                }
+
+                var mdfPath = Path.Combine(instanceDefaultDataPath, newDbName + "_Data.mdf");
+                var ldfPath = Path.Combine(instanceDefaultDataPath, newDbName + "_Log.ldf");
+
+                _logger.LogInformation(
+                    "Restoring agency DB {DbName} using instance default path {InstancePath}. MDF={MdfPath} LDF={LdfPath}",
+                    newDbName,
+                    instanceDefaultDataPath,
+                    mdfPath,
+                    ldfPath);
+
+                var restoreSql = $@"
                 RESTORE DATABASE [{newDbName}]
                 FROM DISK = @BakPath
                 WITH 
@@ -554,18 +564,24 @@ namespace InsuranceSys.Infrastructure.Repositories
                     MOVE @LogicalLog  TO @LdfPath,
                     REPLACE, STATS = 10;";
 
-            await using (var cmd = new SqlCommand(restoreSql, connection))
-            {
-                cmd.CommandTimeout = 300;
-                cmd.Parameters.AddWithValue("@BakPath", bakFilePath);
-                cmd.Parameters.AddWithValue("@LogicalData", logicalData);
-                cmd.Parameters.AddWithValue("@MdfPath", mdfPath);
-                cmd.Parameters.AddWithValue("@LogicalLog", logicalLog);
-                cmd.Parameters.AddWithValue("@LdfPath", ldfPath);
-                await cmd.ExecuteNonQueryAsync();
-            }
+                await using (var cmd = new SqlCommand(restoreSql, connection))
+                {
+                    cmd.CommandTimeout = 300;
+                    cmd.Parameters.AddWithValue("@BakPath", sqlServerBakPath);
+                    cmd.Parameters.AddWithValue("@LogicalData", logicalData);
+                    cmd.Parameters.AddWithValue("@MdfPath", mdfPath);
+                    cmd.Parameters.AddWithValue("@LogicalLog", logicalLog);
+                    cmd.Parameters.AddWithValue("@LdfPath", ldfPath);
+                    await cmd.ExecuteNonQueryAsync();
+                }
 
-            return true;
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, message: ex.Message);
+                return false;
+            }
         }
 
         //private async Task CreateDatabaseViaMigrationsAsync(string dbName)
