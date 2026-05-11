@@ -465,22 +465,58 @@ namespace InsuranceSys.Infrastructure.Repositories
             };
         }
 
+        /// <summary>
+        /// Resolves the tenant template .bak path for RESTORE.
+        /// Development: <c>{ContentRoot}/App_Data/{BackupFileName}</c> (file must exist on app host).
+        /// Non-Development: <c>TenantProvisioning:SqlServerBackupPath</c> (full path as seen by SQL Server; override via env <c>TenantProvisioning__SqlServerBackupPath</c>).
+        /// </summary>
+        private bool ResolveTenantBackupPath(out string sqlServerBakPath)
+        {
+            sqlServerBakPath = string.Empty;
+            
+
+            var backupFileNameRaw = _configuration["TenantProvisioning:BackupFileName"];
+            var backupFileName = string.IsNullOrWhiteSpace(backupFileNameRaw)
+                ? null
+                : Path.GetFileName(backupFileNameRaw.Trim());
+
+            if (_hostEnvironment.IsDevelopment())
+            {
+                if (string.IsNullOrWhiteSpace(backupFileName))
+                {
+                    _logger.LogWarning(
+                        "TenantProvisioning:BackupFileName is missing or invalid; cannot resolve Development backup path.");
+                    return false;
+                }
+
+                sqlServerBakPath = Path.Combine(_hostEnvironment.ContentRootPath, "App_Data", backupFileName);                
+                if (!File.Exists(sqlServerBakPath))
+                {
+                    _logger.LogError("Backup file not found.");
+                    return false;
+                }
+
+                return true;
+            }
+
+            var configuredPath = _configuration["TenantProvisioning:SqlServerBackupPath"]?.Trim();
+            if (string.IsNullOrWhiteSpace(configuredPath))
+            {
+                _logger.LogWarning("TenantProvisioning:SqlServerBackupPath is empty; cannot restore.");
+                return false;
+            }
+
+            sqlServerBakPath = configuredPath;            
+            return true;
+        }
+
         private async Task<bool> RestoreAgencyDatabaseAsync(string newDbName)
         {
             try
             {
-                //var configuredBak = _configuration["TenantProvisioning:BackupFileName"];
-                //var bakFileName = string.IsNullOrWhiteSpace(configuredBak) ? null : Path.GetFileName(configuredBak);
-                //var bakFilePath = string.IsNullOrWhiteSpace(bakFileName)
-                //    ? null
-                //    : Path.Combine(_hostEnvironment.ContentRootPath, "App_Data", bakFileName);
+                if (!ResolveTenantBackupPath(out var sqlServerBakPath))
+                    return false;
 
-                //if (string.IsNullOrEmpty(bakFilePath) || !File.Exists(bakFilePath))
-                //{
-                //    _logger.LogWarning("Backup file not found at {Path}. Falling back.", bakFilePath);
-                //    return false;
-                //}
-                var sqlServerBakPath = _configuration["TenantProvisioning:SqlServerBackupPath"];
                 var masterConnStr = _configuration.GetConnectionString(MasterConnection)!;
 
                 // 1) Fetch SQL instance default data path from app master DB via stored procedure.
