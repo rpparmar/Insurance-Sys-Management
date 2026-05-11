@@ -64,10 +64,8 @@
                         </div>
                     </div>
                 </div>
-                <div id="dvCustomerListing" class="theme-default-table-wrapper position-relative dt-listing-host">
-                    <div class="dt-listing-overlay" aria-hidden="true" aria-busy="false">                        
-                        <output class="dt-listing-overlay__spinner spinner spinner-primary spinner-lg" aria-hidden="true"></output>
-                    </div>
+                <div id="dvCustomerListing" class="theme-default-table-wrapper position-relative dt-listing-host">                    
+                    @await Html.PartialAsync("_ListingLoadingOverlay")                    
                     <!--begin: Datatable-->
                     <table class="table table-separate table-head-custom table-checkable" id="dt_customers">
                         <thead>
