@@ -26,9 +26,24 @@ namespace Insurancesys.web
         {
             var builder = WebApplication.CreateBuilder(args);
 
+            // Development-only: optional LocalMasterConnection overrides ConnectionStrings:MasterConnection for the whole host
+            // (Serilog, EF MasterDbContext, repositories) without renaming keys or touching Infrastructure.
+            if (builder.Environment.IsDevelopment())
+            {
+                var localMaster = builder.Configuration.GetConnectionString("LocalMasterConnection");
+                if (!string.IsNullOrWhiteSpace(localMaster))
+                {
+                    builder.Configuration.AddInMemoryCollection(
+                        new Dictionary<string, string?>
+                        {
+                            ["ConnectionStrings:MasterConnection"] = localMaster.Trim()
+                        });
+                }
+            }
+
             #region Serilog
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Error()
+                .MinimumLevel.Information()
                 .Enrich.FromLogContext()
                 .WriteTo.MSSqlServer(
                     connectionString: builder.Configuration.GetConnectionString("MasterConnection"),
@@ -37,7 +52,7 @@ namespace Insurancesys.web
                         TableName = "AppLogs",
                         AutoCreateSqlTable = true
                     },
-                    restrictedToMinimumLevel: LogEventLevel.Error)
+                    restrictedToMinimumLevel: LogEventLevel.Information)
                 .CreateLogger();
 
             builder.Host.UseSerilog();
