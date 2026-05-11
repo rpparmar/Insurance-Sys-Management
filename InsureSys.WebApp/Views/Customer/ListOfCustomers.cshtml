@@ -2,6 +2,7 @@
 @section Styles {
     <link href="~/assets/plugins/custom/datatables/datatables.bundle.min.css" rel="stylesheet" type="text/css" />
     <link href="~/css/custom-datatable.css" rel="stylesheet" type="text/css" />
+    <link href="~/css/listing-grid-loading.css" rel="stylesheet" type="text/css" />
 }
 @{
     Layout = "_Layout";
@@ -63,7 +64,10 @@
                         </div>
                     </div>
                 </div>
-                <div class="theme-default-table-wrapper">
+                <div id="dvCustomerListing" class="theme-default-table-wrapper position-relative dt-listing-host">
+                    <div class="dt-listing-overlay" aria-hidden="true" aria-busy="false">                        
+                        <output class="dt-listing-overlay__spinner spinner spinner-primary spinner-lg" aria-hidden="true"></output>
+                    </div>
                     <!--begin: Datatable-->
                     <table class="table table-separate table-head-custom table-checkable" id="dt_customers">
                         <thead>

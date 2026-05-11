@@ -84,7 +84,8 @@ function initDataTable() {
         extraParams: [
             { name: "searchText", value: $('#txtSearch').val() }
             //,{ name: "StatusId", value: 'active' } //extra parameter
-        ]
+        ],
+		loadingHostSelector: '#dvCustomerListing'
     });
 }
 $("#txtSearch").on('keyup', function () {

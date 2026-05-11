@@ -4,12 +4,27 @@
 	columns,
 	extraParams,
 	scrollY = '50vh',
-	scrollX = true
+	scrollX = true,
+	loadingHostSelector = null
 }) {
+	const $loadingHost = loadingHostSelector ? $(loadingHostSelector) : $();
+
+	function setListingHostLoading(isLoading) {
+		if (!$loadingHost.length) return;
+		const $overlay = $loadingHost.find('.dt-listing-overlay');
+		$loadingHost.toggleClass('is-loading', !!isLoading);
+		if ($overlay.length) {
+			$overlay.attr('aria-busy', isLoading ? 'true' : 'false');
+			$overlay.attr('aria-hidden', isLoading ? 'false' : 'true');
+		}
+	}
+
 	if ($.fn.DataTable.isDataTable(tableId)) {
 		$(tableId).DataTable().clear().destroy();
 	}
 
+	setListingHostLoading(true);
+	
 	$(tableId).dataTable({
 		processing: true,
 		serverSide: true,
@@ -49,6 +64,7 @@
 						console.error("DataTable load error:", status, error);
 						// Hide spinner
 						$(tableId).trigger('processing.dt', [false]);
+						setListingHostLoading(false);
 
 						// Show alert/toast (you can customize this with your notification system)						
 						toastr.error("Failed to load data. Please try again later.");
@@ -65,6 +81,7 @@
 			catch (err) {
 				console.error("Unexpected error:", err);
 				$(tableId).trigger('processing.dt', [false]);
+				setListingHostLoading(false);
 				toastr.error(err);
 				fnCallback({
 					data: [],
@@ -76,16 +93,18 @@
 		initComplete: function () {
 			$(tableId).show();
 			$(tableId).DataTable().columns.adjust().draw();
+			setListingHostLoading(false);
 		},
 		drawCallback: function () {
 			// Hook for row interactions or button init
 		}
 	});
 
-	// Optional spinner on processing
-	$(tableId).on('processing.dt', function (e, settings, processing) {
+	// Optional spinner on processing + listing host overlay (namespaced to avoid duplicate handlers on re-init)
+	$(tableId).off('processing.dt.dtblListing').on('processing.dt.dtblListing', function (e, settings, processing) {
 		const $wrapper = $(this).closest('.table');
 		$wrapper.toggleClass('table-blur', processing);
+		setListingHostLoading(processing);
 	});
 }
 function ConfigureServerSideSorting(oSettings, objCols, aoData) {

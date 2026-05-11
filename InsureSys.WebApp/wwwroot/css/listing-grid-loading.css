@@ -1,0 +1,39 @@
+/* Reusable listing host + overlay for DataTables first-load / processing states */
+.dt-listing-host {
+  position: relative;
+  min-height: 240px;
+}
+
+.dt-listing-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+}
+
+.dt-listing-host.is-loading .dt-listing-overlay {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.dt-listing-overlay__spinner {
+  flex-shrink: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dt-listing-overlay {
+    transition: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
