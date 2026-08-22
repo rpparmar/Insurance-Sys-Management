@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>             <!-- Enables nullable reference types -->
     <ImplicitUsings>enable</ImplicitUsings> <!-- Enables common using directives -->
     <AssemblyName>InsuranceSys.Domain</AssemblyName>

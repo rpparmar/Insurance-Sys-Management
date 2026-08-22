@@ -10,7 +10,7 @@ using InsuranceSys.Infrastructure.Utility;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Versioning;
+using Asp.Versioning;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
@@ -64,8 +64,8 @@ namespace Insurancesys.web
                     options.RespectBrowserAcceptHeader = true;
                     options.ReturnHttpNotAcceptable = true;
                 })
-                .AddXmlSerializerFormatters()
-                .AddRazorRuntimeCompilation(); // Optional - allows cshtml runtime updates (dev)
+                .AddXmlSerializerFormatters();
+            //.AddRazorRuntimeCompilation(); // Optional - allows cshtml runtime updates (dev)
 
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddMemoryCache();

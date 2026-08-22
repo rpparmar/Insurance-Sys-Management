@@ -41,6 +41,7 @@ namespace InsuranceSys.Infrastructure.Database
                 Password = password,
                 Encrypt = true,
                 TrustServerCertificate = true,
+                ApplicationName = "InsureSysManagement",
                 MinPoolSize = 2,
                 MaxPoolSize = 50,
                 ConnectTimeout = 30,
