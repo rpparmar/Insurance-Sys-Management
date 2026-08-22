@@ -44,6 +44,8 @@ namespace Insurancesys.web
             #region Serilog
             Log.Logger = new LoggerConfiguration()
                 .MinimumLevel.Information()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Fatal) // Ignore all Microsoft logs
+                .MinimumLevel.Override("System", LogEventLevel.Fatal)    // Ignore all System logs
                 .Enrich.FromLogContext()
                 .WriteTo.MSSqlServer(
                     connectionString: builder.Configuration.GetConnectionString("MasterConnection"),

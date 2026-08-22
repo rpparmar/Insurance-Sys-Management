@@ -40,16 +40,7 @@ namespace InsuranceSys.Infrastructure.Repositories
             _logger = logger;
         }
 
-        private static string GetServerHostNameFromConnectionString(string connectionString)
-        {
-            var dataSource = new SqlConnectionStringBuilder(connectionString).DataSource?.Trim() ?? string.Empty;
-            if (dataSource.StartsWith("tcp:", StringComparison.OrdinalIgnoreCase))
-                dataSource = dataSource[4..];
 
-            // Common forms: HOST, HOST\\INSTANCE, HOST,1433, tcp:HOST,1433
-            var hostPart = dataSource.Split('\\', ',')[0].Trim();
-            return hostPart;
-        }
 
         public async Task<(bool Success, string Message)> OnboardAgencyAsync(OnboardAgencyDto dto, int createdByUserId)
         {
@@ -67,12 +58,9 @@ namespace InsuranceSys.Infrastructure.Repositories
             if (await IsDatabaseNameExistsAsync(dto.DesiredDatabaseName))
                 return (false, "Database name already in use.");
 
-            // SQL login name: usr_{agencyCode} when provided; otherwise usr_{sanitized admin username} (username is globally unique).
-            var dbUser = BuildDatabaseLoginName(agencyCodeForStorage, dto.AdminUsername);
-            var dbPassword = GenerateSecurePassword(20);
             var masterConnStr = _configuration.GetConnectionString(MasterConnection)
                 ?? throw new InvalidOperationException("MasterConnection not configured.");
-            var serverInstance = GetServerHostNameFromConnectionString(masterConnStr);
+            var serverInstance = new SqlConnectionStringBuilder(masterConnStr).DataSource?.Trim() ?? string.Empty;
 
             try
             {
@@ -92,10 +80,6 @@ namespace InsuranceSys.Infrastructure.Repositories
                     return (false, "Database restore failed.");
                 }
 
-                await CreateSqlLoginAsync(dto.DesiredDatabaseName, dbUser, dbPassword);
-
-                var encryptedPassword = Cryptography.EncryptUtf16(dbPassword);
-
                 var agencyDetails = new AgencyDetailsEntity
                 {
                     AgencyCode = agencyCodeForStorage,
@@ -104,8 +88,8 @@ namespace InsuranceSys.Infrastructure.Repositories
                     ContactPhone = dto.ContactPhone,
                     DatabaseName = dto.DesiredDatabaseName,
                     DatabaseServer = serverInstance,
-                    DatabaseUser = dbUser,
-                    EncryptedDatabasePassword = encryptedPassword,
+                    DatabaseUser = null,
+                    EncryptedDatabasePassword = null,
                     IsActive = true,
                     CreatedByUserId = createdByUserId
                 };
@@ -308,30 +292,7 @@ namespace InsuranceSys.Infrastructure.Repositories
             return true;
         }
 
-        /// <summary>
-        /// Bracket-safe segment for CREATE LOGIN: letters, digits, underscore, @ (SQL Server allows in quoted identifiers).
-        /// </summary>
-        private static string BuildDatabaseLoginName(string? agencyCode, string adminUsername)
-        {
-            if (!string.IsNullOrWhiteSpace(agencyCode))
-                return $"usr_{agencyCode.Trim().ToLowerInvariant()}";
 
-            var seg = SanitizeForSqlLoginSegment(adminUsername);
-            return $"usr_{seg}";
-        }
-
-        /// <summary>
-        /// Lowercase, keep [a-z0-9_@], truncate to fit SQL login name limits.
-        /// </summary>
-        private static string SanitizeForSqlLoginSegment(string username)
-        {
-            var s = username.Trim().ToLowerInvariant();
-            var chars = s.Where(c => char.IsAsciiLetterOrDigit(c) || c == '_' || c == '@').ToArray();
-            var core = new string(chars);
-            if (core.Length == 0)
-                core = "user";
-            return core.Length > 120 ? core[..120] : core;
-        }
 
         public async Task<bool> IsAgencyCodeExistsAsync(string agencyCode, int? excludeAgencyId = null)
         {
@@ -641,55 +602,6 @@ namespace InsuranceSys.Infrastructure.Repositories
         //    _logger.LogInformation("Agency DB {DbName} created via EF migrations (fallback).", dbName);
         //}
 
-        private async Task CreateSqlLoginAsync(string dbName, string dbUser, string dbPassword)
-        {
-            var masterConnStr = _configuration.GetConnectionString(MasterConnection)!;
-            var builder = new SqlConnectionStringBuilder(masterConnStr)
-            {
-                InitialCatalog = "master"
-            };
 
-            await using var connection = new SqlConnection(builder.ConnectionString);
-            await connection.OpenAsync();
-
-            var sql = $@"
-                IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = @UserName)
-                BEGIN
-                    CREATE LOGIN [{dbUser}] WITH PASSWORD = '{dbPassword}', DEFAULT_DATABASE = [{dbName}];
-                END
-
-                USE [{dbName}];
-                IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = @UserName)
-                BEGIN
-                    CREATE USER [{dbUser}] FOR LOGIN [{dbUser}];
-                    ALTER ROLE db_owner ADD MEMBER [{dbUser}];
-                END";
-
-            await using var cmd = new SqlCommand(sql, connection);
-            cmd.Parameters.AddWithValue("@UserName", dbUser);
-            await cmd.ExecuteNonQueryAsync();
-        }
-
-        private static string GenerateSecurePassword(int length)
-        {
-            const string upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-            const string lower = "abcdefghijklmnopqrstuvwxyz";
-            const string digits = "0123456789";
-            const string special = "!@#$%^&*";
-            const string all = upper + lower + digits + special;
-
-            var bytes = RandomNumberGenerator.GetBytes(length);
-            var chars = new char[length];
-
-            chars[0] = upper[bytes[0] % upper.Length];
-            chars[1] = lower[bytes[1] % lower.Length];
-            chars[2] = digits[bytes[2] % digits.Length];
-            chars[3] = special[bytes[3] % special.Length];
-
-            for (int i = 4; i < length; i++)
-                chars[i] = all[bytes[i] % all.Length];
-
-            return new string(chars.OrderBy(_ => RandomNumberGenerator.GetInt32(length)).ToArray());
-        }
     }
 }

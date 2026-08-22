@@ -4,12 +4,20 @@ using Microsoft.Extensions.Configuration;
 
 namespace InsuranceSys.Infrastructure.Database
 {
+    /// <summary>
+    /// In-memory cache implementation for storing resolved tenant database connection strings.
+    /// </summary>
     public class TenantConnectionCache : ITenantConnectionCache
     {
         private readonly IMemoryCache _cache;
         private readonly TimeSpan _slidingExpiration;
         private readonly TimeSpan _absoluteExpiration;
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TenantConnectionCache"/> class with configured cache policies.
+        /// </summary>
+        /// <param name="cache">The memory cache instance.</param>
+        /// <param name="configuration">The application configuration containing tenant cache options.</param>
         public TenantConnectionCache(IMemoryCache cache, IConfiguration configuration)
         {
             _cache = cache;
@@ -23,12 +31,22 @@ namespace InsuranceSys.Infrastructure.Database
 
         private static string CacheKey(int tenantId) => $"tenant_conn_{tenantId}";
 
+        /// <summary>
+        /// Retrieves the cached connection string for a given tenant.
+        /// </summary>
+        /// <param name="tenantId">The unique identifier of the tenant.</param>
+        /// <returns>The cached connection string, or <c>null</c> if not present in cache.</returns>
         public Task<string?> GetConnectionStringAsync(int tenantId)
         {
             _cache.TryGetValue(CacheKey(tenantId), out string? connStr);
             return Task.FromResult(connStr);
         }
 
+        /// <summary>
+        /// Stores a tenant connection string in the cache with configured sliding and absolute expiration policies.
+        /// </summary>
+        /// <param name="tenantId">The unique identifier of the tenant.</param>
+        /// <param name="connectionString">The resolved connection string to cache.</param>
         public Task SetConnectionStringAsync(int tenantId, string connectionString)
         {
             var options = new MemoryCacheEntryOptions
@@ -42,6 +60,10 @@ namespace InsuranceSys.Infrastructure.Database
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Removes the cached connection string for a tenant.
+        /// </summary>
+        /// <param name="tenantId">The unique identifier of the tenant to evict from cache.</param>
         public Task InvalidateAsync(int tenantId)
         {
             _cache.Remove(CacheKey(tenantId));
@@ -49,3 +71,4 @@ namespace InsuranceSys.Infrastructure.Database
         }
     }
 }
+
