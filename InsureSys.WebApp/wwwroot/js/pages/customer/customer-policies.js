@@ -79,12 +79,34 @@
             }
         },
 
+        showNoInsuranceTypesAlert: function (title, message) {
+            title = title || 'No Insurance Types Found';
+            message = message || 'Please configure active insurance types in system settings before adding policies.';
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    title: title,
+                    text: message,
+                    icon: 'warning',
+                    confirmButtonText: 'OK',
+                    buttonsStyling: false,
+                    customClass: {
+                        confirmButton: 'btn btn-primary font-weight-bold'
+                    }
+                });
+            } else if (typeof toastr !== 'undefined') {
+                toastr.warning(message, title);
+            } else {
+                alert(title + '\n\n' + message);
+            }
+        },
+
         bindEvents: function () {
             var self = this;
 
             $(document).on('click', '.policy-card[data-policy-type]', function () {
                 var slug = $(this).data('policy-type');
                 if (String($(this).data('is-active')) === 'false') {
+                    self.showNoInsuranceTypesAlert('Inactive Insurance Type', 'This insurance type is currently inactive in system settings.');
                     return;
                 }
                 self.togglePolicySection(slug);
@@ -134,7 +156,16 @@
         },
 
         togglePolicySection: function (slug) {
-            if (!this.isCardActive(slug)) return;
+            if (!this.gridConfig || this.gridConfig.length === 0) {
+                this.showNoInsuranceTypesAlert('No Insurance Types Found', 'Please configure active insurance types in system settings before adding policies.');
+                return;
+            }
+
+            var cfg = this.getConfigForSlug(slug);
+            if (!cfg || !cfg.isActive) {
+                this.showNoInsuranceTypesAlert('Inactive Insurance Type', 'This insurance type is currently inactive in system settings.');
+                return;
+            }
 
             var $card = $('.policy-card[data-policy-type="' + slug + '"]');
             var $section = $('.policy-section[data-policy-type="' + slug + '"]');
@@ -161,15 +192,33 @@
         },
 
         addPolicy: function (slug) {
-            if (!this.isCardActive(slug)) return;
-
-            var self = this;
-            var cfg = this.getConfigForSlug(slug);
-            if (!cfg) {
-                console.warn('No grid config for slug', slug);
+            if (!this.gridConfig || this.gridConfig.length === 0) {
+                this.showNoInsuranceTypesAlert('No Insurance Types Found', 'Please configure active insurance types in system settings before adding policies.');
                 return;
             }
 
+            if (!slug) {
+                var activeConfig = this.gridConfig.find(function (c) { return c.isActive; });
+                if (!activeConfig) {
+                    this.showNoInsuranceTypesAlert('No Active Insurance Types', 'All configured insurance types are currently inactive in system settings.');
+                    return;
+                }
+                slug = activeConfig.slug;
+            }
+
+            var cfg = this.getConfigForSlug(slug);
+            if (!cfg) {
+                console.warn('No grid config for slug', slug);
+                this.showNoInsuranceTypesAlert('Unknown Insurance Type', 'The requested insurance type configuration could not be found.');
+                return;
+            }
+
+            if (!cfg.isActive) {
+                this.showNoInsuranceTypesAlert('Inactive Insurance Type', 'This insurance type is currently inactive and cannot be added.');
+                return;
+            }
+
+            var self = this;
             var index = this.getPolicyCount(slug);
             var policyArray = this.policyIndices[slug] || [];
             var $container = $('#' + slug + '-policies-container');
@@ -210,7 +259,20 @@
                     $loadingIndicator.remove();
                     var msg = (xhr.responseText && xhr.responseText.length < 200) ? xhr.responseText : 'Could not load policy form.';
                     console.error('GetPolicyPartial failed', xhr.status, msg);
-                    alert(msg);
+                    if (typeof Swal !== 'undefined') {
+                        Swal.fire({
+                            title: 'Error',
+                            text: msg,
+                            icon: 'error',
+                            confirmButtonText: 'OK',
+                            buttonsStyling: false,
+                            customClass: {
+                                confirmButton: 'btn btn-primary font-weight-bold'
+                            }
+                        });
+                    } else {
+                        alert(msg);
+                    }
                 }
             });
 
@@ -480,10 +542,31 @@
         },
 
         validateBeforeSubmit: function (e) {
+            if (!this.gridConfig || this.gridConfig.length === 0) {
+                e.preventDefault();
+                this.showNoInsuranceTypesAlert('Cannot Save Policies', 'No insurance types are configured in the system. Please configure active insurance types in system settings.');
+                return false;
+            }
+
             var hasPolicies = this.hasAnyPolicies();
             if (!hasPolicies) {
                 e.preventDefault();
-                alert('Please add at least one policy.');
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'No Policies Added',
+                        text: 'Please add at least one policy before saving.',
+                        icon: 'warning',
+                        confirmButtonText: 'OK',
+                        buttonsStyling: false,
+                        customClass: {
+                            confirmButton: 'btn btn-primary font-weight-bold'
+                        }
+                    });
+                } else if (typeof toastr !== 'undefined') {
+                    toastr.warning('Please add at least one policy before saving.');
+                } else {
+                    alert('Please add at least one policy before saving.');
+                }
                 return false;
             }
             var $form = $('#frmCustomerPolicies');

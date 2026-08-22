@@ -93,6 +93,26 @@ namespace Insurancesys.web.Models
         /// </summary>
         public List<InsuranceTypePolicyGridItemViewModel> InsuranceTypesForGrid { get; set; } = new List<InsuranceTypePolicyGridItemViewModel>();
 
+        /// <summary>
+        /// Indicates if any insurance types are configured in master (active or inactive).
+        /// </summary>
+        public bool HasAnyInsuranceTypes => InsuranceTypesForGrid != null && InsuranceTypesForGrid.Count > 0;
+
+        /// <summary>
+        /// Indicates if at least one insurance type is active and available for adding new policies.
+        /// </summary>
+        public bool HasActiveInsuranceTypes => InsuranceTypesForGrid != null && InsuranceTypesForGrid.Any(x => x.IsActive);
+
+        /// <summary>
+        /// Indicates if there are any existing policies currently associated with the customer.
+        /// </summary>
+        public bool HasAnyExistingPolicies =>
+            (MotorPolicies != null && MotorPolicies.Count > 0) ||
+            (HealthPolicies != null && HealthPolicies.Count > 0) ||
+            (LifePolicies != null && LifePolicies.Count > 0) ||
+            (PersonalAccidentPolicies != null && PersonalAccidentPolicies.Count > 0) ||
+            (StandardPolicies != null && StandardPolicies.Count > 0);
+
         #endregion
     }
 }

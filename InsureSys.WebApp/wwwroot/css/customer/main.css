@@ -290,3 +290,14 @@
 .policy-section-disabled .btn-add-another {
     display: none;
 }
+
+/* Empty State / Inactive Alerts */
+.policy-empty-alert {
+    border-radius: 8px;
+    padding: 1.5rem 1.75rem;
+}
+
+.policy-empty-alert .alert-icon i {
+    font-size: 2rem;
+}
+

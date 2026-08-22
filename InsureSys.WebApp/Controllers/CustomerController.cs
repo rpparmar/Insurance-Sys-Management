@@ -173,6 +173,17 @@ namespace Insurancesys.web.Controllers
         {
             int customerId = model.CustomerID;
 
+            var activeTypeIds = await _insuranceTypeService.GetActiveInsuranceTypeIdsAsync();
+            if (activeTypeIds == null || activeTypeIds.Count == 0)
+            {
+                TempData["Message"] = "No active insurance types are configured in the system. Please configure insurance types before saving policies.";
+                TempData["RowsAffected"] = "0";
+                await RepopulatePolicyDropdownsAsync(model);
+                model.InsuranceTypesForGrid = await BuildInsuranceTypesForGridAsync();
+                await PopulateCustomerDisplayNameAsync(model);
+                return View("CustomerPolicies", model);
+            }
+
             if (!await ValidatePostedPoliciesAgainstMasterAsync(model))
             {
                 TempData["Message"] = "One or more policies use an inactive or invalid insurance type.";
