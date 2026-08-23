@@ -2,8 +2,15 @@ using System.ComponentModel.DataAnnotations;
 
 namespace InsuranceSys.Domain.Enums
 {
+    /// <summary>
+    /// Closed catalog of policy form templates. Numeric values are not insurance-type identities
+    /// and must never be inferred from <c>InsuranceTypeMaster.InsuranceTypeId</c>.
+    /// </summary>
     public enum InsuranceTypeCode : int
     {
+        [Display(Name = "Standard Policy Form")]
+        Standard = 0,
+
         [Display(Name = "Motor / Vehicle Insurance")]
         MotorVehicle = 1,
 

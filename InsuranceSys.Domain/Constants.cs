@@ -17,6 +17,7 @@ namespace InsuranceSys.Domain
         {
             public const string MsgUpdateFailure = "Record not updated,something went wrong";
             public const string MsgInsertFailure = "Record not saved,something went wrong";
+            public const string MsgSpecializedTemplateInUse = "The {0} form is already assigned to '{1}'. Deactivate that type or choose a different form template.";
         }
         public static class AlertMessages
         {

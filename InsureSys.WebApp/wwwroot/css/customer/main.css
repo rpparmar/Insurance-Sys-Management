@@ -86,6 +86,11 @@
     font-style: normal;
 }
 
+    .policy-icon i {
+        font-size: 32px;
+        color: #3699ff;
+    }
+
 .policy-title {
     font-weight: 600;
     color: #3f4254;
@@ -127,8 +132,10 @@
 }
 
     .policy-section-header i {
-        font-size: 24px;
+        font-size: 22px;
         font-style: normal;
+        margin-right: 8px;
+        color: #3699ff;
     }
 
     .policy-section-header h4 {

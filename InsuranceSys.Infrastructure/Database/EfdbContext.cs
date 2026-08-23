@@ -34,6 +34,7 @@ namespace InsuranceSys.Infrastructure.Database
             {
                 entity.ToTable("InsuranceTypeMaster");
                 entity.Property(e => e.InsuranceTypeCode).HasMaxLength(64);
+                entity.Property(e => e.IconClass).HasMaxLength(128);
             });
             modelBuilder.Entity<LeadStatusEntity>().ToTable("LeadStatus");
             modelBuilder.Entity<CountryEntity>().ToTable("CountryMaster");

@@ -52,13 +52,24 @@
         },
 
         getNextStandardIndex: function () {
+            return this.getNextIndexForPrefix('StandardPolicies');
+        },
+
+        getNextIndexForPrefix: function (prefix) {
             var max = -1;
-            $('#frmCustomerPolicies input[name^="StandardPolicies["]').each(function () {
+            if (!prefix) {
+                return 0;
+            }
+            var escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            var re = new RegExp('^' + escaped + '\\[(\\d+)\\]');
+            $('#frmCustomerPolicies input[name^="' + prefix + '["]').each(function () {
                 var name = $(this).attr('name') || '';
-                var m = name.match(/^StandardPolicies\[(\d+)\]/);
-                if (m) {
-                    var n = parseInt(m[1], 10);
-                    if (!isNaN(n)) max = Math.max(max, n);
+                var match = name.match(re);
+                if (match) {
+                    var n = parseInt(match[1], 10);
+                    if (!isNaN(n)) {
+                        max = Math.max(max, n);
+                    }
                 }
             });
             return max + 1;
@@ -66,8 +77,8 @@
 
         getPolicyCount: function (slug) {
             var cfg = this.getConfigForSlug(slug);
-            if (cfg && cfg.isStandardBucket) {
-                return this.getNextStandardIndex();
+            if (cfg && cfg.formCollectionPrefix) {
+                return this.getNextIndexForPrefix(cfg.formCollectionPrefix);
             }
             return (this.policyIndices[slug] || []).length;
         },
@@ -150,6 +161,15 @@
                 if ((self.policyIndices[c.slug] || []).length > 0) {
                     self.showPolicySection(c.slug);
                 }
+            });
+
+            $('.policy-instance').each(function () {
+                var slug = $(this).data('policy-type');
+                var index = $(this).data('policy-index');
+                if (slug === undefined || index === undefined) {
+                    return;
+                }
+                self.initializePolicyComponents(slug, index);
             });
 
             this.updateAllPolicyCounts();

@@ -54,7 +54,7 @@ $(function () {
         initDataTable();
     }
     else {
-        //additional script to be written for Add/Update form if required
+        bindInsuranceTypeIconPreview();
     }
     if (parseInt(globalvar.rowsaffected) > 0)
         toastr.success(globalvar.tostarMsg);
@@ -75,4 +75,20 @@ $("#txtSearch").on('keyup', function () {
 function SetIDs() {    
     var stationID = $('#drpCompanies').val();
     $('#AssociationWithCompanyIDs').val(stationID)
+}
+
+function bindInsuranceTypeIconPreview() {
+    var $icon = $('#drpIconClass');
+    var $preview = $('.insurance-type-icon-preview i');
+    if (!$icon.length || !$preview.length) {
+        return;
+    }
+
+    var applyPreview = function () {
+        var cls = $icon.val() || 'fas fa-file-alt';
+        $preview.attr('class', cls);
+    };
+
+    $icon.on('changed.bs.select change', applyPreview);
+    applyPreview();
 }

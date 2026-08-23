@@ -1,39 +1,45 @@
 ﻿using AutoMapper;
 using Insurancesys.web.Helper;
 using Insurancesys.web.Models;
-using Insurancesys.web.Models.Common;
-using InsuranceSys.Application;
 using InsuranceSys.Application.DTO;
 using InsuranceSys.Application.Interface;
 using InsuranceSys.Domain;
 using InsuranceSys.Domain.Entities;
+using InsuranceSys.Domain.Enums;
+using InsuranceSys.Domain.PolicyForms;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Extensions.Primitives;
-using System.Collections.Immutable;
-using System.Data;
 
 namespace Insurancesys.web.Controllers
 {
-    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SuperAdmin,AgencyAdmin")] // Use cookie authentication
+    [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme, Roles = "SuperAdmin,AgencyAdmin")]
     public class InsuranceTypeController : Controller
     {
-        private readonly IInsuranceTypeService _insuranceTypeService;        
+        private readonly IInsuranceTypeService _insuranceTypeService;
         private readonly IDropDownBinderService _dropDownBinderService;
+        private readonly IPolicyFormResolver _policyFormResolver;
         private readonly IMapper _mapper;
-        public InsuranceTypeController(IInsuranceTypeService insuranceTypeService, IMapper mapper, IDropDownBinderService dropDownBinderService)
+
+        public InsuranceTypeController(
+            IInsuranceTypeService insuranceTypeService,
+            IMapper mapper,
+            IDropDownBinderService dropDownBinderService,
+            IPolicyFormResolver policyFormResolver)
         {
-            _insuranceTypeService= insuranceTypeService;
-            _mapper=mapper;
+            _insuranceTypeService = insuranceTypeService;
+            _mapper = mapper;
             _dropDownBinderService = dropDownBinderService;
+            _policyFormResolver = policyFormResolver;
         }
+
         [Route("InsuranceTypes")]
         public IActionResult InsuranceTypeList()
         {
             return View("../Masters/InsuranceType/InsuranceTypeList");
         }
+
         [HttpPost]
         public async Task<IActionResult> GetData()
         {
@@ -41,6 +47,10 @@ namespace Insurancesys.web.Controllers
             return Json(result);
         }
 
+        /// <summary>
+        /// Renders add or edit for an insurance type, including form-template and icon catalogs.
+        /// </summary>
+        /// <param name="id">Insurance type id when editing; empty for create.</param>
         [HttpGet("InsuranceType/Add")]
         [HttpGet("InsuranceType/Edit/{id}")]
         public async Task<IActionResult> AddEditInsuranceType(string id = "")
@@ -48,14 +58,15 @@ namespace Insurancesys.web.Controllers
             InsuranceTypeViewModel model = new();
             if (!string.IsNullOrEmpty(id))
             {
-                if (int.TryParse(id, out int _id) && _id > 0)
+                if (int.TryParse(id, out int insuranceTypeId) && insuranceTypeId > 0)
                 {
-                    var insurancetypedto = await _insuranceTypeService.GetByIdAsync(Convert.ToInt16(_id));
-                    if (insurancetypedto != null)
+                    var insuranceTypeDto = await _insuranceTypeService.GetByIdAsync(Convert.ToInt16(insuranceTypeId));
+                    if (insuranceTypeDto != null)
                     {
-                        model = _mapper.Map<InsuranceTypeViewModel>(insurancetypedto);
+                        model = _mapper.Map<InsuranceTypeViewModel>(insuranceTypeDto);
                         HttpContext.Session.SetString("Original_InsuranceType", model.InsuranceType);
                         model.IsEditMode = true;
+                        HydrateTemplateDefaults(model);
                     }
                     else
                     {
@@ -75,65 +86,61 @@ namespace Insurancesys.web.Controllers
             {
                 model.IsEditMode = false;
                 model.IsActive = true;
+                model.InsuranceTypeCode = PolicyFormCatalog.StandardKey;
+                model.IconClass = PolicyFormCatalog.DefaultIconClass;
                 HttpContext.Session.SetString("Original_InsuranceType", "");
             }
+
             model = await BindDropdowns(model);
             return View("../Masters/InsuranceType/AddEditInsuranceType", model);
         }
 
+        /// <summary>
+        /// Persists an insurance type and enforces a single active specialized form template.
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> SaveInsuranceType(InsuranceTypeViewModel model, bool saveAndExit = true)
         {
+            NormalizePostedTemplate(model);
+
             if (!ModelState.IsValid)
             {
-                // Extract all model state errors
-                var errors = ModelState
-                    .Where(x => x.Value?.Errors?.Count > 0)
-                    .SelectMany(x => x.Value!.Errors
-                        .Select(error => new { Key = x.Key, ErrorMessage = error.ErrorMessage }))
-                    .ToList();
-                foreach (var error in errors)
-                {
-                    ModelState.AddModelError(error.Key, error.ErrorMessage);
-                }
+                model = await BindDropdowns(model);
                 return View("../Masters/InsuranceType/AddEditInsuranceType", model);
             }
+
+            if (!await TryValidateSpecializedTemplateAsync(model))
+            {
+                model = await BindDropdowns(model);
+                return View("../Masters/InsuranceType/AddEditInsuranceType", model);
+            }
+
             var insuranceType = _mapper.Map<InsuranceTypeEntity>(model);
 
             if (model.IsEditMode)
             {
-                #region Update
-                var rowsaffected = await _insuranceTypeService.UpdateAsync(insuranceType);
-                TempData["RowsAffected"] = rowsaffected;
-                if (rowsaffected > 0)
-                    TempData["Message"] = Constants.SuccessMessages.MsgUpdateSuccess;
-                else
-                    TempData["Message"] = Constants.ErrorMessages.MsgUpdateFailure;
-                #endregion
+                var rowsAffected = await _insuranceTypeService.UpdateAsync(insuranceType);
+                TempData["RowsAffected"] = rowsAffected;
+                TempData["Message"] = rowsAffected > 0
+                    ? Constants.SuccessMessages.MsgUpdateSuccess
+                    : Constants.ErrorMessages.MsgUpdateFailure;
             }
             else
             {
-                #region Insert
-                var rowsaffected = await _insuranceTypeService.AddAsync(insuranceType);
-                TempData["RowsAffected"] = rowsaffected;
-                if (rowsaffected > 0)
-                    TempData["Message"] = Constants.SuccessMessages.MsgInsertSuccess;
-                else
-                    TempData["Message"] = Constants.ErrorMessages.MsgInsertFailure;
-                #endregion
+                var rowsAffected = await _insuranceTypeService.AddAsync(insuranceType);
+                TempData["RowsAffected"] = rowsAffected;
+                TempData["Message"] = rowsAffected > 0
+                    ? Constants.SuccessMessages.MsgInsertSuccess
+                    : Constants.ErrorMessages.MsgInsertFailure;
             }
+
             if (saveAndExit)
-            {
                 return RedirectToAction("InsuranceTypeList");
-            }
-            else if (model.IsEditMode)
-            {
+
+            if (model.IsEditMode)
                 return RedirectToAction("AddEditInsuranceType", new RouteValueDictionary(new { id = model.InsuranceTypeId }));
-            }
-            else
-            {
-                return RedirectToAction("AddEditInsuranceType");
-            }
+
+            return RedirectToAction("AddEditInsuranceType");
         }
 
         [HttpDelete]
@@ -146,27 +153,89 @@ namespace Insurancesys.web.Controllers
         [AcceptVerbs("Get", "Post")]
         public async Task<IActionResult> IsInsurancetypeExist(string InsuranceType = "")
         {
-            string Original_InsuranceType = HttpContext.Session.GetString("Original_InsuranceType") ?? "";
-            bool IsEditMode = !string.IsNullOrEmpty(Original_InsuranceType);
-            bool IsExist = await _insuranceTypeService.FindByNameAsync(InsuranceType);
-            if (IsEditMode && !string.Equals(Original_InsuranceType, InsuranceType) && IsExist)
+            string originalInsuranceType = HttpContext.Session.GetString("Original_InsuranceType") ?? "";
+            bool isEditMode = !string.IsNullOrEmpty(originalInsuranceType);
+            bool isExist = await _insuranceTypeService.FindByNameAsync(InsuranceType);
+            if (isEditMode && !string.Equals(originalInsuranceType, InsuranceType) && isExist)
                 return Json($"Insurance type '{InsuranceType}' is already in use.");
-            else if (!IsEditMode && IsExist)
+            if (!isEditMode && isExist)
                 return Json($"Insurance type '{InsuranceType}' is already in use.");
             return Json(true);
         }
-        #region Helper methods
+
         private void SetTempDataForNoRecord()
         {
             TempData["RowsAffected"] = 0;
             TempData["Message"] = Constants.AlertMessages.MsgNoRecords;
         }
+
+        /// <summary>
+        /// Loads company, form-template, and icon dropdowns for the master form.
+        /// </summary>
         private async Task<InsuranceTypeViewModel> BindDropdowns(InsuranceTypeViewModel model)
         {
-            var companies = await _dropDownBinderService.GetCompanyDropdownAsync();            
-            model.lstOfCompanies = DropdownMapper.ToSelectListItems(companies ?? new List<DropdownItemDto>(),model.AssociationWithCompanyIDs);            
+            var companies = await _dropDownBinderService.GetCompanyDropdownAsync();
+            model.lstOfCompanies = DropdownMapper.ToSelectListItems(companies ?? new List<DropdownItemDto>(), model.AssociationWithCompanyIDs);
+            model.FormTemplateSelectList = PolicyFormCatalog.GetTemplateOptions(model.InsuranceTypeCode)
+                .Select(o => new SelectListItem { Value = o.Value, Text = o.Text, Selected = o.Selected })
+                .ToList();
+            model.IconSelectList = PolicyFormCatalog.GetIconOptions(model.IconClass)
+                .Select(o => new SelectListItem { Value = o.Value, Text = o.Text, Selected = o.Selected })
+                .ToList();
             return model;
-        }        
-        #endregion
+        }
+
+        /// <summary>
+        /// When a legacy row has an empty template key, pre-select the effective template
+        /// so saving persists the decoupled value.
+        /// </summary>
+        private static void HydrateTemplateDefaults(InsuranceTypeViewModel model)
+        {
+            var template = InsuranceTypeCodeExtensions.ResolveTemplate(model.InsuranceTypeCode, model.InsuranceTypeId);
+            if (string.IsNullOrWhiteSpace(model.InsuranceTypeCode))
+                model.InsuranceTypeCode = template.ToStoredKey();
+            else if (InsuranceTypeCodeExtensions.TryParseTemplate(model.InsuranceTypeCode, out var parsed))
+                model.InsuranceTypeCode = parsed.ToStoredKey();
+
+            if (string.IsNullOrWhiteSpace(model.IconClass))
+                model.IconClass = template.GetDefaultIconClass();
+        }
+
+        private static void NormalizePostedTemplate(InsuranceTypeViewModel model)
+        {
+            if (InsuranceTypeCodeExtensions.TryParseTemplate(model.InsuranceTypeCode, out var template))
+                model.InsuranceTypeCode = template.ToStoredKey();
+
+            if (string.IsNullOrWhiteSpace(model.IconClass))
+                model.IconClass = PolicyFormCatalog.DefaultIconClass;
+        }
+
+        /// <summary>
+        /// Blocks a second active Motor / Health / Life / Personal Accident assignment.
+        /// </summary>
+        private async Task<bool> TryValidateSpecializedTemplateAsync(InsuranceTypeViewModel model)
+        {
+            if (!InsuranceTypeCodeExtensions.TryParseTemplate(model.InsuranceTypeCode, out var template))
+            {
+                ModelState.AddModelError(nameof(model.InsuranceTypeCode), "Select a valid form template.");
+                return false;
+            }
+
+            if (!model.IsActive.GetValueOrDefault())
+                return true;
+
+            var excludeId = model.IsEditMode && model.InsuranceTypeId > 0 ? model.InsuranceTypeId : (int?)null;
+            var conflict = await _policyFormResolver.FindConflictingActiveSpecializedAsync(template, excludeId);
+            if (conflict is null)
+                return true;
+
+            ModelState.AddModelError(
+                nameof(model.InsuranceTypeCode),
+                string.Format(
+                    Constants.ErrorMessages.MsgSpecializedTemplateInUse,
+                    PolicyFormCatalog.GetTemplateDisplayName(template),
+                    conflict.DisplayName));
+            return false;
+        }
     }
 }

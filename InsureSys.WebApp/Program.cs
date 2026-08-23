@@ -3,6 +3,7 @@ using Insurancesys.web.Services;
 using Insurancesys.web.Utility;
 using InsuranceSys.Application;
 using InsuranceSys.Application.Interface;
+using InsuranceSys.Application.PolicyForms;
 using InsuranceSys.Infrastructure.Database;
 using InsuranceSys.Infrastructure.Database.Interface;
 using InsuranceSys.Infrastructure.Repositories;
@@ -226,6 +227,7 @@ namespace Insurancesys.web
             builder.Services.AddScoped<ILeadService, LeadRepository>();
             builder.Services.AddScoped<ILoginService, LoginRepository>();
             builder.Services.AddScoped<IInsuranceTypeService, InsuranceTypeRepository>();
+            builder.Services.AddScoped<IPolicyFormResolver, PolicyFormResolver>();
             builder.Services.AddScoped<IDropDownBinderService, DropDownBinderRepository>();
             builder.Services.AddScoped<ILeadStatusService, LeadStatusRepository>();
             builder.Services.AddScoped<ICustomerService, CustomerRepository>();

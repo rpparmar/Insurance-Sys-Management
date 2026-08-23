@@ -10,17 +10,17 @@
 @{
     var index = ViewBag.Index ?? 0;
     var policyNumber = ViewBag.PolicyNumber ?? (index + 1);
-    var policyType = "Health";
+    var policyType = ViewBag.PolicyType as string ?? "Health";
+    var slug = ViewBag.PolicySlug as string ?? "health";
 
-    // Set ViewBag for child partials
     ViewBag.Index = index;
     ViewBag.PolicyType = policyType;
 }
 
-<div class="policy-instance" data-policy-type="health" data-policy-index="@index">
+<div class="policy-instance" data-policy-type="@slug" data-policy-index="@index">
     <div class="policy-instance-header">
         <span class="policy-instance-title">Health Policy #@policyNumber</span>
-        <button type="button" class="btn-remove" data-policy-type="health">
+        <button type="button" class="btn-remove" data-policy-type="@slug">
             <span>🗑️</span>
             Remove
         </button>

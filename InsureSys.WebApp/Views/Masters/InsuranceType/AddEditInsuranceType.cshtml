@@ -61,8 +61,20 @@
                         <div class="row h-100 justify-content-center align-items-center">
                             <div class="col-md-6">
                                 <div class="card-body">
-                                    @Html.SimpleFormTextBox("Type Of Insurance", nameof(Model.InsuranceType), true, "Enter type", 100)                                   
-                                    @Html.SimpleFormMuliSelectDropdown("Choose Associated Companies", "drpCompanies", Model.lstOfCompanies, "SetIDs()")                                    
+                                    @Html.SimpleFormTextBox("Type Of Insurance", nameof(Model.InsuranceType), true, "Enter type", 100)
+                                    @Html.SimpleFormDropdown("Insurance Template", nameof(Model.InsuranceTypeCode), Model.FormTemplateSelectList, true, "Select form layout")
+                                    @Html.SimpleFormDropdown("Icon to display", nameof(Model.IconClass), Model.IconSelectList, false, "Select icon")
+                                    <div class="form-group row">
+                                        <div class="col-md-4 col-xs-12 text-md-right">
+                                            <label class="col-form-label">Preview</label>
+                                        </div>
+                                        <div class="col-md-8 col-xs-12 d-flex align-items-center">
+                                            <span class="insurance-type-icon-preview text-primary" style="font-size: 28px;">
+                                                <i class="@(string.IsNullOrWhiteSpace(Model.IconClass) ? "fas fa-file-alt" : Model.IconClass)"></i>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    @Html.SimpleFormMuliSelectDropdown("Choose Associated Companies", "drpCompanies", Model.lstOfCompanies, "SetIDs()")
                                     @Html.SimpleFormCheckBox("Is Active", nameof(Model.IsActive))
                                     @Html.HiddenFor(i => i.AssociationWithCompanyIDs)
                                 </div>
