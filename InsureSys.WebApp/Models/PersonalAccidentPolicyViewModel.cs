@@ -6,7 +6,7 @@ namespace Insurancesys.web.Models
     /// <summary>
     /// ViewModel for individual policy
     /// </summary>
-    public class PersonalAccidentPolicyViewModel
+    public class PersonalAccidentPolicyViewModel : ICommonPolicyForm
     {
         #region Basic Details
         //public int PolicyId { get; set; }

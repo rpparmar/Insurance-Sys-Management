@@ -2,7 +2,9 @@
 @using InsuranceSys.Domain.PolicyForms
 @using Insurancesys.web.Helper
 @using Insurancesys.web.Models.Common
+@using Insurancesys.web.PolicyForms
 @model Insurancesys.web.Models.PolicyDetailsViewModel
+@inject IPolicyFormRegistry PolicyFormRegistry
 @{
     Layout = "_Layout";
     var gridJson = JsonSerializer.Serialize(
@@ -110,93 +112,7 @@
                                             </div>
 
                                             <div id="@(t.Slug)-policies-container">
-                                                @{
-                                                    var ordinal = 1;
-                                                }
-                                                @switch (t.FormTemplateKey)
-                                                {
-                                                    case PolicyFormCatalog.MotorVehicleKey:
-                                                        if (Model.MotorPolicies != null)
-                                                        {
-                                                            for (int i = 0; i < Model.MotorPolicies.Count; i++)
-                                                            {
-                                                                var policy = Model.MotorPolicies[i];
-                                                                if (policy.BasicDetails?.InsuranceTypeID != t.InsuranceTypeId)
-                                                                    continue;
-                                                                ViewBag.Index = i;
-                                                                ViewBag.PolicyNumber = ordinal++;
-                                                                ViewBag.PolicyType = t.BindingPolicyType;
-                                                                ViewBag.PolicySlug = t.Slug;
-                                                                @Html.Partial("_MotorPolicyPartial", policy)
-                                                            }
-                                                        }
-                                                        break;
-                                                    case PolicyFormCatalog.HealthKey:
-                                                        if (Model.HealthPolicies != null)
-                                                        {
-                                                            for (int i = 0; i < Model.HealthPolicies.Count; i++)
-                                                            {
-                                                                var policy = Model.HealthPolicies[i];
-                                                                if (policy.BasicDetails?.InsuranceTypeID != t.InsuranceTypeId)
-                                                                    continue;
-                                                                ViewBag.Index = i;
-                                                                ViewBag.PolicyNumber = ordinal++;
-                                                                ViewBag.PolicyType = t.BindingPolicyType;
-                                                                ViewBag.PolicySlug = t.Slug;
-                                                                @Html.Partial("_HealthPolicyPartial", policy)
-                                                            }
-                                                        }
-                                                        break;
-                                                    case PolicyFormCatalog.LifeKey:
-                                                        if (Model.LifePolicies != null)
-                                                        {
-                                                            for (int i = 0; i < Model.LifePolicies.Count; i++)
-                                                            {
-                                                                var policy = Model.LifePolicies[i];
-                                                                if (policy.BasicDetails?.InsuranceTypeID != t.InsuranceTypeId)
-                                                                    continue;
-                                                                ViewBag.Index = i;
-                                                                ViewBag.PolicyNumber = ordinal++;
-                                                                ViewBag.PolicyType = t.BindingPolicyType;
-                                                                ViewBag.PolicySlug = t.Slug;
-                                                                @Html.Partial("_LifePolicyPartial", policy)
-                                                            }
-                                                        }
-                                                        break;
-                                                    case PolicyFormCatalog.PersonalAccidentKey:
-                                                        if (Model.PersonalAccidentPolicies != null)
-                                                        {
-                                                            for (int i = 0; i < Model.PersonalAccidentPolicies.Count; i++)
-                                                            {
-                                                                var policy = Model.PersonalAccidentPolicies[i];
-                                                                if (policy.BasicDetails?.InsuranceTypeID != t.InsuranceTypeId)
-                                                                    continue;
-                                                                ViewBag.Index = i;
-                                                                ViewBag.PolicyNumber = ordinal++;
-                                                                ViewBag.PolicyType = t.BindingPolicyType;
-                                                                ViewBag.PolicySlug = t.Slug;
-                                                                @Html.Partial("_PersonalAccidentPolicyPartial", policy)
-                                                            }
-                                                        }
-                                                        break;
-                                                    default:
-                                                        if (t.IsStandardBucket && Model.StandardPolicies != null)
-                                                        {
-                                                            for (int i = 0; i < Model.StandardPolicies.Count; i++)
-                                                            {
-                                                                var policy = Model.StandardPolicies[i];
-                                                                if (policy.BasicDetails?.InsuranceTypeID != t.InsuranceTypeId)
-                                                                    continue;
-                                                                ViewBag.Index = i;
-                                                                ViewBag.PolicyNumber = ordinal++;
-                                                                ViewBag.PolicyType = t.BindingPolicyType;
-                                                                ViewBag.PolicySlug = t.Slug;
-                                                                ViewBag.PolicyDisplayTitle = t.DisplayName;
-                                                                @Html.Partial("_StandardPolicyPartial", policy)
-                                                            }
-                                                        }
-                                                        break;
-                                                }
+                                                @PolicyFormRegistry.Get(t.FormTemplateKey).RenderExisting(Html, Model, t)
                                             </div>
 
                                             @if (t.IsActive)

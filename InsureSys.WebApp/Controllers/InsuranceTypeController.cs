@@ -5,7 +5,6 @@ using InsuranceSys.Application.DTO;
 using InsuranceSys.Application.Interface;
 using InsuranceSys.Domain;
 using InsuranceSys.Domain.Entities;
-using InsuranceSys.Domain.Enums;
 using InsuranceSys.Domain.PolicyForms;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -191,41 +190,39 @@ namespace Insurancesys.web.Controllers
         /// </summary>
         private static void HydrateTemplateDefaults(InsuranceTypeViewModel model)
         {
-            var template = InsuranceTypeCodeExtensions.ResolveTemplate(model.InsuranceTypeCode, model.InsuranceTypeId);
-            if (string.IsNullOrWhiteSpace(model.InsuranceTypeCode))
-                model.InsuranceTypeCode = template.ToStoredKey();
-            else if (InsuranceTypeCodeExtensions.TryParseTemplate(model.InsuranceTypeCode, out var parsed))
-                model.InsuranceTypeCode = parsed.ToStoredKey();
-
+            var definition = PolicyFormCatalog.ResolveDefinition(model.InsuranceTypeCode, model.InsuranceTypeId);
+            model.InsuranceTypeCode = definition.Key;
             if (string.IsNullOrWhiteSpace(model.IconClass))
-                model.IconClass = template.GetDefaultIconClass();
+                model.IconClass = definition.DefaultIconClass;
         }
 
         private static void NormalizePostedTemplate(InsuranceTypeViewModel model)
         {
-            if (InsuranceTypeCodeExtensions.TryParseTemplate(model.InsuranceTypeCode, out var template))
-                model.InsuranceTypeCode = template.ToStoredKey();
+            if (PolicyFormCatalog.TryGet(model.InsuranceTypeCode, out var definition))
+                model.InsuranceTypeCode = definition.Key;
 
             if (string.IsNullOrWhiteSpace(model.IconClass))
                 model.IconClass = PolicyFormCatalog.DefaultIconClass;
         }
 
         /// <summary>
-        /// Blocks a second active Motor / Health / Life / Personal Accident assignment.
+        /// Blocks a second active specialized form template (Motor / Health / Life / Personal Accident).
         /// </summary>
         private async Task<bool> TryValidateSpecializedTemplateAsync(InsuranceTypeViewModel model)
         {
-            if (!InsuranceTypeCodeExtensions.TryParseTemplate(model.InsuranceTypeCode, out var template))
+            if (!PolicyFormCatalog.TryGet(model.InsuranceTypeCode, out var definition))
             {
                 ModelState.AddModelError(nameof(model.InsuranceTypeCode), "Select a valid form template.");
                 return false;
             }
 
+            model.InsuranceTypeCode = definition.Key;
+
             if (!model.IsActive.GetValueOrDefault())
                 return true;
 
             var excludeId = model.IsEditMode && model.InsuranceTypeId > 0 ? model.InsuranceTypeId : (int?)null;
-            var conflict = await _policyFormResolver.FindConflictingActiveSpecializedAsync(template, excludeId);
+            var conflict = await _policyFormResolver.FindConflictingActiveSpecializedAsync(definition.Key, excludeId);
             if (conflict is null)
                 return true;
 
@@ -233,7 +230,7 @@ namespace Insurancesys.web.Controllers
                 nameof(model.InsuranceTypeCode),
                 string.Format(
                     Constants.ErrorMessages.MsgSpecializedTemplateInUse,
-                    PolicyFormCatalog.GetTemplateDisplayName(template),
+                    definition.AdminDisplayName,
                     conflict.DisplayName));
             return false;
         }

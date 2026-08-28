@@ -1,12 +1,13 @@
 using AutoMapper;
 using Insurancesys.web.Helper;
 using Insurancesys.web.Models;
+using Insurancesys.web.PolicyForms;
 using Insurancesys.web.Utility;
 using InsuranceSys.Application.DTO;
 using InsuranceSys.Application.Interface;
 using InsuranceSys.Application.PolicyForms;
 using InsuranceSys.Domain.Entities;
-using InsuranceSys.Domain.Enums;
+using InsuranceSys.Domain.PolicyForms;
 using InsuranceSys.Infrastructure.Utility;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
@@ -21,13 +22,15 @@ namespace Insurancesys.web.Controllers
         ICustomerService customerService,
         IDropDownBinderService dropDownBinderService,
         IInsuranceTypeService insuranceTypeService,
-        IPolicyFormResolver policyFormResolver) : Controller
+        IPolicyFormResolver policyFormResolver,
+        IPolicyFormRegistry policyFormRegistry) : Controller
     {
         private readonly IMapper _mapper = mapper;
         private readonly ICustomerService _customerService = customerService;
         private readonly IDropDownBinderService _dropDownBinderService = dropDownBinderService;
         private readonly IInsuranceTypeService _insuranceTypeService = insuranceTypeService;
         private readonly IPolicyFormResolver _policyFormResolver = policyFormResolver;
+        private readonly IPolicyFormRegistry _policyFormRegistry = policyFormRegistry;
 
         [Route("Customers")]
         public IActionResult ListOfCustomers()
@@ -104,7 +107,7 @@ namespace Insurancesys.web.Controllers
                 await PopulateCountryStateDropdownsAsync(newModel);
                 return View("../Customer/AddEditCustomer", newModel);
             }
-            
+
             _ = int.TryParse(Cryptography.DecryptUtf16(id), out int customerId);
             if (customerId <= 0)
             {
@@ -162,9 +165,6 @@ namespace Insurancesys.web.Controllers
 
             if (model.SubmitType.Equals("customerwithpolicies", StringComparison.OrdinalIgnoreCase))
             {
-                // Use the stored deterministic token if available; fall back to
-                // generating one on the fly for existing customers that predate
-                // the EncryptedId column.
                 var cid = !string.IsNullOrEmpty(customer.EncryptedCustomerId)
                     ? customer.EncryptedCustomerId
                     : Cryptography.EncryptUtf16UrlSafe(Convert.ToString(customer.CustomerID));
@@ -211,29 +211,11 @@ namespace Insurancesys.web.Controllers
                 return View("CustomerPolicies", model);
             }
 
-            if (model.MotorPolicies != null && model.MotorPolicies.Count > 0)
-                await SaveMotorPoliciesAsync(model.CustomerID, model.MotorPolicies);
-
-            if (model.HealthPolicies != null && model.HealthPolicies.Count > 0)
-                await SaveHealthPoliciesAsync(customerId, model.HealthPolicies);
-
-            if (model.LifePolicies != null && model.LifePolicies.Count > 0)
-                await SaveLifePoliciesAsync(customerId, model.LifePolicies);
-
-            if (model.PersonalAccidentPolicies != null && model.PersonalAccidentPolicies.Count > 0)
-                await SavePersonalAccidentPoliciesAsync(customerId, model.PersonalAccidentPolicies);
-
-            if (model.StandardPolicies != null && model.StandardPolicies.Count > 0)
-                await SaveStandardPoliciesAsync(customerId, model.StandardPolicies);
-
-            //var savedCustomer = await _customerService.GetCustomerByIdAsync(model.CustomerID);
-            //var cid = !string.IsNullOrEmpty(savedCustomer?.EncryptedCustomerId)
-            //    ? savedCustomer!.EncryptedCustomerId!
-            //    : Cryptography.EncryptUtf16UrlSafe(Convert.ToString(model.CustomerID));
+            foreach (var handler in _policyFormRegistry.All)
+                await handler.SavePostedAsync(model, customerId);
 
             TempData["Message"] = "Policy details saved successfully.";
             TempData["RowsAffected"] = "1";
-            //return RedirectToAction(nameof(ListOfCustomers), new { cid });
             return RedirectToAction(nameof(ListOfCustomers));
         }
 
@@ -286,47 +268,25 @@ namespace Insurancesys.web.Controllers
             var basic = new PolicyBasicDetailsViewModel { InsuranceTypeID = insuranceTypeId };
             basic.CompanySelectList = await GetCompanySelectListAsync(basic.InsuranceTypeID, basic.Company);
 
-            return descriptor.Template switch
-            {
-                InsuranceTypeCode.MotorVehicle => PartialView(descriptor.PartialViewName, new MotorPolicyViewModel
-                {
-                    BasicDetails = basic,
-                    VehicleDetails = new PolicyVehicleDetailsViewModel()
-                }),
-                InsuranceTypeCode.Health => PartialView(descriptor.PartialViewName, new HealthPolicyViewModel
-                {
-                    BasicDetails = basic
-                }),
-                InsuranceTypeCode.Life => PartialView(descriptor.PartialViewName, new LifePolicyViewModel
-                {
-                    BasicDetails = basic
-                }),
-                InsuranceTypeCode.PersonalAccident => PartialView(descriptor.PartialViewName, new PersonalAccidentPolicyViewModel
-                {
-                    BasicDetails = basic
-                }),
-                _ => PartialView(descriptor.PartialViewName, new StandardPolicyViewModel
-                {
-                    BasicDetails = basic
-                })
-            };
+            var handler = _policyFormRegistry.Get(descriptor.FormTemplateKey);
+            return PartialView(descriptor.PartialViewName, handler.CreateBlankViewModel(basic));
         }
 
         [HttpGet]
         public Task<IActionResult> GetMotorPolicyPartial(int index, int policyNumber = 1) =>
-            GetLegacyTemplatePartialAsync(InsuranceTypeCode.MotorVehicle, index, policyNumber);
+            GetLegacyTemplatePartialAsync(PolicyFormCatalog.MotorVehicleKey, index, policyNumber);
 
         [HttpGet]
         public Task<IActionResult> GetHealthPolicyPartial(int index, int policyNumber = 1) =>
-            GetLegacyTemplatePartialAsync(InsuranceTypeCode.Health, index, policyNumber);
+            GetLegacyTemplatePartialAsync(PolicyFormCatalog.HealthKey, index, policyNumber);
 
         [HttpGet]
         public Task<IActionResult> GetLifePolicyPartial(int index, int policyNumber = 1) =>
-            GetLegacyTemplatePartialAsync(InsuranceTypeCode.Life, index, policyNumber);
+            GetLegacyTemplatePartialAsync(PolicyFormCatalog.LifeKey, index, policyNumber);
 
         [HttpGet]
         public Task<IActionResult> GetPersonalAccidentPolicyPartial(int index, int policyNumber = 1) =>
-            GetLegacyTemplatePartialAsync(InsuranceTypeCode.PersonalAccident, index, policyNumber);
+            GetLegacyTemplatePartialAsync(PolicyFormCatalog.PersonalAccidentKey, index, policyNumber);
 
         #endregion
 
@@ -338,7 +298,7 @@ namespace Insurancesys.web.Controllers
             if (model.IsEditMode && model.CustomerID > 0)
             {
                 customer.CustomerID = model.CustomerID;
-                await UpdateCustomerIdForEncryptedValue(customer.CustomerID); //remove this line lateron
+                await UpdateCustomerIdForEncryptedValue(customer.CustomerID);
                 return await _customerService.UpdateCustomerAsync(customer);
             }
 
@@ -349,288 +309,10 @@ namespace Insurancesys.web.Controllers
 
         private async Task UpdateCustomerIdForEncryptedValue(int customerId = 0)
         {
-            // Generate a deterministic encrypted token and persist it once.
-            // The same CustomerID always produces the same token, so it can
-            // be stored in the DB and reused in query-string links.
             if (customerId > 0)
             {
                 var encryptedId = Cryptography.EncryptUtf16UrlSafe(Convert.ToString(customerId));
                 await _customerService.UpdateEncryptedIdAsync(customerId, encryptedId);
-            }
-        }
-        private async Task SaveMotorPoliciesAsync(int customerId, List<MotorPolicyViewModel> motorPolicies)
-        {
-            foreach (var policyDto in motorPolicies)
-            {
-                var isExisting = policyDto.BasicDetails != null && policyDto.BasicDetails.PolicyId > 0;
-
-                var motorPolicy = new MotorPolicyViewModel
-                {
-                    BasicDetails = new PolicyBasicDetailsViewModel
-                    {
-                        CustomerID = customerId,
-                        PolicyId = policyDto.BasicDetails.PolicyId,
-                        InsuranceTypeID = await ResolvePostedInsuranceTypeIdAsync(policyDto.BasicDetails?.InsuranceTypeID, InsuranceTypeCode.MotorVehicle),
-                        PolicyNumber = policyDto.BasicDetails.PolicyNumber,
-                        PolicyStartDate = policyDto.BasicDetails.PolicyStartDate,
-                        PolicyDueDate = policyDto.BasicDetails.PolicyDueDate,
-                        Company = policyDto.BasicDetails.Company,
-                        GrosssPremium = policyDto.BasicDetails.GrosssPremium,
-                        NetPremium = policyDto.BasicDetails.NetPremium,
-                        ODPremium = policyDto.BasicDetails.ODPremium,
-                        NCB = policyDto.BasicDetails.NCB,
-                        Dealer = policyDto.BasicDetails.Dealer,
-                        SM = policyDto.BasicDetails.SM,
-                        CreatedOn = DateTime.UtcNow,
-                        UpdatedOn = DateTime.UtcNow,
-                        IsActive = true
-                    },
-                    VehicleDetails = policyDto.VehicleDetails,
-                    PolicyPaymentDetails = policyDto.PolicyPaymentDetails
-                };
-
-                var motorPolicyEntity = _mapper.Map<PolicyDetailsEntity>(motorPolicy.BasicDetails);
-                if (isExisting)
-                {
-                    await _customerService.UpdatePolicyDetailsAsync(motorPolicyEntity);
-                }
-                else
-                {
-                    motorPolicyEntity.PolicyId = await _customerService.AddPolicyDetails(motorPolicyEntity);
-                    motorPolicy.BasicDetails.PolicyId = motorPolicyEntity.PolicyId;
-                }
-
-                if (motorPolicyEntity.PolicyId > 0)
-                {
-                    await SaveVehicleDetailsAsync(motorPolicyEntity.PolicyId, motorPolicy.VehicleDetails);
-                    await SavePolicyPaymentDetailsAsync(motorPolicyEntity.PolicyId, motorPolicy.PolicyPaymentDetails);
-                }
-            }
-        }
-
-        private async Task SaveVehicleDetailsAsync(int policyId, PolicyVehicleDetailsViewModel? vehicleDetailsViewModel)
-        {
-            if (vehicleDetailsViewModel == null)
-                return;
-
-            var policyVehicleEntity = _mapper.Map<PolicyVehicleDetailsEntity>(vehicleDetailsViewModel);
-            if (policyId > 0 && policyVehicleEntity != null)
-            {
-                policyVehicleEntity.PolicyId = policyId;
-                var existing = await _customerService.GetVehicleDetailsByPollicyAsync(policyId);
-                if (existing != null)
-                    await _customerService.UpdateVehicleDetailsAsync(policyVehicleEntity);
-                else
-                    await _customerService.AddVehicleDetails(policyVehicleEntity);
-            }
-        }
-
-        private async Task SavePolicyPaymentDetailsAsync(int policyId, PolicyPaymentDetailsViewModel? paymentDetailsViewModel)
-        {
-            if (paymentDetailsViewModel == null)
-                return;
-
-            var paymentEntity = _mapper.Map<PolicyPaymentDetailsEntity>(paymentDetailsViewModel);
-            if (policyId > 0 && paymentEntity != null)
-            {
-                paymentEntity.PolicyId = policyId;
-                var existing = await _customerService.GetPolicyPaymentsByPollicyAsync(policyId);
-                if (existing != null)
-                    await _customerService.UpdatePolicyPaymentDetailsAsync(paymentEntity);
-                else
-                    await _customerService.AddPolicyPaymentDetails(paymentEntity);
-            }
-        }
-
-        private async Task SaveHealthPoliciesAsync(int customerId, List<HealthPolicyViewModel> healthPolicies)
-        {
-            foreach (var policyDto in healthPolicies)
-            {
-                var isExisting = policyDto.BasicDetails != null && policyDto.BasicDetails.PolicyId > 0;
-
-                var healthPolicy = new HealthPolicyViewModel
-                {
-                    BasicDetails = new PolicyBasicDetailsViewModel
-                    {
-                        CustomerID = customerId,
-                        PolicyId = policyDto.BasicDetails.PolicyId,
-                        InsuranceTypeID = await ResolvePostedInsuranceTypeIdAsync(policyDto.BasicDetails?.InsuranceTypeID, InsuranceTypeCode.Health),
-                        PolicyNumber = policyDto.BasicDetails.PolicyNumber,
-                        PolicyStartDate = policyDto.BasicDetails.PolicyStartDate,
-                        PolicyDueDate = policyDto.BasicDetails.PolicyDueDate,
-                        Company = policyDto.BasicDetails.Company,
-                        GrosssPremium = policyDto.BasicDetails.GrosssPremium,
-                        NetPremium = policyDto.BasicDetails.NetPremium,
-                        ODPremium = policyDto.BasicDetails.ODPremium,
-                        NCB = policyDto.BasicDetails.NCB,
-                        Dealer = policyDto.BasicDetails.Dealer,
-                        SM = policyDto.BasicDetails.SM,
-                        CreatedOn = DateTime.UtcNow,
-                        UpdatedOn = DateTime.UtcNow,
-                        IsActive = true
-                    },
-                    PolicyPaymentDetails = policyDto.PolicyPaymentDetails
-                };
-
-                var policyEntity = _mapper.Map<PolicyDetailsEntity>(healthPolicy.BasicDetails);
-                if (isExisting)
-                {
-                    await _customerService.UpdatePolicyDetailsAsync(policyEntity);
-                }
-                else
-                {
-                    policyEntity.PolicyId = await _customerService.AddPolicyDetails(policyEntity);
-                    healthPolicy.BasicDetails.PolicyId = policyEntity.PolicyId;
-                }
-
-                if (policyEntity.PolicyId > 0)
-                    await SavePolicyPaymentDetailsAsync(policyEntity.PolicyId, healthPolicy.PolicyPaymentDetails);
-            }
-        }
-
-        private async Task SaveLifePoliciesAsync(int customerId, List<LifePolicyViewModel> lifePolicies)
-        {
-            foreach (var policyDto in lifePolicies)
-            {
-                var isExisting = policyDto.BasicDetails != null && policyDto.BasicDetails.PolicyId > 0;
-
-                var lifePolicy = new LifePolicyViewModel
-                {
-                    BasicDetails = new PolicyBasicDetailsViewModel
-                    {
-                        CustomerID = customerId,
-                        PolicyId = policyDto.BasicDetails.PolicyId,
-                        InsuranceTypeID = await ResolvePostedInsuranceTypeIdAsync(policyDto.BasicDetails?.InsuranceTypeID, InsuranceTypeCode.Life),
-                        PolicyNumber = policyDto.BasicDetails.PolicyNumber,
-                        PolicyStartDate = policyDto.BasicDetails.PolicyStartDate,
-                        PolicyDueDate = policyDto.BasicDetails.PolicyDueDate,
-                        Company = policyDto.BasicDetails.Company,
-                        GrosssPremium = policyDto.BasicDetails.GrosssPremium,
-                        NetPremium = policyDto.BasicDetails.NetPremium,
-                        ODPremium = policyDto.BasicDetails.ODPremium,
-                        NCB = policyDto.BasicDetails.NCB,
-                        Dealer = policyDto.BasicDetails.Dealer,
-                        SM = policyDto.BasicDetails.SM,
-                        CreatedOn = DateTime.UtcNow,
-                        UpdatedOn = DateTime.UtcNow,
-                        IsActive = true
-                    },
-                    PolicyPaymentDetails = policyDto.PolicyPaymentDetails
-                };
-
-                var policyEntity = _mapper.Map<PolicyDetailsEntity>(lifePolicy.BasicDetails);
-                if (isExisting)
-                {
-                    await _customerService.UpdatePolicyDetailsAsync(policyEntity);
-                }
-                else
-                {
-                    policyEntity.PolicyId = await _customerService.AddPolicyDetails(policyEntity);
-                    lifePolicy.BasicDetails.PolicyId = policyEntity.PolicyId;
-                }
-
-                if (policyEntity.PolicyId > 0)
-                    await SavePolicyPaymentDetailsAsync(policyEntity.PolicyId, lifePolicy.PolicyPaymentDetails);
-            }
-        }
-
-        private async Task SavePersonalAccidentPoliciesAsync(int customerId, List<PersonalAccidentPolicyViewModel> personalAccidentPolicies)
-        {
-            foreach (var policyDto in personalAccidentPolicies)
-            {
-                var isExisting = policyDto.BasicDetails != null && policyDto.BasicDetails.PolicyId > 0;
-
-                var paPolicy = new PersonalAccidentPolicyViewModel
-                {
-                    BasicDetails = new PolicyBasicDetailsViewModel
-                    {
-                        CustomerID = customerId,
-                        PolicyId = policyDto.BasicDetails.PolicyId,
-                        InsuranceTypeID = await ResolvePostedInsuranceTypeIdAsync(policyDto.BasicDetails?.InsuranceTypeID, InsuranceTypeCode.PersonalAccident),
-                        PolicyNumber = policyDto.BasicDetails.PolicyNumber,
-                        PolicyStartDate = policyDto.BasicDetails.PolicyStartDate,
-                        PolicyDueDate = policyDto.BasicDetails.PolicyDueDate,
-                        Company = policyDto.BasicDetails.Company,
-                        GrosssPremium = policyDto.BasicDetails.GrosssPremium,
-                        NetPremium = policyDto.BasicDetails.NetPremium,
-                        ODPremium = policyDto.BasicDetails.ODPremium,
-                        NCB = policyDto.BasicDetails.NCB,
-                        Dealer = policyDto.BasicDetails.Dealer,
-                        SM = policyDto.BasicDetails.SM,
-                        CreatedOn = DateTime.UtcNow,
-                        UpdatedOn = DateTime.UtcNow,
-                        IsActive = true
-                    },
-                    PolicyPaymentDetails = policyDto.PolicyPaymentDetails
-                };
-
-                var policyEntity = _mapper.Map<PolicyDetailsEntity>(paPolicy.BasicDetails);
-                if (isExisting)
-                {
-                    await _customerService.UpdatePolicyDetailsAsync(policyEntity);
-                }
-                else
-                {
-                    policyEntity.PolicyId = await _customerService.AddPolicyDetails(policyEntity);
-                    paPolicy.BasicDetails.PolicyId = policyEntity.PolicyId;
-                }
-
-                if (policyEntity.PolicyId > 0)
-                    await SavePolicyPaymentDetailsAsync(policyEntity.PolicyId, paPolicy.PolicyPaymentDetails);
-            }
-        }
-
-        private async Task SaveStandardPoliciesAsync(int customerId, List<StandardPolicyViewModel> standardPolicies)
-        {
-            foreach (var policyDto in standardPolicies)
-            {
-                if (policyDto.BasicDetails == null)
-                    continue;
-
-                var typeId = policyDto.BasicDetails.InsuranceTypeID;
-                var descriptor = await _policyFormResolver.ResolveAsync(typeId);
-                if (descriptor is null || !descriptor.IsStandardBucket)
-                    continue;
-
-                var isExisting = policyDto.BasicDetails.PolicyId > 0;
-
-                var copy = new StandardPolicyViewModel
-                {
-                    BasicDetails = new PolicyBasicDetailsViewModel
-                    {
-                        CustomerID = customerId,
-                        PolicyId = policyDto.BasicDetails.PolicyId,
-                        InsuranceTypeID = typeId,
-                        PolicyNumber = policyDto.BasicDetails.PolicyNumber,
-                        PolicyStartDate = policyDto.BasicDetails.PolicyStartDate,
-                        PolicyDueDate = policyDto.BasicDetails.PolicyDueDate,
-                        Company = policyDto.BasicDetails.Company,
-                        GrosssPremium = policyDto.BasicDetails.GrosssPremium,
-                        NetPremium = policyDto.BasicDetails.NetPremium,
-                        ODPremium = policyDto.BasicDetails.ODPremium,
-                        NCB = policyDto.BasicDetails.NCB,
-                        Dealer = policyDto.BasicDetails.Dealer,
-                        SM = policyDto.BasicDetails.SM,
-                        CreatedOn = DateTime.UtcNow,
-                        UpdatedOn = DateTime.UtcNow,
-                        IsActive = true
-                    },
-                    PolicyPaymentDetails = policyDto.PolicyPaymentDetails
-                };
-
-                var policyEntity = _mapper.Map<PolicyDetailsEntity>(copy.BasicDetails);
-                if (isExisting)
-                {
-                    await _customerService.UpdatePolicyDetailsAsync(policyEntity);
-                }
-                else
-                {
-                    policyEntity.PolicyId = await _customerService.AddPolicyDetails(policyEntity);
-                    copy.BasicDetails.PolicyId = policyEntity.PolicyId;
-                }
-
-                if (policyEntity.PolicyId > 0)
-                    await SavePolicyPaymentDetailsAsync(policyEntity.PolicyId, copy.PolicyPaymentDetails);
             }
         }
 
@@ -662,50 +344,13 @@ namespace Insurancesys.web.Controllers
                     continue;
 
                 var descriptor = _policyFormResolver.FromEntity(typeEntity);
-
-                switch (descriptor.Template)
+                var handler = _policyFormRegistry.Get(descriptor.FormTemplateKey);
+                await handler.AppendLoadedPolicyAsync(model, new PolicyFormLoadContext
                 {
-                    case InsuranceTypeCode.MotorVehicle:
-                        {
-                            var vehicle = await _customerService.GetVehicleDetailsByPollicyAsync(policy.PolicyId);
-                            var vehicleVm = vehicle != null ? _mapper.Map<PolicyVehicleDetailsViewModel>(vehicle) : null;
-                            model.MotorPolicies.Add(new MotorPolicyViewModel
-                            {
-                                BasicDetails = basicDetails,
-                                VehicleDetails = vehicleVm,
-                                PolicyPaymentDetails = paymentVm
-                            });
-                            break;
-                        }
-                    case InsuranceTypeCode.Health:
-                        model.HealthPolicies.Add(new HealthPolicyViewModel
-                        {
-                            BasicDetails = basicDetails,
-                            PolicyPaymentDetails = paymentVm
-                        });
-                        break;
-                    case InsuranceTypeCode.Life:
-                        model.LifePolicies.Add(new LifePolicyViewModel
-                        {
-                            BasicDetails = basicDetails,
-                            PolicyPaymentDetails = paymentVm
-                        });
-                        break;
-                    case InsuranceTypeCode.PersonalAccident:
-                        model.PersonalAccidentPolicies.Add(new PersonalAccidentPolicyViewModel
-                        {
-                            BasicDetails = basicDetails,
-                            PolicyPaymentDetails = paymentVm
-                        });
-                        break;
-                    default:
-                        model.StandardPolicies.Add(new StandardPolicyViewModel
-                        {
-                            BasicDetails = basicDetails,
-                            PolicyPaymentDetails = paymentVm
-                        });
-                        break;
-                }
+                    BasicDetails = basicDetails,
+                    Payment = paymentVm,
+                    PolicyId = policy.PolicyId
+                });
             }
 
             return model;
@@ -740,56 +385,8 @@ namespace Insurancesys.web.Controllers
 
         private async Task RepopulatePolicyDropdownsAsync(PolicyDetailsViewModel model)
         {
-            if (model.MotorPolicies != null)
-            {
-                foreach (var p in model.MotorPolicies)
-                {
-                    if (p.BasicDetails == null) continue;
-                    var typeId = p.BasicDetails.InsuranceTypeID;
-                    if (typeId <= 0) continue;
-                    p.BasicDetails.CompanySelectList = await GetCompanySelectListAsync(typeId, p.BasicDetails.Company);
-                }
-            }
-            if (model.HealthPolicies != null)
-            {
-                foreach (var p in model.HealthPolicies)
-                {
-                    if (p.BasicDetails == null) continue;
-                    var typeId = p.BasicDetails.InsuranceTypeID;
-                    if (typeId <= 0) continue;
-                    p.BasicDetails.CompanySelectList = await GetCompanySelectListAsync(typeId, p.BasicDetails.Company);
-                }
-            }
-            if (model.LifePolicies != null)
-            {
-                foreach (var p in model.LifePolicies)
-                {
-                    if (p.BasicDetails == null) continue;
-                    var typeId = p.BasicDetails.InsuranceTypeID;
-                    if (typeId <= 0) continue;
-                    p.BasicDetails.CompanySelectList = await GetCompanySelectListAsync(typeId, p.BasicDetails.Company);
-                }
-            }
-            if (model.PersonalAccidentPolicies != null)
-            {
-                foreach (var p in model.PersonalAccidentPolicies)
-                {
-                    if (p.BasicDetails == null) continue;
-                    var typeId = p.BasicDetails.InsuranceTypeID;
-                    if (typeId <= 0) continue;
-                    p.BasicDetails.CompanySelectList = await GetCompanySelectListAsync(typeId, p.BasicDetails.Company);
-                }
-            }
-            if (model.StandardPolicies != null)
-            {
-                foreach (var p in model.StandardPolicies)
-                {
-                    if (p.BasicDetails == null) continue;
-                    var typeId = p.BasicDetails.InsuranceTypeID;
-                    if (typeId <= 0) continue;
-                    p.BasicDetails.CompanySelectList = await GetCompanySelectListAsync(typeId, p.BasicDetails.Company);
-                }
-            }
+            foreach (var handler in _policyFormRegistry.All)
+                await handler.RepopulateDropdownsAsync(model, GetCompanySelectListAsync);
         }
 
         private async Task<List<InsuranceTypePolicyGridItemViewModel>> BuildInsuranceTypesForGridAsync()
@@ -817,21 +414,10 @@ namespace Insurancesys.web.Controllers
             return list;
         }
 
-        /// <summary>
-        /// Uses the posted master id when present; otherwise the single active type for that template.
-        /// </summary>
-        private async Task<int> ResolvePostedInsuranceTypeIdAsync(int? postedInsuranceTypeId, InsuranceTypeCode template)
+        /// <summary>Legacy wrapper endpoints resolve by template key, never by hardcoded identity.</summary>
+        private async Task<IActionResult> GetLegacyTemplatePartialAsync(string templateKey, int index, int policyNumber)
         {
-            if (postedInsuranceTypeId.GetValueOrDefault() > 0)
-                return postedInsuranceTypeId!.Value;
-
-            return await _policyFormResolver.GetActiveInsuranceTypeIdByTemplateAsync(template) ?? 0;
-        }
-
-        /// <summary>Legacy wrapper endpoints resolve by template, never by hardcoded identity.</summary>
-        private async Task<IActionResult> GetLegacyTemplatePartialAsync(InsuranceTypeCode template, int index, int policyNumber)
-        {
-            var insuranceTypeId = await _policyFormResolver.GetActiveInsuranceTypeIdByTemplateAsync(template);
+            var insuranceTypeId = await _policyFormResolver.GetActiveInsuranceTypeIdByTemplateKeyAsync(templateKey);
             if (insuranceTypeId is null or <= 0)
                 return BadRequest("No active insurance type is configured for this form.");
 
@@ -852,40 +438,15 @@ namespace Insurancesys.web.Controllers
             var active = await _insuranceTypeService.GetActiveInsuranceTypeIdsAsync();
             var ok = true;
 
-            void Check(PolicyBasicDetailsViewModel? b)
+            foreach (var handler in _policyFormRegistry.All)
             {
-                if (b == null || b.InsuranceTypeID <= 0)
-                    return;
-                if (b.PolicyId > 0)
-                    return;
-                if (!active.Contains(b.InsuranceTypeID))
-                    ok = false;
-            }
-
-            if (model.MotorPolicies != null)
-            {
-                foreach (var p in model.MotorPolicies)
-                    Check(p.BasicDetails);
-            }
-            if (model.HealthPolicies != null)
-            {
-                foreach (var p in model.HealthPolicies)
-                    Check(p.BasicDetails);
-            }
-            if (model.LifePolicies != null)
-            {
-                foreach (var p in model.LifePolicies)
-                    Check(p.BasicDetails);
-            }
-            if (model.PersonalAccidentPolicies != null)
-            {
-                foreach (var p in model.PersonalAccidentPolicies)
-                    Check(p.BasicDetails);
-            }
-            if (model.StandardPolicies != null)
-            {
-                foreach (var p in model.StandardPolicies)
-                    Check(p.BasicDetails);
+                foreach (var basic in handler.EnumeratePostedBasics(model))
+                {
+                    if (basic.InsuranceTypeID <= 0 || basic.PolicyId > 0)
+                        continue;
+                    if (!active.Contains(basic.InsuranceTypeID))
+                        ok = false;
+                }
             }
 
             return ok;
@@ -901,7 +462,6 @@ namespace Insurancesys.web.Controllers
                 Selected = model.CountryID.HasValue && x.Value == model.CountryID.Value.ToString()
             }).ToList();
 
-            // Backfill IDs from old string storage when editing legacy rows.
             if (!model.CountryID.HasValue && !string.IsNullOrWhiteSpace(model.Country))
             {
                 var selectedCountry = countries.FirstOrDefault(x => string.Equals(x.Value, model.Country, StringComparison.OrdinalIgnoreCase));
