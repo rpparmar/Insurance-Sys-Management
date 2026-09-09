@@ -12,12 +12,16 @@ namespace InsuranceSys.Domain
         {
             public const string MsgUpdateSuccess = "Record updated successfully";
             public const string MsgInsertSuccess = "Record saved successfully";
+            public const string MsgPasswordChanged = "Password changed successfully";
         }
         public static class ErrorMessages
         {
             public const string MsgUpdateFailure = "Record not updated,something went wrong";
             public const string MsgInsertFailure = "Record not saved,something went wrong";
             public const string MsgSpecializedTemplateInUse = "The {0} form is already assigned to '{1}'. Deactivate that type or choose a different form template.";
+            public const string MsgCurrentPasswordIncorrect = "Current password is incorrect";
+            public const string MsgPasswordChangeFailed = "Unable to update password. Please sign in again.";
+            public const string MsgNewPasswordSameAsOld = "New password must be different from the current password";
         }
         public static class AlertMessages
         {

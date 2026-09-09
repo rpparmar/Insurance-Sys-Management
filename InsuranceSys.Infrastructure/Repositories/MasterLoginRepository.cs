@@ -1,4 +1,5 @@
 using InsuranceSys.Application.Interface;
+using InsuranceSys.Domain;
 using InsuranceSys.Domain.Entities;
 using InsuranceSys.Infrastructure.Database;
 using InsuranceSys.Infrastructure.Utility;
@@ -39,6 +40,37 @@ namespace InsuranceSys.Infrastructure.Repositories
                 user.LastLoginAtUtc = DateTime.UtcNow;
                 await _masterDb.SaveChangesAsync();
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<(bool Success, string Message)> ChangePasswordAsync(
+            int userId,
+            string currentPassword,
+            string newPassword)
+        {
+            if (userId <= 0
+                || string.IsNullOrWhiteSpace(currentPassword)
+                || string.IsNullOrWhiteSpace(newPassword))
+            {
+                return (false, Constants.ErrorMessages.MsgPasswordChangeFailed);
+            }
+
+            var user = await _masterDb.AgencyUsers
+                .FirstOrDefaultAsync(u => u.UserId == userId && !u.IsDeleted);
+
+            if (user is null || !user.IsActive)
+                return (false, Constants.ErrorMessages.MsgPasswordChangeFailed);
+
+            if (!PasswordHasher.VerifyPassword(currentPassword, user.PasswordHash, user.PasswordSalt))
+                return (false, Constants.ErrorMessages.MsgCurrentPasswordIncorrect);
+
+            var (hash, salt) = PasswordHasher.HashPassword(newPassword);
+            user.PasswordHash = hash;
+            user.PasswordSalt = salt;
+            user.UpdatedAtUtc = DateTime.UtcNow;
+
+            await _masterDb.SaveChangesAsync();
+            return (true, Constants.SuccessMessages.MsgPasswordChanged);
         }
     }
 }
