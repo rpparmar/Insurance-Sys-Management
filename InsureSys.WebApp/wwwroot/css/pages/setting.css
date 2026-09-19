@@ -1,27 +1,41 @@
-.accordion.accordion-solid .card {
-    border: 1px solid #ddd !important;
-    border-bottom: 1px solid #ddd !important;
-    border-radius: 0.5rem !important;
+#settingsPage .settings-shell {
+    background-color: #ffffff;
+    border: 0;
+    box-shadow: none;
 }
 
-.accordion .card .card-header {
-    cursor: default;
+#settingsPage .sticky-search-row {
+    margin-bottom: 0;
 }
 
-.sticky-search-row {
-    margin-bottom: 1rem;
+#settingsPage .sticky-search-row .card.card-custom {
+    box-shadow: none;
+    border: 0;
+    background-color: transparent;
 }
 
-.sticky-search-row .card-header .input-icon {
+#settingsPage .sticky-search-row .card-header {
+    border-bottom: 1px solid #ECF0F3;
+}
+
+#settingsPage .sticky-search-row .card-header .input-icon {
     min-width: 260px;
 }
 
-.setting-left-nav {
+#settingsPage .settings-body {
+    min-height: 480px;
+}
+
+#settingsPage .setting-left-col {
+    border-right: 1px solid #ECF0F3;
+}
+
+#settingsPage .setting-left-nav {
     position: sticky;
     top: 140px;
 }
 
-.leftpan-anchor {
+#settingsPage .leftpan-anchor {
     display: flex;
     align-items: center;
     padding: 10px 15px;
@@ -32,34 +46,44 @@
     font-weight: 500;
 }
 
-.leftpan-anchor .navi-icon {
+#settingsPage .leftpan-anchor .navi-icon {
     margin-right: 10px;
     color: #999;
 }
 
-.leftpan-anchor.active {
+#settingsPage .leftpan-anchor.active {
     background-color: #f4f8ff;
     border-left: 3px solid #3a8eff;
     color: #3a8eff;
 }
 
-.leftpan-anchor.active .navi-icon {
+#settingsPage .leftpan-anchor.active .navi-icon {
     color: #3a8eff;
 }
 
-.js-setting-item.setting-item-highlight {
+#settingsPage .setting-division-title {
+    color: #3f4254;
+}
+
+#settingsPage .js-setting-item.setting-item-highlight {
     background-color: #f4f8ff;
     border-radius: 0.42rem;
     outline: 1px solid #e1f0ff;
 }
 
 @media (max-width: 991.98px) {
-    .setting-left-nav {
-        position: static;
+    #settingsPage .setting-left-col {
+        border-right: 0;
+        border-bottom: 1px solid #ECF0F3;
         margin-bottom: 1rem;
     }
 
-    .sticky-search-row .card-header .input-icon {
+    #settingsPage .setting-left-nav {
+        position: static;
+        margin-bottom: 0.5rem;
+    }
+
+    #settingsPage .sticky-search-row .card-header .input-icon {
         min-width: 0;
         width: 100%;
     }

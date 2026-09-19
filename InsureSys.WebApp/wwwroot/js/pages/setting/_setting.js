@@ -56,10 +56,12 @@
             const self = this;
             const query = (rawQuery || '').trim().toLowerCase();
             const $items = this.$page.find('.js-setting-item');
+            const $divisions = this.$page.find('.js-setting-division');
 
             if (!query) {
                 $items.removeClass(HIGHLIGHT_CLASS).show();
-                this.$sections.closest('.card').show();
+                $divisions.show();
+                this.$sections.show();
                 this.$navLinks.closest('.navi-item').show();
                 this.$emptyState.addClass('d-none');
                 this.scrollToSection(this.$sections.first());
@@ -75,12 +77,18 @@
                 $item.toggleClass(HIGHLIGHT_CLASS, isMatch);
             });
 
+            $divisions.each(function () {
+                const $division = $(this);
+                const hasMatch = $division.find('.js-setting-item:visible').length > 0;
+                $division.toggle(hasMatch);
+            });
+
             const matchingSectionIds = [];
             this.$sections.each(function () {
                 const $section = $(this);
                 const sectionId = $section.attr('id');
                 const hasMatch = $section.find('.js-setting-item:visible').length > 0;
-                $section.closest('.card').toggle(hasMatch);
+                $section.toggle(hasMatch);
                 self.getNavItem(sectionId).toggle(hasMatch);
 
                 if (hasMatch && sectionId) {
@@ -122,10 +130,7 @@
         },
 
         updateActiveSectionByScroll: function () {
-            const $visibleSections = this.$sections.filter(function () {
-                return $(this).closest('.card').is(':visible');
-            });
-
+            const $visibleSections = this.$sections.filter(':visible');
             const scrollTop = $(window).scrollTop();
             const windowHeight = $(window).height();
             let maxVisibleHeight = 0;
@@ -151,7 +156,7 @@
         },
 
         scrollToSection: function ($section) {
-            if (!$section || !$section.length) {
+            if (!$section || !$section.length || !$section.is(':visible')) {
                 return;
             }
 
