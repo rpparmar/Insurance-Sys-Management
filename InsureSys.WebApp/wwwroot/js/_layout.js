@@ -7,4 +7,23 @@ jQuery(window).on('load', function () {
     $parent_div.show();
     let $most_parent_li = $parent_div.closest('li');
     $most_parent_li.addClass('menu-item-here menu-item-open');
+    refreshAsideMenuScroll();
 });
+
+jQuery(window).on('resize', function () {
+    refreshAsideMenuScroll();
+});
+
+/**
+ * Recalculates aside menu scroll after the pinned logout footer takes space.
+ */
+function refreshAsideMenuScroll() {
+    if (typeof KTLayoutAsideMenu === 'undefined' || !KTLayoutAsideMenu.getMenu) {
+        return;
+    }
+
+    const menu = KTLayoutAsideMenu.getMenu();
+    if (menu && typeof menu.scrollUpdate === 'function') {
+        menu.scrollUpdate();
+    }
+}
