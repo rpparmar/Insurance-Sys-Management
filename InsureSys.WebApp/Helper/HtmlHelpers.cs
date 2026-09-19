@@ -207,6 +207,75 @@ namespace Insurancesys.web.Helper
             return formGroupRow;
         }
 
+        /// <summary>
+        /// Optional constraints for an accordion numeric input.
+        /// </summary>
+        public sealed class AccordianNumberOptions
+        {
+            public bool IsRequired { get; set; }
+            public string Placeholder { get; set; } = string.Empty;
+            public int? Min { get; set; }
+            public int? Max { get; set; }
+            public string Step { get; set; } = "1";
+        }
+
+        /// <summary>
+        /// Renders a labeled numeric input using the accordion form-group layout.
+        /// </summary>
+        /// <param name="htmlHelper">The current HTML helper.</param>
+        /// <param name="label">Visible field label.</param>
+        /// <param name="forExpression">Model expression name used for input binding.</param>
+        /// <param name="options">Optional min/max, step, and required settings.</param>
+        public static IHtmlContent AccordianBaseNumberBox(this IHtmlHelper htmlHelper, string label, string forExpression, AccordianNumberOptions? options = null)
+        {
+            ArgumentNullException.ThrowIfNull(htmlHelper);
+            ArgumentException.ThrowIfNullOrWhiteSpace(label);
+            ArgumentException.ThrowIfNullOrWhiteSpace(forExpression);
+
+            options ??= new AccordianNumberOptions();
+
+            var labelContent = new TagBuilder("label");
+            labelContent.InnerHtml.Append(label);
+            labelContent.AddCssClass("col-form-label");
+            if (options.IsRequired)
+                labelContent.AddCssClass("required");
+
+            var htmlAttributes = new Dictionary<string, object>
+            {
+                ["class"] = "form-control",
+                ["type"] = "number",
+                ["inputmode"] = "numeric",
+                ["placeholder"] = options.Placeholder
+            };
+
+            if (options.Min.HasValue)
+                htmlAttributes["min"] = options.Min.Value;
+
+            if (options.Max.HasValue)
+                htmlAttributes["max"] = options.Max.Value;
+
+            if (!string.IsNullOrWhiteSpace(options.Step))
+                htmlAttributes["step"] = options.Step;
+
+            var inputContent = htmlHelper.TextBox(forExpression, null, htmlAttributes);
+
+            var inputColumn = new TagBuilder("div");
+            inputColumn.AddCssClass("col-md-4 col-xs-12");
+            inputColumn.InnerHtml.AppendHtml(inputContent);
+            inputColumn.InnerHtml.AppendHtml(htmlHelper.ValidationMessage(forExpression, null, new { @class = "text-danger" }));
+
+            var labelColumn = new TagBuilder("div");
+            labelColumn.AddCssClass("col-md-5 col-xs-12 text-md-right");
+            labelColumn.InnerHtml.AppendHtml(labelContent);
+
+            var formGroupRow = new TagBuilder("div");
+            formGroupRow.AddCssClass("form-group row");
+            formGroupRow.InnerHtml.AppendHtml(labelColumn);
+            formGroupRow.InnerHtml.AppendHtml(inputColumn);
+
+            return formGroupRow;
+        }
+
         public sealed class AccordianTextBoxWithTooltipOptions
         {
             public bool IsRequired { get; set; }
